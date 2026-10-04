@@ -314,19 +314,41 @@ textarea { min-height: 96px; resize: vertical; }
 @media (max-width: 860px) { .peta-wrap { grid-template-columns: 1fr; } #peta { height: 340px; } .sastrawan-list { max-height: 300px; } }
 
 /* ---------- Lagu ---------- */
-.lagu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+/* Song Card */
+.lagu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .lagu-kartu {
-  text-align: left; cursor: pointer; background: var(--kartu); border: 2px solid var(--garis); border-radius: 16px;
-  padding: 16px; font: inherit; color: var(--teks); display: flex; flex-direction: column; gap: 4px; position: relative;
-  transition: transform .15s;
+  text-align: left; cursor: pointer; background: #FFF5FB; border: 2px solid #F3D9EC; border-radius: 22px;
+  padding: 14px 14px 16px; font: inherit; color: var(--teks); display: flex; flex-direction: column; gap: 2px;
+  box-shadow: 0 10px 26px rgba(219, 39, 119, .12); transition: transform .15s, box-shadow .15s;
 }
-@media (hover: hover) { .lagu-kartu:hover { transform: translateY(-3px); } }
-.lagu-kartu.aktif { border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-muda); }
-.lagu-kartu .judul { font: 700 1.1rem var(--font-judul); color: var(--ungu-tua); }
-.lagu-kartu .penyanyi { font-size: .85rem; color: var(--teks-pudar); }
-.lagu-kartu .status { position: absolute; top: 10px; right: 12px; font-size: 1.1rem; }
+@media (hover: hover) { .lagu-kartu:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(219, 39, 119, .2); } }
+.lagu-kartu:active { transform: scale(.98); }
+.lagu-kartu.aktif { border-color: var(--pink); box-shadow: 0 0 0 4px var(--pink-muda), 0 10px 26px rgba(219, 39, 119, .2); }
+.lagu-kartu .sampul {
+  position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 16px; overflow: hidden; margin-bottom: 12px;
+}
+.lagu-kartu .sampul img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lagu-kartu .sampul-ikon { font-size: 3.6rem; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .25)); }
+.lagu-no {
+  position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(255, 255, 255, .92); color: var(--ungu-tua); border-radius: 999px; padding: 3px 10px;
+  font: 700 .75rem var(--font-isi); box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+}
+.lagu-status {
+  position: absolute; bottom: 12px; left: 10px; border-radius: 999px; padding: 3px 9px; font: 700 .7rem var(--font-isi);
+}
+.lagu-status.benar { background: var(--hijau); color: #fff; }
+.lagu-status.kosong { background: rgba(36, 19, 63, .75); color: #fff; }
+.lagu-ikon {
+  position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, #C026D3, var(--pink)); font-size: 1.35rem; box-shadow: 0 6px 14px rgba(192, 38, 211, .4);
+}
+.lagu-kartu .judul { font: 700 1.2rem/1.25 var(--font-judul); color: var(--ungu-tua); }
+.lagu-kartu .penyanyi { font-size: .9rem; font-weight: 500; color: #8E6AA8; }
+.lagu-kaki { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 10px; font-size: .75rem; color: #A78BBE; }
+.lagu-kaki b { color: var(--pink); font-size: .85rem; white-space: nowrap; }
+.lagu-kartu.belum-siap .sampul { filter: saturate(.7); }
 @media (max-width: 960px) { .lagu-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 420px) { .lagu-grid { grid-template-columns: 1fr; } }
 .player { aspect-ratio: 16/9; width: 100%; border: 0; border-radius: 14px; background: #000; }
 .player-kosong {
   display: grid; place-items: center; gap: 10px; text-align: center; aspect-ratio: 16/9; border-radius: 14px;
@@ -581,14 +603,22 @@ textarea { min-height: 96px; resize: vertical; }
   }
   .aksi-lekat .btn { width: 100%; }
 
-  /* Daftar lagu: chip yang bisa digeser ke samping. */
+  /* Daftar lagu: Song Card digeser ke samping. */
   .lagu-grid {
-    position: relative; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 10px;
-    margin-inline: -16px; padding: 4px 16px 10px; scrollbar-width: none;
+    position: relative; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+    margin-inline: -16px; padding: 4px 16px 14px; scrollbar-width: none;
   }
   .lagu-grid::-webkit-scrollbar { display: none; }
-  .lagu-kartu { flex: 0 0 auto; width: 168px; scroll-snap-align: start; padding: 12px 14px; }
-  .lagu-kartu .judul { font-size: 1rem; line-height: 1.2; padding-right: 18px; }
+  .lagu-kartu { flex: 0 0 auto; width: 46vw; max-width: 200px; scroll-snap-align: start; padding: 10px 10px 12px; border-radius: 18px; }
+  .lagu-kartu .sampul { border-radius: 12px; margin-bottom: 8px; }
+  .lagu-kartu .sampul-ikon { font-size: 2.6rem; }
+  .lagu-ikon { width: 38px; height: 38px; font-size: 1.05rem; right: 8px; bottom: 8px; }
+  .lagu-no { top: 8px; left: 8px; font-size: .68rem; padding: 2px 8px; }
+  .lagu-status { bottom: 10px; left: 8px; font-size: .62rem; }
+  .lagu-kartu .judul { font-size: 1rem; }
+  .lagu-kartu .penyanyi { font-size: .8rem; }
+  .lagu-kaki .petunjuk { display: none; }
+  .lagu-kaki { justify-content: flex-end; padding-top: 6px; }
   .kutipan { font-size: 1.15rem; padding: 12px 14px; }
   #identifikasi { margin-top: 16px !important; }
   .detail-grid h3 { font-size: 1.15rem; }

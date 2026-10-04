@@ -73,83 +73,106 @@ const MAJAS = [
   },
 ];
 
-// Daftar lagu. Satu lagu mewakili satu majas (majasId harus sama dengan id di MAJAS).
-// CATATAN UNTUK GURU: kutipan lirik sengaja dibuat pendek untuk keperluan
-// pembelajaran. Mohon cocokkan kembali dengan lirik resmi sebelum dipakai di kelas.
-// youtubeId: isi dengan ID video YouTube (teks setelah "v=" pada URL video).
-// Jika dikosongkan, halaman akan menampilkan tombol "Cari di YouTube".
+// Daftar lagu (urutan = urutan kartu "Lagu 1, Lagu 2, …" di halaman Daftar Lagu).
+// CATATAN UNTUK GURU:
+// - kutipan : potongan lirik pendek (1–2 baris) yang mengandung majas.
+// - majasId : jenis majasnya, harus salah satu id di MAJAS di atas
+//             (personifikasi, metafora, simile, hiperbola, repetisi, ironi, antitesis, sinekdoke).
+// - makna   : makna lirik untuk kunci jawaban diskusi & kepingan puzzle.
+// Lagu yang kutipan/majasId-nya masih kosong tetap tampil, tetapi belum bisa
+// dipakai untuk tebak majas dan puzzle (ditandai "Lirik belum diisi").
+// Mohon cocokkan kutipan dengan lirik resmi sebelum dipakai di kelas.
+// - youtubeId : ID video YouTube (teks setelah "v=" pada URL video). Kosong = tombol "Cari di YouTube".
+// - cover     : gambar sampul (opsional), misalnya 'img/teh-hijau.jpg'. Kosong = warna + ikon.
+// - ikon      : emoji pada lingkaran kecil di kartu.
 const LAGU = [
   {
-    id: 'berita-kepada-kawan',
-    judul: 'Berita kepada Kawan',
-    penyanyi: 'Ebiet G. Ade',
+    id: 'teh-hijau',
+    judul: 'Teh Hijau',
+    penyanyi: 'Tulus',
+    ikon: '🍵',
+    cover: '',
     youtubeId: '',
-    kutipan: 'Coba kita bertanya pada rumput yang bergoyang',
+    kutipan: 'Di tengah seram sedih yang menghantamku',
     majasId: 'personifikasi',
-    makna: 'Rumput dianggap bisa menjawab seperti manusia. Lirik ini mengajak kita merenungkan sebab bencana dan perbuatan manusia terhadap alam.',
+    makna: 'Rasa sedih digambarkan seperti sosok yang bisa "menghantam" layaknya manusia. Kesedihan datang tiba-tiba dan terasa berat, lalu secangkir teh hijau di tangan menjadi penenang di masa sulit.',
+  },
+  {
+    id: 'ada-titik-titik-di-ujung-doa',
+    judul: 'Ada Titik Titik di Ujung Doa',
+    penyanyi: 'Sal Priadi',
+    ikon: '📝',
+    cover: '',
+    youtubeId: '',
+    kutipan: 'Ingat hatiku dihancurkan jadi berkeping-keping',
+    majasId: 'hiperbola',
+    makna: 'Rasa sakit hati dilebih-lebihkan seolah hati benar-benar pecah berkeping-keping. Kini ia belajar memaafkan dan perlahan memulihkan dirinya.',
   },
   {
     id: 'laskar-pelangi',
     judul: 'Laskar Pelangi',
     penyanyi: 'Nidji',
+    ikon: '🌈',
+    cover: '',
     youtubeId: '',
     kutipan: 'Mimpi adalah kunci untuk kita menaklukkan dunia',
     majasId: 'metafora',
     makna: 'Mimpi diibaratkan kunci yang membuka jalan menuju keberhasilan. Kita diajak berani bermimpi dan berusaha meraihnya.',
   },
   {
-    id: 'ibu',
-    judul: 'Ibu',
-    penyanyi: 'Iwan Fals',
+    id: 'bertaut',
+    judul: 'Bertaut',
+    penyanyi: 'Nadin Amizah',
+    ikon: '🌸',
+    cover: '',
     youtubeId: '',
-    kutipan: 'Seperti udara, kasih yang engkau berikan, tak mampu ku membalas',
+    kutipan: 'Bun, hidup berjalan seperti bajingan / Seperti landak yang tak punya teman',
     majasId: 'simile',
-    makna: 'Kasih ibu disamakan dengan udara: selalu ada, sangat dibutuhkan, dan tidak bisa dibalas sepenuhnya oleh anaknya.',
+    makna: 'Hidup disamakan dengan "bajingan" dan "landak yang tak punya teman" memakai kata pembanding "seperti": terasa kejam dan sepi. Sang anak mengadu kepada ibunya tentang beratnya hidup.',
   },
   {
-    id: 'sampai-jadi-debu',
-    judul: 'Sampai Jadi Debu',
-    penyanyi: 'Banda Neira',
+    id: 'mbg',
+    judul: 'MBG',
+    penyanyi: 'Maman Fvndy Remix',
+    ikon: '😄',
+    cover: '',
     youtubeId: '',
-    kutipan: 'Selamanya, sampai kita tua, sampai jadi debu',
-    majasId: 'hiperbola',
-    makna: 'Janji kesetiaan dibuat berlebihan, bahkan sampai tubuh menjadi debu, untuk menunjukkan betapa kuat dan abadinya cinta.',
+    kutipan: 'My little bolu ketan',
+    majasId: 'metafora',
+    makna: 'Seseorang langsung disebut "bolu ketan" sebagai panggilan gemas: manis dan lembut seperti kue. Majas ternyata juga muncul di lagu jenaka yang viral di media sosial.',
   },
   {
-    id: 'bendera',
-    judul: 'Bendera',
-    penyanyi: 'Cokelat',
+    id: 'arungi',
+    judul: 'Arungi',
+    penyanyi: 'Romantic Echoes',
+    ikon: '🎺',
+    cover: '',
     youtubeId: '',
-    kutipan: 'Merah putih teruslah kau berkibar … merah putih teruslah kau berkibar',
-    majasId: 'repetisi',
-    makna: 'Pengulangan seruan kepada bendera menegaskan rasa cinta tanah air dan tekad untuk terus menjaga kehormatan bangsa.',
-  },
-  {
-    id: 'bento',
-    judul: 'Bento',
-    penyanyi: 'Iwan Fals',
-    youtubeId: '',
-    kutipan: 'Orang memanggilku bos eksekutif, tokoh papan atas, atas segalanya, asik!',
-    majasId: 'ironi',
-    makna: 'Tokoh Bento tampak membanggakan dirinya, padahal lirik ini menyindir orang kaya dan berkuasa yang serakah serta tidak peduli pada rakyat kecil.',
-  },
-  {
-    id: 'sepatu',
-    judul: 'Sepatu',
-    penyanyi: 'Tulus',
-    youtubeId: '',
-    kutipan: 'Aku sang sepatu kanan, kamu sang sepatu kiri',
+    kutipan: 'Rasa sedih bahagia',
     majasId: 'antitesis',
-    makna: 'Pasangan kata kanan–kiri menunjukkan dua orang yang selalu berdampingan tetapi berbeda, sehingga sulit untuk bersatu.',
+    makna: 'Dua perasaan yang berlawanan, sedih dan bahagia, hadir bersamaan dalam perjalanan hidup bersama ibu yang berjuang membesarkan anaknya.',
   },
   {
-    id: 'garuda-di-dadaku',
-    judul: 'Garuda di Dadaku',
-    penyanyi: 'Netral',
+    id: 'hati-hati-di-jalan',
+    judul: 'Hati-Hati di Jalan',
+    penyanyi: 'Tulus',
+    ikon: '💙',
+    cover: '',
     youtubeId: '',
-    kutipan: 'Garuda di dadaku, Garuda kebanggaanku, ku yakin hari ini pasti menang',
-    majasId: 'sinekdoke',
-    makna: '"Garuda", lambang seluruh bangsa, dipakai untuk menyebut tim nasional yang bertanding (totum pro parte). Lirik ini membangkitkan semangat dan kebanggaan pada tim Indonesia.',
+    kutipan: 'Kukira kita asam dan garam, dan kita bertemu di belanga',
+    majasId: 'metafora',
+    makna: 'Dua orang diibaratkan asam dan garam yang ditakdirkan bertemu di belanga (dari peribahasa). Ternyata harapan itu keliru: mereka tidak berjodoh dan harus berpisah.',
+  },
+  {
+    id: 'everything-u-are',
+    judul: 'Everything u are',
+    penyanyi: 'Hindia',
+    ikon: '🕊️',
+    cover: '',
+    youtubeId: '',
+    kutipan: 'Kita hampir mati dan kau selamatkan aku',
+    majasId: 'hiperbola',
+    makna: 'Beratnya cobaan hidup dilebih-lebihkan seakan hampir mati. Kehadiran orang tersayang menjadi penyelamat yang menerima kita apa adanya.',
   },
 ];
 

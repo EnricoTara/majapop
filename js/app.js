@@ -84,6 +84,15 @@ function majasById(id) {
   return MAJAS.find((m) => m.id === id);
 }
 
+// Lagu siap dimainkan jika kutipan lirik dan jenis majasnya sudah diisi guru.
+function laguSiap(l) {
+  return Boolean(l.kutipan && l.kutipan.trim() && majasById(l.majasId));
+}
+
+function daftarLaguSiap() {
+  return LAGU.filter(laguSiap);
+}
+
 function toast(pesan) {
   let el = document.querySelector('.toast');
   if (!el) {

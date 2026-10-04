@@ -40,10 +40,15 @@ function formatWaktu(detik) {
 function renderIntro() {
   const state = loadState();
   document.getElementById('info-waktu').textContent =
-    `⏱️ Waktu bermain: ${Math.round(PENGATURAN.waktuPuzzleDetik / 60)} menit · ${PENGATURAN.jumlahBarisPuzzle} baris majas.`;
+    `⏱️ Waktu bermain: ${Math.round(PENGATURAN.waktuPuzzleDetik / 60)} menit · ${jumlahBarisTersedia()} baris majas.`;
   document.getElementById('hasil-lalu').textContent = state.puzzle
     ? `🏆 Hasil terakhir: ${state.puzzle.skor} poin (${state.puzzle.benar}/${state.puzzle.total} kepingan benar).`
     : '';
+}
+
+function jumlahBarisTersedia() {
+  const jenis = new Set(daftarLaguSiap().map((l) => l.majasId));
+  return Math.min(PENGATURAN.jumlahBarisPuzzle, jenis.size);
 }
 
 function labelTipe(tipe) {
@@ -52,13 +57,19 @@ function labelTipe(tipe) {
 
 // ---------- Mulai permainan ----------
 function mulai() {
-  const tersedia = MAJAS.filter((m) => LAGU.some((l) => l.majasId === m.id));
+  // Hanya lagu yang kutipan & majasnya sudah diisi; satu baris = satu jenis majas.
+  const laguSiapList = daftarLaguSiap();
+  const tersedia = MAJAS.filter((m) => laguSiapList.some((l) => l.majasId === m.id));
+  if (!tersedia.length) {
+    toast('Belum ada lagu dengan kutipan lirik. Guru perlu mengisinya di js/data.js.');
+    return;
+  }
   const jumlahBaris = Math.min(PENGATURAN.jumlahBarisPuzzle, tersedia.length);
   const terpilih = acak(tersedia).slice(0, jumlahBaris);
 
   const kepingan = [];
   terpilih.forEach((m) => {
-    const l = acak(LAGU.filter((x) => x.majasId === m.id))[0];
+    const l = acak(laguSiapList.filter((x) => x.majasId === m.id))[0];
     kepingan.push(
       { tipe: 'jenis', majas: m.id, teks: m.jenis },
       { tipe: 'penjelasan', majas: m.id, teks: m.penjelasan },

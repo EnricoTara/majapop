@@ -60,10 +60,11 @@
     cekTim(document.getElementById('banner-tim'));
     const state = loadState();
     const d = (id) => state.lagu[id] || {};
-    const benar = LAGU.filter((l) => d(l.id).benar);
+    const siap = daftarLaguSiap();
+    const benar = siap.filter((l) => d(l.id).benar);
     const pertama = benar.filter((l) => d(l.id).percobaan === 1).length;
 
-    document.getElementById('r-identifikasi').textContent = `${benar.length}/${LAGU.length}`;
+    document.getElementById('r-identifikasi').textContent = `${benar.length}/${siap.length}`;
     document.getElementById('r-pertama').textContent = pertama;
     document.getElementById('r-puzzle').textContent = state.puzzle ? state.puzzle.skor : '–';
     document.getElementById('r-cipta').textContent = state.ciptaan.length;
@@ -82,7 +83,7 @@
       'Peran:',
       peranTeks,
       '',
-      `Identifikasi majas : ${benar.length}/${LAGU.length} (tepat di tebakan pertama: ${pertama})`,
+      `Identifikasi majas : ${benar.length}/${siap.length} (tepat di tebakan pertama: ${pertama})`,
       'Makna lirik menurut kelompok:',
       maknaTeks,
       '',
