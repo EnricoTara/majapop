@@ -1,0 +1,16 @@
+{
+  "name": "MajaPOP! – Belajar Majas Lewat Lagu",
+  "short_name": "MajaPOP!",
+  "description": "Jelajahi majas melalui lagu POP kesukaanmu dan mainkan puzzle pintar.",
+  "lang": "id",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF8EC",
+  "theme_color": "#FFF8EC",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

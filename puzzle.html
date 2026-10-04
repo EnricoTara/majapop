@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Papan Puzzle – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="stepper" data-aktif="puzzle"></div>
+    <div id="banner-tim"></div>
+
+    <section class="halaman-judul">
+      <span class="label-atas">Langkah 4</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Papan Puzzle 🧩</h1>
+      <p>Susun rangkaian potongan puzzle secara tepat! Setiap baris berisi satu majas: <strong>jenis majas</strong>, <strong>penjelasan majas</strong>, <strong>kutipan lirik</strong>, dan <strong>makna lirik</strong>.</p>
+    </section>
+
+    <!-- Layar awal -->
+    <section id="intro" class="kartu">
+      <h3>Aturan main</h3>
+      <ol style="margin:0 0 16px;padding-left:1.2em">
+        <li>Seret kepingan dari baki ke papan. Di HP/tablet, kalian juga bisa <strong>ketuk kepingan, lalu ketuk kotaknya</strong>.</li>
+        <li>Setiap kolom hanya menerima kepingan dengan warna yang sama.</li>
+        <li>Kepingan <strong>Jenis Majas</strong> menjadi kunci baris. Pasangkan tiga kepingan lain yang cocok di baris yang sama.</li>
+        <li>Tekan <strong>Periksa</strong>: kepingan yang benar terkunci, yang salah kembali ke baki (−2 poin).</li>
+        <li>Setiap kepingan benar bernilai 10 poin. Jika selesai sebelum waktu habis, sisa waktu menjadi bonus!</li>
+      </ol>
+      <p id="info-waktu" class="kecil"></p>
+      <p id="hasil-lalu" class="kecil"></p>
+      <button class="btn" id="mulai">▶ Mulai Puzzle</button>
+    </section>
+
+    <!-- Arena permainan -->
+    <section id="arena" hidden>
+      <div class="puzzle-info">
+        <div class="aksi">
+          <div class="waktu" id="waktu" aria-live="polite">05:00</div>
+          <div class="hitung"><span class="hitung-ikon" aria-hidden="true">✓ </span><strong id="hitung-benar">0</strong>/<span id="hitung-total">16</span><span class="label-benar"> kepingan benar</span><span class="kecil" id="info-peran"></span></div>
+        </div>
+        <div class="aksi">
+          <button class="btn btn-toska" id="periksa">✔ Periksa</button>
+          <button class="btn btn-garis" id="selesai">Selesai</button>
+        </div>
+      </div>
+      <div class="legenda puzzle-legenda">
+        <span style="--c:var(--pink)">Jenis Majas</span>
+        <span style="--c:var(--ungu)">Penjelasan Majas</span>
+        <span style="--c:var(--toska)">Kutipan Lirik</span>
+        <span style="--c:var(--oranye)">Makna Lirik</span>
+      </div>
+      <div class="papan-kepala" style="margin-top:16px">
+        <span>Jenis Majas</span><span>Penjelasan Majas</span><span>Kutipan Lirik</span><span>Makna Lirik</span>
+      </div>
+      <div class="papan" id="papan" style="margin-top:8px"></div>
+      <h3 class="judul-baki" style="margin-top:24px;margin-bottom:0">Baki kepingan</h3>
+      <div class="baki-wrap" id="baki-wrap">
+        <div class="baki-atas">
+          <div class="baki-tab" id="baki-tab" role="tablist" aria-label="Saring kepingan"></div>
+          <button type="button" class="btn btn-kecil btn-garis baki-kembali" id="baki-kembali" hidden>↩ Kembalikan ke baki</button>
+        </div>
+        <div class="baki" id="baki" data-tab-aktif="semua"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Hasil -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-judul">
+    <div class="modal-isi">
+      <div class="besar" id="modal-ikon">🏆</div>
+      <h2 id="modal-judul" style="margin-top:8px">Puzzle Selesai!</h2>
+      <div class="skor-angka" id="modal-skor">0</div>
+      <p class="kecil" style="margin:0">poin</p>
+      <div class="statistik">
+        <div><b id="modal-benar">0</b><small>kepingan benar</small></div>
+        <div><b id="modal-waktu">0:00</b><small>sisa waktu</small></div>
+        <div><b id="modal-salah">0</b><small>kesalahan</small></div>
+      </div>
+      <div class="aksi">
+        <button class="btn btn-garis" id="main-lagi">↻ Main lagi</button>
+        <a class="btn" href="cipta.html">Lanjut Cipta Majas →</a>
+      </div>
+    </div>
+  </div>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/puzzle.js"></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Unggah Hasil – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="stepper" data-aktif="unggah"></div>
+    <div id="banner-tim"></div>
+
+    <section class="halaman-judul">
+      <span class="label-atas">Langkah 6</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Unggah Hasil Belajar 📤</h1>
+      <p>Unggah hasil belajar yang telah kalian lakukan. Salin ringkasan di bawah, lalu tempelkan ke Google Form.</p>
+    </section>
+
+    <div class="ringkasan-grid">
+      <div class="kartu"><b id="r-identifikasi">0/8</b><span class="kecil">majas teridentifikasi</span></div>
+      <div class="kartu"><b id="r-pertama">0</b><span class="kecil">tepat di tebakan pertama</span></div>
+      <div class="kartu"><b id="r-puzzle">–</b><span class="kecil">skor puzzle</span></div>
+      <div class="kartu"><b id="r-cipta">0</b><span class="kecil">majas buatan</span></div>
+    </div>
+
+    <div class="kartu">
+      <label for="ringkasan">Ringkasan hasil belajar</label>
+      <textarea id="ringkasan" class="ringkasan-teks" readonly></textarea>
+      <div class="aksi aksi-penuh" style="margin-top:14px">
+        <button class="btn btn-ungu" id="salin">📋 Salin ringkasan</button>
+        <a class="btn" id="ke-form" href="#" target="_blank" rel="noopener">📤 Buka Google Form</a>
+      </div>
+      <p class="kecil" id="form-catatan" style="margin-top:12px" hidden>⚠️ Tautan Google Form belum diatur. Guru dapat menggantinya di <code>js/data.js</code> (googleFormUrl).</p>
+    </div>
+
+    <div class="tengah" style="margin-top:36px">
+      <p class="kecil">Ingin bermain lagi dengan kelompok lain?</p>
+      <button class="btn btn-garis" id="reset">↻ Main lagi dari awal</button>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    cekTim(document.getElementById('banner-tim'));
+    const state = loadState();
+    const d = (id) => state.lagu[id] || {};
+    const benar = LAGU.filter((l) => d(l.id).benar);
+    const pertama = benar.filter((l) => d(l.id).percobaan === 1).length;
+
+    document.getElementById('r-identifikasi').textContent = `${benar.length}/${LAGU.length}`;
+    document.getElementById('r-pertama').textContent = pertama;
+    document.getElementById('r-puzzle').textContent = state.puzzle ? state.puzzle.skor : '–';
+    document.getElementById('r-cipta').textContent = state.ciptaan.length;
+
+    const peranTeks = PERAN.map((p) => `- ${p.label}: ${state.peran[p.id] || '-'}`).join('\n');
+    const maknaTeks = LAGU.filter((l) => (d(l.id).makna || '').trim())
+      .map((l) => `- ${l.judul} (${l.penyanyi}): ${d(l.id).makna.trim()}`).join('\n') || '- (belum ada)';
+    const ciptaTeks = state.ciptaan
+      .map((c, i) => `${i + 1}. [${majasById(c.majasId)?.jenis || c.majasId} · ${c.tema}] ${c.kalimat}`).join('\n') || '(belum ada)';
+    const p = state.puzzle;
+
+    document.getElementById('ringkasan').value = [
+      'HASIL BELAJAR MAJAPOP!',
+      `Kelompok : ${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''}`,
+      `Anggota  : ${state.anggota.join(', ') || '-'}`,
+      'Peran:',
+      peranTeks,
+      '',
+      `Identifikasi majas : ${benar.length}/${LAGU.length} (tepat di tebakan pertama: ${pertama})`,
+      'Makna lirik menurut kelompok:',
+      maknaTeks,
+      '',
+      p ? `Puzzle : ${p.skor} poin, ${p.benar}/${p.total} kepingan benar, ${p.salah} kesalahan, sisa waktu ${Math.floor(p.sisaWaktu / 60)}:${String(p.sisaWaktu % 60).padStart(2, '0')}`
+        : 'Puzzle : belum dimainkan',
+      '',
+      'Majas buatan kelompok:',
+      ciptaTeks,
+    ].join('\n');
+
+    document.getElementById('salin').addEventListener('click', async () => {
+      const teks = document.getElementById('ringkasan').value;
+      try {
+        await navigator.clipboard.writeText(teks);
+      } catch (e) {
+        const ta = document.getElementById('ringkasan');
+        ta.select();
+        document.execCommand('copy');
+      }
+      toast('📋 Ringkasan disalin! Tempelkan di Google Form.');
+    });
+
+    const formUrl = PENGATURAN.googleFormUrl;
+    const formBelumDiatur = !formUrl || formUrl.includes('GANTI_DENGAN');
+    const keForm = document.getElementById('ke-form');
+    if (formBelumDiatur) document.getElementById('form-catatan').hidden = false;
+    else keForm.href = formUrl;
+    keForm.addEventListener('click', (e) => {
+      if (formBelumDiatur) { e.preventDefault(); toast('Tautan Google Form belum diatur oleh guru.'); return; }
+      tandaiSelesai('unggah');
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      if (confirm('Hapus semua progres kelompok ini dan mulai dari awal?')) {
+        resetState();
+        location.href = 'masuk.html';
+      }
+    });
+  </script>
+</body>
+</html>

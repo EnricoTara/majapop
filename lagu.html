@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Daftar Lagu – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="stepper" data-aktif="putar"></div>
+    <div id="banner-tim"></div>
+
+    <section class="halaman-judul">
+      <span class="label-atas">Langkah 2 &amp; 3</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Putar Lagu &amp; Identifikasi Majas 🎧</h1>
+      <p>Pilih lagu, putar, dan perhatikan kutipan liriknya. Tebak jenis majasnya, lalu diskusikan maknanya bersama kelompok.</p>
+    </section>
+
+    <div class="kartu" style="padding:16px 20px;margin-bottom:20px">
+      <div class="aksi" style="justify-content:space-between;margin-bottom:8px">
+        <strong id="progres-teks">0/8 majas teridentifikasi</strong>
+        <span class="kecil" id="progres-pertama"></span>
+      </div>
+      <div class="progres-bar"><span id="progres-isi" style="width:0"></span></div>
+    </div>
+
+    <div class="lagu-grid" id="lagu-grid"></div>
+
+    <section id="identifikasi" style="margin-top:32px"></section>
+
+    <div id="lanjut" class="banner" hidden style="margin-top:28px">
+      <span>🎉 Hebat! Semua majas sudah teridentifikasi. Saatnya menyusun puzzle!</span>
+      <a class="btn btn-kecil" href="puzzle.html">Lanjut Susun Puzzle →</a>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/lagu.js"></script>
+</body>
+</html>

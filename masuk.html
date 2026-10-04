@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Bagi Tim – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="stepper" data-aktif="tim"></div>
+
+    <section class="halaman-judul">
+      <span class="label-atas">Langkah 1</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Bagi Tim 👥</h1>
+      <p>Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.</p>
+    </section>
+
+    <form id="form-tim" class="kartu" novalidate>
+      <div class="dua-kolom">
+        <div class="field">
+          <label for="tim">Nama kelompok</label>
+          <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
+        </div>
+        <div class="field">
+          <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
+          <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Anggota kelompok</label>
+        <div id="anggota-list"></div>
+        <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
+      </div>
+
+      <div class="field">
+        <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
+          <label style="margin:0">Pembagian peran</label>
+          <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
+        </div>
+        <div class="peran-grid" id="peran-grid"></div>
+      </div>
+
+      <div class="aksi aksi-lekat" style="justify-content:flex-end">
+        <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
+      </div>
+    </form>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const state = loadState();
+    const listEl = document.getElementById('anggota-list');
+    const peranEl = document.getElementById('peran-grid');
+    document.getElementById('tim').value = state.tim;
+    document.getElementById('kelas').value = state.kelas;
+
+    function barisAnggota(nama = '') {
+      const div = document.createElement('div');
+      div.className = 'anggota-baris';
+      div.innerHTML = `<input type="text" maxlength="40" placeholder="Nama anggota" value="${esc(nama)}">
+        <button type="button" class="btn-hapus" aria-label="Hapus anggota">✕</button>`;
+      div.querySelector('input').addEventListener('input', () => renderPeran());
+      div.querySelector('.btn-hapus').addEventListener('click', () => {
+        if (listEl.children.length > 1) { div.remove(); renderPeran(); }
+      });
+      listEl.appendChild(div);
+    }
+
+    function daftarAnggota() {
+      return [...listEl.querySelectorAll('input')].map((i) => i.value.trim()).filter(Boolean);
+    }
+
+    function renderPeran(pilihan) {
+      const anggota = daftarAnggota();
+      const sekarang = pilihan || Object.fromEntries(PERAN.map((p) => [p.id, peranEl.querySelector(`#peran-${p.id}`)?.value || '']));
+      peranEl.innerHTML = PERAN.map((p) => `
+        <div class="peran-kartu">
+          <label for="peran-${p.id}">${p.ikon} ${p.label}</label>
+          <select id="peran-${p.id}">
+            <option value="">— pilih anggota —</option>
+            ${anggota.map((a) => `<option ${a === sekarang[p.id] ? 'selected' : ''}>${esc(a)}</option>`).join('')}
+          </select>
+        </div>`).join('');
+    }
+
+    (state.anggota.length ? state.anggota : ['', '', '', '']).forEach((a) => barisAnggota(a));
+    renderPeran(state.peran);
+
+    document.getElementById('tambah-anggota').addEventListener('click', () => {
+      barisAnggota();
+      listEl.lastElementChild.querySelector('input').focus();
+    });
+
+    // Bagi peran seimbang: anggota diacak lalu dibagikan bergiliran.
+    document.getElementById('acak-peran').addEventListener('click', () => {
+      const anggota = acak(daftarAnggota());
+      if (!anggota.length) { toast('Tulis nama anggota dulu ya!'); return; }
+      const hasil = {};
+      PERAN.forEach((p, i) => { hasil[p.id] = anggota[i % anggota.length]; });
+      renderPeran(hasil);
+    });
+
+    document.getElementById('form-tim').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const tim = document.getElementById('tim').value.trim();
+      const anggota = daftarAnggota();
+      if (!tim) { toast('Nama kelompok belum diisi.'); document.getElementById('tim').focus(); return; }
+      if (!anggota.length) { toast('Isi minimal satu nama anggota.'); return; }
+      const peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
+      if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
+      updateState((s) => {
+        s.tim = tim;
+        s.kelas = document.getElementById('kelas').value.trim();
+        s.anggota = anggota;
+        s.peran = peran;
+      });
+      tandaiSelesai('tim');
+      location.href = 'lagu.html';
+    });
+  </script>
+</body>
+</html>

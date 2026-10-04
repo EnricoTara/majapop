@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Cipta Majas – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div id="stepper" data-aktif="cipta"></div>
+    <div id="banner-tim"></div>
+
+    <section class="halaman-judul">
+      <span class="label-atas">Langkah 5</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Isi Potongan Puzzle ✍️</h1>
+      <p>Pilih kepingan puzzle dan isi dengan kalimat majas buatanmu! Ciptakan majas baru yang mencerminkan diri kalian: tentang identitas, isu sosial, emosi, atau perspektif orang lain.</p>
+    </section>
+
+    <h3>1. Pilih kepingan jenis majas</h3>
+    <div class="pilih-keping" id="pilih-keping"></div>
+
+    <form id="form-cipta" class="kartu" style="margin-top:24px" hidden>
+      <div id="petunjuk-majas" class="umpan" style="background:var(--ungu-muda);margin:0 0 18px"></div>
+      <div class="dua-kolom">
+        <div class="field">
+          <label for="tema">2. Tema</label>
+          <select id="tema">
+            <option>Identitas</option>
+            <option>Isu sosial</option>
+            <option>Emosi</option>
+            <option>Perspektif orang lain</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="kalimat">3. Tulis kalimat majas buatanmu</label>
+        <textarea id="kalimat" maxlength="300" placeholder="Tulis kalimat majasmu di sini…"></textarea>
+      </div>
+      <div class="aksi" style="justify-content:flex-end">
+        <button type="submit" class="btn">🧩 Pasang Kepingan</button>
+      </div>
+    </form>
+
+    <section style="margin-top:36px">
+      <h3>Kepingan majas buatan kelompok</h3>
+      <div class="ciptaan-list" id="ciptaan-list"></div>
+    </section>
+
+    <div class="aksi" style="justify-content:center;margin-top:32px">
+      <a class="btn" id="ke-unggah" href="unggah.html">Lanjut Unggah Hasil →</a>
+    </div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/cipta.js"></script>
+</body>
+</html>
