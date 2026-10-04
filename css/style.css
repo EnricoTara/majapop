@@ -355,6 +355,11 @@ textarea { min-height: 96px; resize: vertical; }
   background: linear-gradient(135deg, var(--ungu), var(--pink)); color: #fff; padding: 20px;
 }
 .player-kosong .besar { font-size: 3rem; line-height: 1; }
+/* Sampul album sebagai latar player, digelapkan agar teks tetap terbaca. */
+.player-kosong.ada-sampul {
+  background-position: center; background-size: cover; background-repeat: no-repeat;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 @media (max-width: 860px) { .detail-grid { grid-template-columns: 1fr; } }
 .kutipan {

@@ -60,8 +60,12 @@ function playerHtml(l) {
       title="${esc(l.judul)} – ${esc(l.penyanyi)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
   }
   const cari = encodeURIComponent(`${l.judul} ${l.penyanyi}`);
-  return `<div class="player-kosong">
-    <div><div class="besar">${l.ikon || '🎵'}</div>
+  // url() ditulis langsung di style elemen agar path relatif terhadap halaman, bukan terhadap file CSS.
+  const latar = l.cover
+    ? ` ada-sampul" style="background-image:linear-gradient(rgba(36,19,63,.55),rgba(36,19,63,.75)),url('${encodeURI(l.cover)}')`
+    : '';
+  return `<div class="player-kosong${latar}">
+    <div><div class="besar">${l.cover ? '🎧' : l.ikon || '🎵'}</div>
     <p style="margin:8px 0 14px"><strong>${esc(l.judul)}</strong><br>${esc(l.penyanyi)}</p>
     <a class="btn btn-kuning btn-kecil" href="https://www.youtube.com/results?search_query=${cari}" target="_blank" rel="noopener">▶ Cari di YouTube</a></div>
   </div>`;
