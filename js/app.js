@@ -34,7 +34,8 @@ const PERAN = [
 
 // ---------- State ----------
 function stateAwal() {
-  return { tim: '', kelas: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [] };
+  // sesi: { kode, kelompokId } jika kelompok bergabung ke Sesi Kelas (lihat js/sesi.js).
+  return { tim: '', kelas: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null };
 }
 
 function loadState() {
@@ -47,6 +48,8 @@ function loadState() {
 
 function saveState(state) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* abaikan */ }
+  // Kirim progress ke dashboard guru jika kelompok tergabung dalam Sesi Kelas.
+  if (state.sesi && typeof SESI !== 'undefined') SESI.kirimProgress(state);
 }
 
 function updateState(fn) {
@@ -162,6 +165,7 @@ function renderFooter() {
     <div class="container">
       <p><strong>MajaPOP!</strong> Ketika Lagu dan Puzzle Lebih dari Sekadar Hiburan</p>
       <p class="kecil">Media belajar majas dalam puisi melalui lagu pop dan puzzle interaktif.</p>
+      <p class="kecil"><a class="link-guru" href="guru.html">Untuk guru → Dashboard Sesi Kelas</a></p>
     </div>`;
 }
 

@@ -4,14 +4,15 @@
 // - Google Fonts & Leaflet: pakai cache dulu.
 // - YouTube dan gambar peta tidak disimpan.
 // Naikkan nomor versi jika daftar file INTI berubah.
-const CACHE = 'majapop-v1';
+const CACHE = 'majapop-v2';
 
 const INTI = [
   './',
   'index.html', 'masuk.html', 'emodul.html', 'pemantik.html',
-  'lagu.html', 'puzzle.html', 'cipta.html', 'unggah.html',
+  'lagu.html', 'puzzle.html', 'cipta.html', 'unggah.html', 'guru.html',
   'css/style.css',
   'js/data.js', 'js/app.js', 'js/lagu.js', 'js/puzzle.js', 'js/cipta.js', 'js/pemantik.js',
+  'js/firebase-config.js', 'js/sesi.js', 'js/guru.js',
   'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
 ];
@@ -49,7 +50,10 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  if (/^(fonts\.googleapis\.com|fonts\.gstatic\.com|unpkg\.com)$/.test(url.hostname)) {
+  // Pustaka dari CDN (font, peta, Firebase SDK, QR) disimpan agar cepat dibuka lagi.
+  // Koneksi database Firebase sendiri (firebaseio.com / firebasedatabase.app) tidak di-cache.
+  if (/^(fonts\.googleapis\.com|fonts\.gstatic\.com|unpkg\.com|cdnjs\.cloudflare\.com)$/.test(url.hostname)
+    || (url.hostname === 'www.gstatic.com' && url.pathname.startsWith('/firebasejs/'))) {
     e.respondWith(caches.match(req).then((r) => r || fetch(req).then((res) => simpan(req, res))));
   }
 });

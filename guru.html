@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#FFF8EC">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MajaPOP!">
+  <title>Dashboard Guru – MajaPOP!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="halaman-guru">
+  <header id="site-header"></header>
+
+  <main class="container">
+    <section class="halaman-judul">
+      <span class="label-atas">Untuk Guru</span>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Dashboard Sesi Kelas 📡</h1>
+      <p>Pantau progress setiap kelompok secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
+    </section>
+
+    <!-- Firebase belum diatur -->
+    <section id="belum-aktif" class="kartu" hidden>
+      <h3>Fitur Sesi Kelas belum diaktifkan</h3>
+      <p>Fitur ini membutuhkan Firebase (gratis, tanpa kartu kredit). Ikuti panduan di bagian <strong>"Mengaktifkan Sesi Kelas"</strong> pada file README, lalu isi <code>js/firebase-config.js</code>.</p>
+      <p class="kecil" style="margin:0">Tanpa fitur ini, MajaPOP tetap bisa dimainkan seperti biasa.</p>
+    </section>
+
+    <!-- Mulai sesi -->
+    <section id="layar-mulai" class="kartu" hidden>
+      <h3>Mulai sesi baru</h3>
+      <div class="field">
+        <label for="nama-kelas">Nama kelas <span class="kecil">(opsional)</span></label>
+        <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
+      </div>
+      <div class="aksi">
+        <button class="btn" id="mulai-sesi">▶ Mulai Sesi &amp; Buat Kode</button>
+        <button class="btn btn-garis" id="buka-lagi" hidden></button>
+      </div>
+    </section>
+
+    <!-- Sesi berjalan -->
+    <section id="layar-sesi" hidden>
+      <div class="sesi-atas kartu">
+        <div class="kode-box">
+          <span class="kode-label">Kode sesi</span>
+          <b id="kode-besar">0000</b>
+          <span class="status-sesi" id="status-sesi">● Aktif</span>
+        </div>
+        <div id="qr" class="qr" aria-label="QR code untuk bergabung"></div>
+        <div class="cara-gabung">
+          <h3>Cara bergabung</h3>
+          <ol>
+            <li>Pindai QR, atau buka <b id="alamat-web">enricotara.github.io/majapop</b></li>
+            <li>Pilih <b>Bagi Tim</b></li>
+            <li>Masukkan kode <b id="kode-kecil">0000</b>, nama kelompok, dan anggota</li>
+          </ol>
+          <p class="kecil" id="info-kelas" style="margin:0"></p>
+        </div>
+      </div>
+
+      <div class="papan-alat">
+        <h2 style="margin:0">Peringkat <span class="kecil" id="jumlah-kelompok"></span></h2>
+        <div class="aksi">
+          <button class="btn btn-kecil btn-garis" id="layar-penuh">⛶ Layar penuh</button>
+          <button class="btn btn-kecil btn-ungu" id="unduh-csv">⬇ Unduh rekap</button>
+          <button class="btn btn-kecil" id="akhiri-sesi">⏹ Akhiri sesi</button>
+          <button class="btn btn-kecil btn-kuning" id="sesi-baru" hidden>＋ Sesi baru</button>
+        </div>
+      </div>
+      <div id="papan-peringkat" class="papan-peringkat" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/sesi.js"></script>
+  <script src="js/guru.js"></script>
+</body>
+</html>

@@ -29,6 +29,12 @@
     </section>
 
     <form id="form-tim" class="kartu" novalidate>
+      <div class="field kode-sesi" id="field-kode" hidden>
+        <label for="kode">📡 Kode sesi dari guru <span class="kecil">(opsional)</span></label>
+        <input type="text" id="kode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Contoh: 4821" autocomplete="off">
+        <p class="kecil" style="margin:6px 0 0">Isi kode 4 angka yang ditampilkan guru agar progress kelompokmu muncul di layar kelas. Kosongkan jika bermain sendiri.</p>
+      </div>
+
       <div class="dua-kolom">
         <div class="field">
           <label for="tim">Nama kelompok</label>
@@ -64,12 +70,23 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/sesi.js"></script>
   <script>
     const state = loadState();
     const listEl = document.getElementById('anggota-list');
     const peranEl = document.getElementById('peran-grid');
     document.getElementById('tim').value = state.tim;
     document.getElementById('kelas').value = state.kelas;
+
+    // Kode sesi: tampil hanya jika fitur Sesi Kelas aktif. Bisa terisi otomatis dari link guru (?kode=1234).
+    const kodeEl = document.getElementById('kode');
+    if (SESI.aktif()) {
+      document.getElementById('field-kode').hidden = false;
+      const dariLink = new URLSearchParams(location.search).get('kode');
+      kodeEl.value = (dariLink && /^\d{4}$/.test(dariLink)) ? dariLink : (state.sesi ? state.sesi.kode : '');
+      kodeEl.addEventListener('input', () => { kodeEl.value = kodeEl.value.replace(/\D/g, '').slice(0, 4); });
+    }
 
     function barisAnggota(nama = '') {
       const div = document.createElement('div');
@@ -117,7 +134,7 @@
       renderPeran(hasil);
     });
 
-    document.getElementById('form-tim').addEventListener('submit', (e) => {
+    document.getElementById('form-tim').addEventListener('submit', async (e) => {
       e.preventDefault();
       const tim = document.getElementById('tim').value.trim();
       const anggota = daftarAnggota();
@@ -125,13 +142,36 @@
       if (!anggota.length) { toast('Isi minimal satu nama anggota.'); return; }
       const peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
       if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
+
+      // Bergabung ke Sesi Kelas jika kode diisi.
+      const kode = SESI.aktif() ? kodeEl.value.trim() : '';
+      let sesi = null;
+      const tombol = e.submitter || document.querySelector('#form-tim [type=submit]');
+      if (kode) {
+        const teksAsli = tombol.textContent;
+        tombol.disabled = true;
+        tombol.textContent = 'Menghubungkan ke sesi…';
+        try {
+          sesi = await SESI.gabung(kode);
+        } catch (err) {
+          toast(err.message);
+          kodeEl.focus();
+          return;
+        } finally {
+          tombol.disabled = false;
+          tombol.textContent = teksAsli;
+        }
+      }
+
       updateState((s) => {
         s.tim = tim;
         s.kelas = document.getElementById('kelas').value.trim();
         s.anggota = anggota;
         s.peran = peran;
+        s.sesi = sesi;
       });
       tandaiSelesai('tim');
+      if (sesi) await SESI.kirimSegera(); // pastikan kelompok langsung muncul di dashboard guru
       location.href = 'lagu.html';
     });
   </script>
