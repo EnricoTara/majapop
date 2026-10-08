@@ -97,11 +97,20 @@ const SESI = (() => {
     for (let i = 0; i < 15; i++) {
       const kode = String(1000 + Math.floor(Math.random() * 9000));
       const ref = db.ref(`sesi/${kode}`);
+      const data = { guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), dibuat: firebase.database.ServerValue.TIMESTAMP };
+      // Sesi kelompok tidak perlu menyimpan mode (bawaannya kelompok), jadi tetap jalan dengan rules lama.
+      if (modeSesi({ mode }) === 'individu') data.mode = 'individu';
       try {
         // Rules menolak menimpa sesi yang sudah ada, jadi kode bentrok otomatis gagal.
-        await ref.set({ guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), mode: modeSesi({ mode }), dibuat: firebase.database.ServerValue.TIMESTAMP });
+        await ref.set(data);
         return kode;
-      } catch (e) { /* kode sudah dipakai, coba kode lain */ }
+      } catch (e) {
+        // Kode belum dipakai tetapi tetap ditolak: rules di Firebase belum diperbarui.
+        if (!(await ref.get()).exists()) {
+          throw new Error('Firebase menolak sesi ini. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules.');
+        }
+        // Kode sudah dipakai, coba kode lain.
+      }
     }
     throw new Error('Gagal membuat sesi. Coba lagi.');
   }

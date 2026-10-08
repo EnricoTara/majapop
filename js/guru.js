@@ -162,7 +162,7 @@ el('mulai-sesi').addEventListener('click', async () => {
     const mode = document.querySelector('input[name="mode"]:checked').value;
     bukaSesi(await SESI.buatSesi(el('nama-kelas').value.trim(), mode));
   } catch (e) {
-    toast(e.message || 'Gagal membuat sesi.');
+    alert(e.message || 'Gagal membuat sesi.');
   } finally {
     tombol.disabled = false;
     tombol.textContent = '▶ Mulai Sesi & Buat Kode';
