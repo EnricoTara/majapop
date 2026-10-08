@@ -49,14 +49,29 @@ function tampilkan(layar) {
   ['belum-aktif', 'layar-mulai', 'layar-sesi'].forEach((id) => { el(id).hidden = id !== layar; });
 }
 
+function menunggu() {
+  return SESI.sedangMenunggu(infoTerakhir);
+}
+
+// Ruang tunggu: kartu nama peserta sesuai urutan bergabung.
+function renderLobi(daftar) {
+  const ada = new Set([...papanEl.querySelectorAll('.lobi-nama')].map((c) => c.dataset.id));
+  const urut = daftar.slice().sort((a, b) => (a.diperbarui || 0) - (b.diperbarui || 0));
+  papanEl.innerHTML = `<div class="lobi-grid lobi-guru">${urut.map((k) => `
+    <span class="lobi-nama ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</span>`).join('')}</div>`;
+}
+
 function renderPapan() {
   const daftar = daftarTerakhir;
+  const tunggu = menunggu();
+  el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : 'Peringkat';
   el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} ${peserta()}` : '';
 
   if (!daftar.length) {
     papanEl.innerHTML = `<div class="papan-kosong kartu"><span class="denyut">📡</span> Menunggu ${peserta()} bergabung dengan kode <b>${esc(kodeAktif)}</b>…</div>`;
     return;
   }
+  if (tunggu) { renderLobi(daftar); return; }
 
   // FLIP: catat posisi lama agar perpindahan peringkat terlihat beranimasi.
   const posLama = {};
@@ -97,8 +112,12 @@ function renderPapan() {
 
 function renderStatus() {
   const aktif = Boolean(infoTerakhir && infoTerakhir.aktif);
-  el('status-sesi').textContent = aktif ? '● Aktif' : '⏹ Sudah diakhiri';
+  const tunggu = menunggu();
+  el('status-sesi').textContent = !aktif ? '⏹ Sudah diakhiri' : tunggu ? '⏳ Ruang tunggu' : '● Berjalan';
   el('status-sesi').classList.toggle('berakhir', !aktif);
+  el('status-sesi').classList.toggle('tunggu', tunggu);
+  el('mulai-permainan').hidden = !tunggu;
+  el('langkah-tunggu').hidden = !tunggu;
   el('akhiri-sesi').hidden = !aktif;
   el('sesi-baru').hidden = aktif;
   el('info-kelas').textContent = infoTerakhir && infoTerakhir.kelas ? `Kelas: ${infoTerakhir.kelas}` : '';
@@ -160,13 +179,23 @@ el('mulai-sesi').addEventListener('click', async () => {
   tombol.textContent = 'Membuat sesi…';
   try {
     const mode = document.querySelector('input[name="mode"]:checked').value;
-    bukaSesi(await SESI.buatSesi(el('nama-kelas').value.trim(), mode));
+    const { kode, ruangTunggu } = await SESI.buatSesi(el('nama-kelas').value.trim(), mode);
+    bukaSesi(kode);
+    if (!ruangTunggu) alert('Sesi dibuat tanpa ruang tunggu (siswa langsung mulai), karena aturan Firebase belum diperbarui. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules agar ruang tunggu aktif.');
   } catch (e) {
     alert(e.message || 'Gagal membuat sesi.');
   } finally {
     tombol.disabled = false;
-    tombol.textContent = '▶ Mulai Sesi & Buat Kode';
+    tombol.textContent = '▶ Buat Kode Sesi';
   }
+});
+
+el('mulai-permainan').addEventListener('click', async () => {
+  if (!daftarTerakhir.length && !confirm(`Belum ada ${peserta()} yang bergabung. Tetap mulai sesi sekarang?`)) return;
+  const tombol = el('mulai-permainan');
+  tombol.disabled = true;
+  try { await SESI.mulaiSesi(kodeAktif); toast('🚀 Sesi dimulai!'); } catch (e) { toast('Gagal memulai sesi.'); }
+  tombol.disabled = false;
 });
 
 el('akhiri-sesi').addEventListener('click', async () => {

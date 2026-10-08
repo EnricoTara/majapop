@@ -608,6 +608,32 @@ textarea { min-height: 96px; resize: vertical; }
 }
 .status-sesi { font-weight: 700; color: var(--hijau); font-size: .9rem; margin-top: 6px; }
 .status-sesi.berakhir { color: var(--merah); }
+.status-sesi.tunggu { color: var(--oranye); }
+
+/* Ruang tunggu: kartu nama peserta (dashboard guru & HP siswa) */
+.lobi-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.lobi-nama {
+  display: inline-flex; align-items: center; gap: 4px; padding: 8px 16px; border-radius: 999px;
+  background: var(--kartu); border: 2px solid var(--garis); font: 700 1rem var(--font-judul); color: var(--ungu-tua);
+}
+.lobi-nama .kecil { font-family: var(--font-isi); font-weight: 500; }
+.lobi-nama.saya { background: var(--kuning-muda); border-color: var(--kuning); }
+.lobi-nama.baru { animation: lobi-masuk .5s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes lobi-masuk { from { opacity: 0; transform: scale(.4); } }
+.lobi-guru { justify-content: flex-start; padding: 6px 0 12px; }
+.lobi-guru .lobi-nama { font-size: 1.25rem; padding: 10px 20px; box-shadow: var(--bayangan); }
+body.proyektor .lobi-guru .lobi-nama { font-size: 1.7rem; }
+
+/* Overlay ruang tunggu di HP siswa */
+.ruang-tunggu { z-index: 950; transition: opacity .35s; }
+.ruang-tunggu.hilang { opacity: 0; }
+.ruang-tunggu .modal-isi { max-width: 520px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.ruang-tunggu h2 { margin: 10px 0 4px; }
+.rt-sesi { display: inline-block; font-weight: 700; color: var(--ungu); background: var(--ungu-muda); border-radius: 999px; padding: 2px 14px; margin: 0 0 10px; }
+.rt-jumlah { font-weight: 600; margin: 4px 0 10px; }
+.ruang-tunggu .lobi-grid { margin-bottom: 16px; }
+.ruang-tunggu .lobi-nama { font-size: .92rem; padding: 6px 12px; }
+body.menunggu-sesi { overflow: hidden; }
 .qr { background: #fff; padding: 10px; border-radius: 16px; border: 2px solid var(--garis); line-height: 0; }
 .qr img, .qr canvas { width: 148px !important; height: 148px !important; }
 .cara-gabung ol { margin: 0 0 8px; padding-left: 1.2em; }
@@ -640,7 +666,7 @@ textarea { min-height: 96px; resize: vertical; }
 .poin { text-align: right; }
 .poin b { display: block; font: 800 2rem/1 var(--font-judul); color: var(--pink); }
 .poin span { font-size: .78rem; color: var(--teks-pudar); }
-@media (prefers-reduced-motion: reduce) { .seg.aktif, .denyut, .peringkat-baris.baru, .peringkat-baris.naik .poin b { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .seg.aktif, .denyut, .peringkat-baris.baru, .peringkat-baris.naik .poin b, .lobi-nama.baru { animation: none; } }
 
 /* Mode proyektor (layar penuh): huruf lebih besar, tanpa header/footer. */
 body.proyektor .site-header, body.proyektor .site-footer, body.proyektor .halaman-judul { display: none; }
@@ -731,6 +757,8 @@ body.proyektor .langkah-label { font-size: 1.15rem; }
   .modal { place-items: end center; padding: 0; }
   .modal-isi { border-radius: 24px 24px 0 0; padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); max-width: none; animation: naik .25s ease-out; }
   .modal .aksi .btn { flex: 1 1 100%; }
+  .ruang-tunggu { place-items: stretch; }
+  .ruang-tunggu .modal-isi { display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 0; max-height: none; min-height: 100dvh; padding-top: calc(24px + env(safe-area-inset-top)); animation: none; }
   @keyframes naik { from { translate: 0 100%; } }
 
   /* Saat bermain puzzle, toast muncul tepat di atas baki (tidak menutupi bilah waktu). */

@@ -91,28 +91,46 @@ const SESI = (() => {
     return info && info.mode === 'individu' ? 'individu' : 'kelompok';
   }
 
+  // Sesi baru menunggu di ruang tunggu sampai guru menekan Mulai.
+  // Sesi lama (tanpa field menunggu) dianggap sudah berjalan.
+  function sedangMenunggu(info) {
+    return Boolean(info && info.aktif && info.menunggu === true);
+  }
+
   // ---------- Guru ----------
+  // Mengembalikan { kode, ruangTunggu }. ruangTunggu false jika rules di Firebase
+  // belum mengenal field "menunggu": sesi tetap dibuat, tetapi langsung berjalan.
   async function buatSesi(namaKelas, mode) {
     await siap();
+    let ruangTunggu = true;
     for (let i = 0; i < 15; i++) {
       const kode = String(1000 + Math.floor(Math.random() * 9000));
       const ref = db.ref(`sesi/${kode}`);
       const data = { guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), dibuat: firebase.database.ServerValue.TIMESTAMP };
       // Sesi kelompok tidak perlu menyimpan mode (bawaannya kelompok), jadi tetap jalan dengan rules lama.
       if (modeSesi({ mode }) === 'individu') data.mode = 'individu';
+      if (ruangTunggu) data.menunggu = true;
       try {
         // Rules menolak menimpa sesi yang sudah ada, jadi kode bentrok otomatis gagal.
         await ref.set(data);
-        return kode;
+        return { kode, ruangTunggu };
       } catch (e) {
         // Kode belum dipakai tetapi tetap ditolak: rules di Firebase belum diperbarui.
         if (!(await ref.get()).exists()) {
-          throw new Error('Firebase menolak sesi ini. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules.');
+          if (!ruangTunggu) {
+            throw new Error('Firebase menolak sesi ini. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules.');
+          }
+          ruangTunggu = false; // coba lagi tanpa ruang tunggu
         }
         // Kode sudah dipakai, coba kode lain.
       }
     }
     throw new Error('Gagal membuat sesi. Coba lagi.');
+  }
+
+  async function mulaiSesi(kode) {
+    await siap();
+    await db.ref(`sesi/${kode}`).update({ menunggu: false, mulai: firebase.database.ServerValue.TIMESTAMP });
   }
 
   async function akhiriSesi(kode) {
@@ -210,6 +228,63 @@ const SESI = (() => {
     return () => { if (db) db.ref(`sesi/${kode}/kelompok`).off(); };
   }
 
+  // ---------- Ruang tunggu di HP siswa ----------
+  // Overlay yang menutupi halaman permainan sampai guru menekan Mulai.
+  let ruangEl = null;
+
+  function bukaRuangTunggu(state) {
+    if (ruangEl) return;
+    const indiv = modeSesi(state.sesi) === 'individu';
+    ruangEl = document.createElement('div');
+    ruangEl.className = 'modal buka ruang-tunggu';
+    ruangEl.setAttribute('role', 'dialog');
+    ruangEl.setAttribute('aria-modal', 'true');
+    ruangEl.setAttribute('aria-labelledby', 'rt-judul');
+    ruangEl.innerHTML = `
+      <div class="modal-isi">
+        <div class="besar denyut" aria-hidden="true">⏳</div>
+        <h2 id="rt-judul">Ruang Tunggu</h2>
+        <p class="rt-sesi">📡 Sesi ${esc(state.sesi.kode)} · ${indiv ? '👤 Individu' : '👥 Kelompok'}</p>
+        <p>Halo, <b>${esc(state.tim)}</b>! Tunggu guru memulai sesi ya…</p>
+        <p class="kecil rt-jumlah" id="rt-jumlah" aria-live="polite"></p>
+        <div class="lobi-grid" id="rt-daftar"></div>
+        <div class="aksi"><a class="btn btn-kecil btn-garis" href="masuk.html">✏️ Ubah data</a></div>
+      </div>`;
+    document.body.appendChild(ruangEl);
+    document.body.classList.add('menunggu-sesi');
+    const main = document.querySelector('main');
+    if (main) main.inert = true;
+  }
+
+  function isiRuangTunggu(daftar, kelompokId, indiv) {
+    if (!ruangEl) return;
+    const jumlah = ruangEl.querySelector('#rt-jumlah');
+    const wadah = ruangEl.querySelector('#rt-daftar');
+    if (!jumlah || !wadah) return;
+    jumlah.textContent = `${daftar.length} ${indiv ? 'siswa' : 'kelompok'} sudah bergabung`;
+    const ada = new Set([...wadah.children].map((c) => c.dataset.id));
+    // Urutan bergabung (paling awal di depan); nama baru muncul dengan animasi.
+    wadah.innerHTML = daftar.slice().sort((a, b) => (a.diperbarui || 0) - (b.diperbarui || 0)).map((k) => `
+      <span class="lobi-nama ${k.id === kelompokId ? 'saya' : ''} ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.id === kelompokId ? ' (kamu)' : ''}</span>`).join('');
+  }
+
+  function tutupRuangTunggu(isi, otomatis) {
+    if (!ruangEl) return;
+    const el = ruangEl;
+    el.querySelector('.modal-isi').innerHTML = isi;
+    if (!otomatis) return;
+    ruangEl = null;
+    setTimeout(() => {
+      el.classList.add('hilang');
+      setTimeout(() => {
+        el.remove();
+        document.body.classList.remove('menunggu-sesi');
+        const main = document.querySelector('main');
+        if (main) main.inert = false;
+      }, 350);
+    }, 1200);
+  }
+
   // ---------- Badge peringkat di HP siswa ----------
   function pasangBadge() {
     const state = loadState();
@@ -226,23 +301,48 @@ const SESI = (() => {
     const kode = state.sesi.kode;
     badge.innerHTML = `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">Menghubungkan…</span>`;
     let aktifSesi = true;
-    pantauSesi(kode, (info) => {
-      aktifSesi = Boolean(info && info.aktif);
-      if (!aktifSesi) badge.innerHTML = `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span>`;
-    });
-    pantauKelompok(kode, (daftar) => {
-      if (!aktifSesi) return;
+    let menunggu = false;
+    let daftarTerakhir = [];
+    const indiv = modeSesi(state.sesi) === 'individu';
+    // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Bagi Tim.
+    const kunci = (location.pathname.split('/').pop() || '') !== 'masuk.html';
+    function badgePeringkat() {
+      if (!aktifSesi || menunggu) return;
       const s = loadState();
+      const daftar = daftarTerakhir;
       const i = daftar.findIndex((k) => k.id === (s.sesi && s.sesi.kelompokId));
       badge.innerHTML = i === -1
-        ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} ${modeSesi(state.sesi) === 'individu' ? 'siswa' : 'kelompok'} bergabung</span>`
+        ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} ${indiv ? 'siswa' : 'kelompok'} bergabung</span>`
         : `<span>🏆 Peringkat <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
+    }
+    pantauSesi(kode, (info) => {
+      aktifSesi = Boolean(info && info.aktif);
+      menunggu = sedangMenunggu(info);
+      if (!aktifSesi) badge.innerHTML = `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span>`;
+      else if (menunggu) badge.innerHTML = `<span>⏳ Ruang tunggu · Sesi ${esc(kode)}</span><span class="kecil">Menunggu guru memulai…</span>`;
+      else badgePeringkat();
+      if (!kunci) return;
+      if (menunggu) {
+        bukaRuangTunggu(loadState());
+        isiRuangTunggu(daftarTerakhir, state.sesi.kelompokId, indiv);
+      } else if (!aktifSesi) {
+        tutupRuangTunggu(`<div class="besar" aria-hidden="true">⏹</div><h2>Sesi sudah diakhiri</h2>
+          <p>Guru sudah mengakhiri sesi ${esc(kode)}. Minta kode sesi baru ke guru, ya.</p>
+          <div class="aksi"><a class="btn" href="masuk.html">Masukkan kode baru</a></div>`, false);
+      } else {
+        tutupRuangTunggu('<div class="besar" aria-hidden="true">🚀</div><h2>Sesi dimulai!</h2><p>Selamat bermain, semangat!</p>', true);
+      }
+    });
+    pantauKelompok(kode, (daftar) => {
+      daftarTerakhir = daftar;
+      isiRuangTunggu(daftar, state.sesi.kelompokId, indiv);
+      badgePeringkat();
     });
     // Kirim progress terbaru saat halaman dibuka (misalnya setelah sempat offline).
     kirimProgress(state);
   }
 
-  return { aktif, siap, modeSesi, buatSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, langkahSaatIni, pasangBadge };
+  return { aktif, siap, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());

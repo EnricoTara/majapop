@@ -10,6 +10,8 @@
         "kelas": { ".validate": "newData.isString() && newData.val().length <= 40" },
         "dibuat": { ".validate": "newData.isNumber()" },
         "mode": { ".validate": "newData.val() === 'kelompok' || newData.val() === 'individu'" },
+        "menunggu": { ".validate": "newData.isBoolean()" },
+        "mulai": { ".validate": "newData.isNumber() && newData.val() <= now" },
         "kelompok": {
           "$id": {
             ".write": "auth != null && root.child('sesi').child($kode).child('aktif').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",

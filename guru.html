@@ -56,7 +56,7 @@
         <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
       </div>
       <div class="aksi">
-        <button class="btn" id="mulai-sesi">▶ Mulai Sesi &amp; Buat Kode</button>
+        <button class="btn" id="mulai-sesi">▶ Buat Kode Sesi</button>
         <button class="btn btn-garis" id="buka-lagi" hidden></button>
       </div>
     </section>
@@ -77,14 +77,16 @@
             <li>Pindai QR, atau buka <b id="alamat-web">enricotara.github.io/majapop</b></li>
             <li>Pilih <b>Bagi Tim</b></li>
             <li>Masukkan kode <b id="kode-kecil">0000</b>, lalu isi <span id="isian-gabung">nama kelompok dan anggota</span></li>
+            <li id="langkah-tunggu">Tunggu di ruang tunggu sampai guru menekan <b>Mulai Sesi</b></li>
           </ol>
           <p class="kecil" id="info-kelas" style="margin:0"></p>
         </div>
       </div>
 
       <div class="papan-alat">
-        <h2 style="margin:0">Peringkat <span class="kecil" id="jumlah-kelompok"></span></h2>
+        <h2 style="margin:0"><span id="judul-papan">Peringkat</span> <span class="kecil" id="jumlah-kelompok"></span></h2>
         <div class="aksi">
+          <button class="btn btn-kuning" id="mulai-permainan" hidden>🚀 Mulai Sesi</button>
           <button class="btn btn-kecil btn-garis" id="layar-penuh">⛶ Layar penuh</button>
           <button class="btn btn-kecil btn-ungu" id="unduh-csv">⬇ Unduh rekap</button>
           <button class="btn btn-kecil" id="akhiri-sesi">⏹ Akhiri sesi</button>
