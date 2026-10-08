@@ -34,8 +34,13 @@ const PERAN = [
 
 // ---------- State ----------
 function stateAwal() {
-  // sesi: { kode, kelompokId } jika kelompok bergabung ke Sesi Kelas (lihat js/sesi.js).
-  return { tim: '', kelas: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null };
+  // sesi: { kode, kelompokId, mode } jika bergabung ke Sesi Kelas (lihat js/sesi.js).
+  // Pada sesi individu, tim = nama siswa dan absen = nomor absen.
+  return { tim: '', kelas: '', absen: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null };
+}
+
+function sesiIndividu(state) {
+  return Boolean(state.sesi && state.sesi.mode === 'individu');
 }
 
 function loadState() {
@@ -129,7 +134,7 @@ function renderHeader() {
           <button class="dropdown-btn" aria-expanded="false">Menu ▾</button>
           <div class="dropdown-menu">${menu}</div>
         </div>
-        <a class="btn btn-kecil btn-kuning" href="masuk.html">${state.tim ? '👥 ' + esc(state.tim) : 'Masuk'}</a>
+        <a class="btn btn-kecil btn-kuning" href="masuk.html">${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') + esc(state.tim) : 'Masuk'}</a>
       </nav>
     </div>`;
 
@@ -200,8 +205,8 @@ function cekTim(container) {
   if (container) {
     container.innerHTML = `
       <div class="banner">
-        <span>👥 Kelompok kalian belum terdaftar. Bentuk tim dulu yuk, supaya hasil belajar tersimpan!</span>
-        <a class="btn btn-kecil" href="masuk.html">Bagi Tim</a>
+        <span>👥 Kalian belum terdaftar. Masukkan kode sesi dari guru dulu yuk, supaya hasil belajar tersimpan!</span>
+        <a class="btn btn-kecil" href="masuk.html">Masuk Sesi</a>
       </div>`;
   }
   return false;

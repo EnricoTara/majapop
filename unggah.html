@@ -77,24 +77,30 @@
     const ciptaTeks = state.ciptaan
       .map((c, i) => `${i + 1}. [${majasById(c.majasId)?.jenis || c.majasId} · ${c.tema}] ${c.kalimat}`).join('\n') || '(belum ada)';
     const p = state.puzzle;
+    const indiv = sesiIndividu(state);
 
     document.getElementById('ringkasan').value = [
       'HASIL BELAJAR MAJAPOP!',
-      `Kelompok : ${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''}`,
-      `Anggota  : ${state.anggota.join(', ') || '-'}`,
-      ...(state.sesi ? [`Sesi kelas: ${state.sesi.kode}`] : []),
+      ...(indiv ? [
+        `Nama siswa: ${state.tim || '-'}`,
+        `No. absen : ${state.absen || '-'}`,
+        `Kelas     : ${state.kelas || '-'}`,
+      ] : [
+        `Kelompok : ${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''}`,
+        `Anggota  : ${state.anggota.join(', ') || '-'}`,
+      ]),
+      ...(state.sesi ? [`Sesi kelas: ${state.sesi.kode}${indiv ? ' (individu)' : ''}`] : []),
       `Total poin: ${SESI.hitungPoin(state)}`,
-      'Peran:',
-      peranTeks,
+      ...(indiv ? [] : ['Peran:', peranTeks]),
       '',
       `Identifikasi majas : ${benar.length}/${siap.length} (tepat di tebakan pertama: ${pertama})`,
-      'Makna lirik menurut kelompok:',
+      indiv ? 'Makna lirik menurut saya:' : 'Makna lirik menurut kelompok:',
       maknaTeks,
       '',
       p ? `Puzzle : ${p.skor} poin, ${p.benar}/${p.total} kepingan benar, ${p.salah} kesalahan, sisa waktu ${Math.floor(p.sisaWaktu / 60)}:${String(p.sisaWaktu % 60).padStart(2, '0')}`
         : 'Puzzle : belum dimainkan',
       '',
-      'Majas buatan kelompok:',
+      indiv ? 'Majas buatan saya:' : 'Majas buatan kelompok:',
       ciptaTeks,
     ].join('\n');
 
@@ -121,7 +127,7 @@
     });
 
     document.getElementById('reset').addEventListener('click', () => {
-      if (confirm('Hapus semua progres kelompok ini dan mulai dari awal?')) {
+      if (confirm(`Hapus semua progres ${indiv ? 'kamu' : 'kelompok ini'} dan mulai dari awal?`)) {
         resetState();
         location.href = 'masuk.html';
       }

@@ -24,44 +24,59 @@
 
     <section class="halaman-judul">
       <span class="label-atas">Langkah 1</span>
-      <h1 style="font-size:clamp(2rem,5vw,3rem)">Bagi Tim 👥</h1>
-      <p>Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.</p>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Bagi Tim 👥</h1>
+      <p id="subjudul">Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.</p>
     </section>
 
     <form id="form-tim" class="kartu" novalidate>
       <div class="field kode-sesi" id="field-kode" hidden>
-        <label for="kode">📡 Kode sesi dari guru <span class="kecil">(opsional)</span></label>
+        <label for="kode">📡 Kode sesi dari guru</label>
         <input type="text" id="kode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Contoh: 4821" autocomplete="off">
-        <p class="kecil" style="margin:6px 0 0">Isi kode 4 angka yang ditampilkan guru agar progress kelompokmu muncul di layar kelas. Kosongkan jika bermain sendiri.</p>
+        <p class="kecil" style="margin:6px 0 0">Masukkan kode 4 angka yang ditampilkan guru. Form akan menyesuaikan jenis sesinya: kelompok atau individu.</p>
+        <div class="aksi"><button type="button" class="btn" id="cek-kode">Masuk Sesi →</button></div>
       </div>
 
-      <div class="dua-kolom">
-        <div class="field">
-          <label for="tim">Nama kelompok</label>
-          <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
+      <div id="isian" hidden>
+        <div class="info-sesi" id="info-sesi" hidden>
+          <span id="info-sesi-teks"></span>
+          <button type="button" id="ganti-kode">Ganti kode</button>
         </div>
-        <div class="field">
-          <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
-          <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
+
+        <div class="dua-kolom">
+          <div class="field">
+            <label for="tim" id="label-tim">Nama kelompok</label>
+            <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
+          </div>
+          <div class="field">
+            <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
+            <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
+          </div>
         </div>
-      </div>
 
-      <div class="field">
-        <label>Anggota kelompok</label>
-        <div id="anggota-list"></div>
-        <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
-      </div>
-
-      <div class="field">
-        <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
-          <label style="margin:0">Pembagian peran</label>
-          <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
+        <div class="field" id="field-absen" hidden>
+          <label for="absen">No. absen</label>
+          <input type="text" id="absen" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Contoh: 12" autocomplete="off" style="max-width:160px">
         </div>
-        <div class="peran-grid" id="peran-grid"></div>
-      </div>
 
-      <div class="aksi aksi-lekat" style="justify-content:flex-end">
-        <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
+        <div id="bagian-kelompok">
+          <div class="field">
+            <label>Anggota kelompok</label>
+            <div id="anggota-list"></div>
+            <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
+          </div>
+
+          <div class="field">
+            <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
+              <label style="margin:0">Pembagian peran</label>
+              <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
+            </div>
+            <div class="peran-grid" id="peran-grid"></div>
+          </div>
+        </div>
+
+        <div class="aksi aksi-lekat" style="justify-content:flex-end">
+          <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
+        </div>
       </div>
     </form>
   </main>
@@ -76,16 +91,78 @@
     const state = loadState();
     const listEl = document.getElementById('anggota-list');
     const peranEl = document.getElementById('peran-grid');
-    document.getElementById('tim').value = state.tim;
+    const timEl = document.getElementById('tim');
+    const absenEl = document.getElementById('absen');
+    const kodeEl = document.getElementById('kode');
+    const cekEl = document.getElementById('cek-kode');
+    timEl.value = state.tim;
+    absenEl.value = state.absen || '';
     document.getElementById('kelas').value = state.kelas;
 
-    // Kode sesi: tampil hanya jika fitur Sesi Kelas aktif. Bisa terisi otomatis dari link guru (?kode=1234).
-    const kodeEl = document.getElementById('kode');
-    if (SESI.aktif()) {
+    // Sesi Kelas: kode dari guru wajib diisi dulu, lalu form mengikuti jenis sesinya (kelompok / individu).
+    // Tanpa Firebase, form kelompok langsung tampil seperti biasa.
+    const pakaiSesi = SESI.aktif();
+    let sesiDipilih = null;
+    let modeForm = state.tim ? SESI.modeSesi(state.sesi) : null;
+    let urutanCek = 0;
+
+    function individu() {
+      return Boolean(sesiDipilih && sesiDipilih.mode === 'individu');
+    }
+
+    function tampilkanForm(sesi) {
+      sesiDipilih = sesi;
+      const mode = sesi ? sesi.mode : 'kelompok';
+      // Pindah jenis sesi: isian lama (nama kelompok/anggota atau nama siswa) dikosongkan.
+      if (modeForm && modeForm !== mode) {
+        timEl.value = '';
+        absenEl.value = '';
+        listEl.innerHTML = '';
+        ['', '', '', ''].forEach((a) => barisAnggota(a));
+        renderPeran({});
+      }
+      modeForm = mode;
+      const indiv = mode === 'individu';
+      document.getElementById('judul').textContent = indiv ? 'Data Diri 👤' : 'Bagi Tim 👥';
+      document.getElementById('subjudul').textContent = indiv
+        ? 'Sesi ini dikerjakan sendiri. Tulis nama, kelas, dan nomor absenmu agar progresmu muncul di layar guru.'
+        : 'Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.';
+      document.getElementById('label-tim').textContent = indiv ? 'Nama siswa' : 'Nama kelompok';
+      timEl.placeholder = indiv ? 'Contoh: Ayu Lestari' : 'Contoh: Kelompok Pelangi';
+      document.getElementById('field-absen').hidden = !indiv;
+      document.getElementById('bagian-kelompok').hidden = indiv;
+      document.getElementById('info-sesi').hidden = !sesi;
+      if (sesi) document.getElementById('info-sesi-teks').textContent = `📡 Sesi ${sesi.kode} · ${indiv ? '👤 Individu' : '👥 Kelompok'}`;
+      document.getElementById('field-kode').hidden = Boolean(sesi) || !pakaiSesi;
+      document.getElementById('isian').hidden = false;
+    }
+
+    function tutupForm() {
+      urutanCek++;
+      sesiDipilih = null;
+      document.getElementById('isian').hidden = true;
       document.getElementById('field-kode').hidden = false;
-      const dariLink = new URLSearchParams(location.search).get('kode');
-      kodeEl.value = (dariLink && /^\d{4}$/.test(dariLink)) ? dariLink : (state.sesi ? state.sesi.kode : '');
-      kodeEl.addEventListener('input', () => { kodeEl.value = kodeEl.value.replace(/\D/g, '').slice(0, 4); });
+    }
+
+    async function cekKode() {
+      const kode = kodeEl.value.trim();
+      if (!/^\d{4}$/.test(kode)) { toast('Masukkan kode sesi 4 angka dari guru.'); kodeEl.focus(); return; }
+      const ke = ++urutanCek;
+      cekEl.disabled = true;
+      cekEl.textContent = 'Memeriksa kode…';
+      try {
+        const sesi = await SESI.gabung(kode);
+        if (ke !== urutanCek) return; // kode sudah diganti saat menunggu
+        tampilkanForm(sesi);
+        timEl.focus();
+      } catch (err) {
+        if (ke !== urutanCek) return;
+        toast(err.message);
+        kodeEl.focus();
+      } finally {
+        cekEl.disabled = false;
+        cekEl.textContent = 'Masuk Sesi →';
+      }
     }
 
     function barisAnggota(nama = '') {
@@ -117,8 +194,26 @@
         </div>`).join('');
     }
 
-    (state.anggota.length ? state.anggota : ['', '', '', '']).forEach((a) => barisAnggota(a));
-    renderPeran(state.peran);
+    (state.anggota.length && modeForm === 'kelompok' ? state.anggota : ['', '', '', '']).forEach((a) => barisAnggota(a));
+    renderPeran(modeForm === 'kelompok' ? state.peran : {});
+
+    if (pakaiSesi) {
+      document.getElementById('field-kode').hidden = false;
+      // Kode bisa terisi otomatis dari link/QR guru (?kode=1234) atau dari sesi terakhir.
+      const dariLink = new URLSearchParams(location.search).get('kode');
+      kodeEl.value = (dariLink && /^\d{4}$/.test(dariLink)) ? dariLink : (state.sesi ? state.sesi.kode : '');
+      kodeEl.addEventListener('input', () => {
+        kodeEl.value = kodeEl.value.replace(/\D/g, '').slice(0, 4);
+        if (kodeEl.value.length === 4) cekKode();
+      });
+      cekEl.addEventListener('click', cekKode);
+      document.getElementById('ganti-kode').addEventListener('click', () => { tutupForm(); kodeEl.select(); kodeEl.focus(); });
+      if (kodeEl.value) cekKode();
+    } else {
+      tampilkanForm(null);
+    }
+
+    absenEl.addEventListener('input', () => { absenEl.value = absenEl.value.replace(/\D/g, '').slice(0, 2); });
 
     document.getElementById('tambah-anggota').addEventListener('click', () => {
       barisAnggota();
@@ -136,42 +231,38 @@
 
     document.getElementById('form-tim').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const tim = document.getElementById('tim').value.trim();
-      const anggota = daftarAnggota();
-      if (!tim) { toast('Nama kelompok belum diisi.'); document.getElementById('tim').focus(); return; }
-      if (!anggota.length) { toast('Isi minimal satu nama anggota.'); return; }
-      const peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
-      if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
+      // Enter di kotak kode: periksa kodenya dulu.
+      if (document.getElementById('isian').hidden) { cekKode(); return; }
+      if (pakaiSesi && !sesiDipilih) { toast('Masukkan kode sesi dari guru dulu.'); return; }
 
-      // Bergabung ke Sesi Kelas jika kode diisi.
-      const kode = SESI.aktif() ? kodeEl.value.trim() : '';
-      let sesi = null;
-      const tombol = e.submitter || document.querySelector('#form-tim [type=submit]');
-      if (kode) {
-        const teksAsli = tombol.textContent;
-        tombol.disabled = true;
-        tombol.textContent = 'Menghubungkan ke sesi…';
-        try {
-          sesi = await SESI.gabung(kode);
-        } catch (err) {
-          toast(err.message);
-          kodeEl.focus();
-          return;
-        } finally {
-          tombol.disabled = false;
-          tombol.textContent = teksAsli;
-        }
+      const indiv = individu();
+      const nama = timEl.value.trim();
+      const kelas = document.getElementById('kelas').value.trim();
+      let anggota, peran, absen = '';
+      if (indiv) {
+        absen = Number(absenEl.value);
+        if (!nama) { toast('Nama siswa belum diisi.'); timEl.focus(); return; }
+        if (!(absen >= 1 && absen <= 99)) { toast('No. absen belum diisi (1–99).'); absenEl.focus(); return; }
+        anggota = [nama];
+        peran = Object.fromEntries(PERAN.map((p) => [p.id, nama])); // semua peran dikerjakan sendiri
+      } else {
+        anggota = daftarAnggota();
+        if (!nama) { toast('Nama kelompok belum diisi.'); timEl.focus(); return; }
+        if (!anggota.length) { toast('Isi minimal satu nama anggota.'); return; }
+        peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
+        if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
       }
 
       updateState((s) => {
-        s.tim = tim;
-        s.kelas = document.getElementById('kelas').value.trim();
+        s.tim = nama;
+        s.kelas = kelas;
         s.anggota = anggota;
         s.peran = peran;
-        s.sesi = sesi;
+        s.absen = absen;
+        s.sesi = sesiDipilih;
       });
       tandaiSelesai('tim');
-      if (sesi) await SESI.kirimSegera(); // pastikan kelompok langsung muncul di dashboard guru
+      if (sesiDipilih) await SESI.kirimSegera(); // pastikan langsung muncul di dashboard guru
       location.href = 'lagu.html';
     });
   </script>

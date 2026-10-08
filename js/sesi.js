@@ -86,15 +86,20 @@ const SESI = (() => {
     return { ke: selesai.length, id: berikut ? berikut.id : 'selesai', selesai };
   }
 
+  // Jenis sesi: 'kelompok' atau 'individu'. Sesi lama (tanpa mode) dianggap kelompok.
+  function modeSesi(info) {
+    return info && info.mode === 'individu' ? 'individu' : 'kelompok';
+  }
+
   // ---------- Guru ----------
-  async function buatSesi(namaKelas) {
+  async function buatSesi(namaKelas, mode) {
     await siap();
     for (let i = 0; i < 15; i++) {
       const kode = String(1000 + Math.floor(Math.random() * 9000));
       const ref = db.ref(`sesi/${kode}`);
       try {
         // Rules menolak menimpa sesi yang sudah ada, jadi kode bentrok otomatis gagal.
-        await ref.set({ guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), dibuat: firebase.database.ServerValue.TIMESTAMP });
+        await ref.set({ guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), mode: modeSesi({ mode }), dibuat: firebase.database.ServerValue.TIMESTAMP });
         return kode;
       } catch (e) { /* kode sudah dipakai, coba kode lain */ }
     }
@@ -132,14 +137,17 @@ const SESI = (() => {
     if (!info.aktif) throw new Error(`Sesi ${kode} sudah diakhiri guru.`);
     const lama = loadState().sesi;
     const kelompokId = lama && lama.kode === kode && lama.kelompokId ? lama.kelompokId : db.ref().push().key;
-    return { kode, kelompokId };
+    return { kode, kelompokId, mode: modeSesi(info) };
   }
 
   function ringkasan(state) {
     const r = rincian(state);
     const l = langkahSaatIni(state);
+    const absen = Number(state.absen);
     return {
       uid,
+      mode: modeSesi(state.sesi),
+      ...(absen >= 1 && absen <= 99 ? { absen } : {}),
       tim: String(state.tim || 'Tanpa nama').slice(0, 40),
       kelas: String(state.kelas || '').slice(0, 20),
       anggota: (state.anggota || []).slice(0, 10).map((a) => String(a).slice(0, 40)),
@@ -218,14 +226,14 @@ const SESI = (() => {
       const s = loadState();
       const i = daftar.findIndex((k) => k.id === (s.sesi && s.sesi.kelompokId));
       badge.innerHTML = i === -1
-        ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} kelompok bergabung</span>`
+        ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} ${modeSesi(state.sesi) === 'individu' ? 'siswa' : 'kelompok'} bergabung</span>`
         : `<span>🏆 Peringkat <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
     });
     // Kirim progress terbaru saat halaman dibuka (misalnya setelah sempat offline).
     kirimProgress(state);
   }
 
-  return { aktif, siap, buatSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, langkahSaatIni, pasangBadge };
+  return { aktif, siap, modeSesi, buatSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());

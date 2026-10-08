@@ -23,7 +23,7 @@
     <section class="halaman-judul">
       <span class="label-atas">Untuk Guru</span>
       <h1 style="font-size:clamp(2rem,5vw,3rem)">Dashboard Sesi Kelas 📡</h1>
-      <p>Pantau progress setiap kelompok secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
+      <p>Pantau progress setiap kelompok atau siswa secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
     </section>
 
     <!-- Firebase belum diatur -->
@@ -36,6 +36,21 @@
     <!-- Mulai sesi -->
     <section id="layar-mulai" class="kartu" hidden>
       <h3>Mulai sesi baru</h3>
+      <div class="field">
+        <label>Jenis sesi</label>
+        <div class="pilih-mode" role="radiogroup">
+          <label class="mode-kartu">
+            <input type="radio" name="mode" value="kelompok" checked>
+            <b>👥 Kelompok</b>
+            <span>Siswa bermain berkelompok: nama kelompok, anggota, dan pembagian peran.</span>
+          </label>
+          <label class="mode-kartu">
+            <input type="radio" name="mode" value="individu">
+            <b>👤 Individu</b>
+            <span>Setiap siswa bermain sendiri: nama, kelas, dan no. absen.</span>
+          </label>
+        </div>
+      </div>
       <div class="field">
         <label for="nama-kelas">Nama kelas <span class="kecil">(opsional)</span></label>
         <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
@@ -52,6 +67,7 @@
         <div class="kode-box">
           <span class="kode-label">Kode sesi</span>
           <b id="kode-besar">0000</b>
+          <span class="mode-sesi" id="mode-sesi"></span>
           <span class="status-sesi" id="status-sesi">● Aktif</span>
         </div>
         <div id="qr" class="qr" aria-label="QR code untuk bergabung"></div>
@@ -60,7 +76,7 @@
           <ol>
             <li>Pindai QR, atau buka <b id="alamat-web">enricotara.github.io/majapop</b></li>
             <li>Pilih <b>Bagi Tim</b></li>
-            <li>Masukkan kode <b id="kode-kecil">0000</b>, nama kelompok, dan anggota</li>
+            <li>Masukkan kode <b id="kode-kecil">0000</b>, lalu isi <span id="isian-gabung">nama kelompok dan anggota</span></li>
           </ol>
           <p class="kecil" id="info-kelas" style="margin:0"></p>
         </div>

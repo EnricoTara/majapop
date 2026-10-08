@@ -30,6 +30,15 @@ function waktuRelatif(ms) {
   return menit < 60 ? `${menit} mnt lalu` : `${Math.round(menit / 60)} jam lalu`;
 }
 
+function individu() {
+  return SESI.modeSesi(infoTerakhir) === 'individu';
+}
+
+// Kata untuk peserta sesi: "siswa" (individu) atau "kelompok".
+function peserta() {
+  return individu() ? 'siswa' : 'kelompok';
+}
+
 function labelLangkah(k) {
   const l = LANGKAH.find((x) => x.id === k.langkah);
   return l ? `${l.ikon} ${l.label}` : '🏁 Selesai';
@@ -42,10 +51,10 @@ function tampilkan(layar) {
 
 function renderPapan() {
   const daftar = daftarTerakhir;
-  el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} kelompok` : '';
+  el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} ${peserta()}` : '';
 
   if (!daftar.length) {
-    papanEl.innerHTML = `<div class="papan-kosong kartu"><span class="denyut">📡</span> Menunggu kelompok bergabung dengan kode <b>${esc(kodeAktif)}</b>…</div>`;
+    papanEl.innerHTML = `<div class="papan-kosong kartu"><span class="denyut">📡</span> Menunggu ${peserta()} bergabung dengan kode <b>${esc(kodeAktif)}</b>…</div>`;
     return;
   }
 
@@ -66,7 +75,7 @@ function renderPapan() {
     return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-poin="${k.poin}">
       <div class="rank">${medali[i] || i + 1}</div>
       <div class="info">
-        <div class="nama">${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</div>
+        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</div>
         <div class="langkah-bar" aria-label="${k.langkahKe} dari ${LANGKAH.length} langkah">${segmen}</div>
         <div class="detail">${detail}</div>
       </div>
@@ -93,6 +102,9 @@ function renderStatus() {
   el('akhiri-sesi').hidden = !aktif;
   el('sesi-baru').hidden = aktif;
   el('info-kelas').textContent = infoTerakhir && infoTerakhir.kelas ? `Kelas: ${infoTerakhir.kelas}` : '';
+  el('mode-sesi').textContent = individu() ? '👤 Sesi Individu' : '👥 Sesi Kelompok';
+  el('isian-gabung').textContent = individu() ? 'nama, kelas, dan no. absen' : 'nama kelompok dan anggota';
+  renderPapan();
 }
 
 function bukaSesi(kode) {
@@ -110,6 +122,7 @@ function bukaSesi(kode) {
   el('qr').title = linkGabung(kode);
   tampilkan('layar-sesi');
   daftarTerakhir = [];
+  infoTerakhir = null;
   renderPapan();
   lepasPantau = [
     SESI.pantauSesi(kode, (info) => { infoTerakhir = info; renderStatus(); }),
@@ -120,10 +133,12 @@ function bukaSesi(kode) {
 // ---------- Rekap CSV (dibuka di Excel) ----------
 function unduhCsv() {
   const sel = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const baris = [['Peringkat', 'Kelompok', 'Kelas', 'Anggota', 'Langkah terakhir', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
+  const indiv = individu();
+  const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
+  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
   daftarTerakhir.forEach((k, i) => {
     baris.push([
-      i + 1, k.tim, k.kelas, (k.anggota || []).join(', '), labelLangkah(k).replace(/^\S+\s/, ''), k.poin,
+      i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), labelLangkah(k).replace(/^\S+\s/, ''), k.poin,
       `${k.benar || 0}/${k.totalLagu || 0}`, k.pertama || 0, k.puzzle >= 0 ? k.puzzle : '', k.puzzleBenar >= 0 ? k.puzzleBenar : '',
       k.cipta || 0, (k.kalimat || []).join(' | '), k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
     ]);
@@ -132,7 +147,7 @@ function unduhCsv() {
   const csv = '﻿' + baris.map((r) => r.map(sel).join(';')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `majapop-sesi-${kodeAktif}.csv`;
+  a.download = `majapop-sesi-${indiv ? 'individu-' : ''}${kodeAktif}.csv`;
   document.body.appendChild(a);
   a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -144,7 +159,8 @@ el('mulai-sesi').addEventListener('click', async () => {
   tombol.disabled = true;
   tombol.textContent = 'Membuat sesi…';
   try {
-    bukaSesi(await SESI.buatSesi(el('nama-kelas').value.trim()));
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    bukaSesi(await SESI.buatSesi(el('nama-kelas').value.trim(), mode));
   } catch (e) {
     toast(e.message || 'Gagal membuat sesi.');
   } finally {
@@ -154,7 +170,7 @@ el('mulai-sesi').addEventListener('click', async () => {
 });
 
 el('akhiri-sesi').addEventListener('click', async () => {
-  if (!confirm(`Akhiri sesi ${kodeAktif}? Kelompok tidak bisa mengirim progress lagi, tetapi peringkat tetap bisa dilihat dan diunduh.`)) return;
+  if (!confirm(`Akhiri sesi ${kodeAktif}? ${individu() ? 'Siswa' : 'Kelompok'} tidak bisa mengirim progress lagi, tetapi peringkat tetap bisa dilihat dan diunduh.`)) return;
   try { await SESI.akhiriSesi(kodeAktif); toast('Sesi diakhiri.'); } catch (e) { toast('Gagal mengakhiri sesi.'); }
 });
 
@@ -168,7 +184,7 @@ el('sesi-baru').addEventListener('click', () => {
 });
 
 el('unduh-csv').addEventListener('click', () => {
-  if (!daftarTerakhir.length) { toast('Belum ada kelompok untuk direkap.'); return; }
+  if (!daftarTerakhir.length) { toast(`Belum ada ${peserta()} untuk direkap.`); return; }
   unduhCsv();
 });
 

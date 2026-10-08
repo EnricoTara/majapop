@@ -27,7 +27,12 @@ Setelah mengubah file, simpan lalu upload ulang (`git add -A && git commit -m "P
 
 ## Sesi Kelas: progress live per kelompok (seperti Quizizz)
 
-Guru membuka **Dashboard** (`guru.html`, ada link "Untuk guru" di bagian bawah setiap halaman) lalu menekan **Mulai Sesi**. Kode 4 angka dan QR akan muncul. Setiap kelompok memasukkan kode itu di halaman **Bagi Tim**. Peringkat, langkah, dan poin setiap kelompok lalu tampil langsung di dashboard, dan di HP siswa muncul badge "Peringkat X dari Y". Rekap bisa diunduh sebagai CSV (dibuka di Excel).
+Guru membuka **Dashboard** (`guru.html`, ada link "Untuk guru" di bagian bawah setiap halaman), memilih jenis sesi, lalu menekan **Mulai Sesi**:
+
+- **👥 Kelompok**: siswa mengisi nama kelompok, anggota, dan pembagian peran.
+- **👤 Individu**: setiap siswa mengisi nama, kelas, dan no. absen.
+
+Kode 4 angka dan QR akan muncul. Siswa **wajib** memasukkan kode itu di halaman **Bagi Tim**, lalu form otomatis menyesuaikan jenis sesinya. Peringkat, langkah, dan poin setiap kelompok/siswa lalu tampil langsung di dashboard, dan di HP siswa muncul badge "Peringkat X dari Y". Rekap bisa diunduh sebagai CSV (dibuka di Excel).
 
 Poin: 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle, dan 20 per kalimat majas buatan (maks. 3 kalimat).
 
@@ -41,6 +46,8 @@ Fitur ini memakai Firebase paket **Spark** (gratis, tanpa kartu kredit). Kalau b
 4. **Realtime Database → tab Rules**: hapus isinya, tempel seluruh isi file [`database.rules.json`](database.rules.json), lalu klik **Publish**.
 5. **Project settings (⚙️) → Your apps → ikon Web `</>`**, daftarkan app bernama `MajaPOP` (tanpa Hosting), lalu salin isi `firebaseConfig`.
 6. Tempel ke [`js/firebase-config.js`](js/firebase-config.js) menjadi `const FIREBASE_CONFIG = { apiKey: "...", ... };`, lalu upload ulang.
+
+> Setiap kali `database.rules.json` berubah (misalnya setelah fitur sesi Kelompok/Individu ditambahkan), ulangi langkah 4 agar aturan di Firebase ikut diperbarui.
 
 Isi `firebaseConfig` memang aman untuk publik. Yang melindungi data adalah aturan di langkah 4: siswa hanya bisa mengubah data kelompoknya sendiri, dan hanya guru pembuat sesi yang bisa mengakhirinya.
 
