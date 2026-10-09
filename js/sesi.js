@@ -307,10 +307,16 @@ const SESI = (() => {
     // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Bagi Tim.
     const kunci = (location.pathname.split('/').pop() || '') !== 'masuk.html';
     function badgePeringkat() {
-      if (!aktifSesi || menunggu) return;
+      if (menunggu) return;
       const s = loadState();
       const daftar = daftarTerakhir;
       const i = daftar.findIndex((k) => k.id === (s.sesi && s.sesi.kelompokId));
+      if (!aktifSesi) {
+        badge.innerHTML = i === -1
+          ? `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span>`
+          : `<span>⏹ Sesi selesai · Peringkat akhir ${indiv ? 'kamu' : 'kelompokmu'}: <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
+        return;
+      }
       badge.innerHTML = i === -1
         ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} ${indiv ? 'siswa' : 'kelompok'} bergabung</span>`
         : `<span>🏆 Peringkat <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
@@ -318,8 +324,7 @@ const SESI = (() => {
     pantauSesi(kode, (info) => {
       aktifSesi = Boolean(info && info.aktif);
       menunggu = sedangMenunggu(info);
-      if (!aktifSesi) badge.innerHTML = `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span>`;
-      else if (menunggu) badge.innerHTML = `<span>⏳ Ruang tunggu · Sesi ${esc(kode)}</span><span class="kecil">Menunggu guru memulai…</span>`;
+      if (menunggu) badge.innerHTML = `<span>⏳ Ruang tunggu · Sesi ${esc(kode)}</span><span class="kecil">Menunggu guru memulai…</span>`;
       else badgePeringkat();
       if (!kunci) return;
       if (menunggu) {

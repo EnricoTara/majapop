@@ -8,6 +8,7 @@ let kodeAktif = null;
 let daftarTerakhir = [];
 let infoTerakhir = null;
 let lepasPantau = [];
+let podiumUntuk = null; // kode sesi yang podiumnya sudah ditampilkan
 
 function simpanSesiGuru(kode) {
   try { kode ? localStorage.setItem(KUNCI_GURU, kode) : localStorage.removeItem(KUNCI_GURU); } catch (e) { /* abaikan */ }
@@ -61,10 +62,46 @@ function renderLobi(daftar) {
     <span class="lobi-nama ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</span>`).join('')}</div>`;
 }
 
+// Sesi sudah diakhiri (status sudah terbaca, bukan sekadar belum dimuat).
+function berakhir() {
+  return Boolean(infoTerakhir) && !infoTerakhir.aktif;
+}
+
+// Podium juara 1-2-3 saat sesi diakhiri, disusun 2 – 1 – 3 seperti podium sungguhan.
+function renderPodium() {
+  const podium = el('podium');
+  const juara = daftarTerakhir.slice(0, 3);
+  if (!berakhir() || !juara.length) { podium.hidden = true; return; }
+  if (podiumUntuk === kodeAktif && !podium.hidden) return; // animasi cukup sekali
+  podiumUntuk = kodeAktif;
+  const medali = ['🥇', '🥈', '🥉'];
+  const kolom = [1, 0, 2].filter((i) => juara[i]).map((i) => {
+    const k = juara[i];
+    return `<div class="podium-kolom juara-${i + 1}">
+      <div class="podium-info">
+        <span class="podium-medali" aria-hidden="true">${medali[i]}</span>
+        <span class="podium-nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}</span>
+        <span class="podium-poin"><b>${k.poin}</b> poin</span>
+      </div>
+      <div class="podium-balok"><span>${i + 1}</span></div>
+    </div>`;
+  }).join('');
+  const reduksi = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const warna = ['#FFC93C', '#DB2777', '#5B21B6', '#0F766E', '#C2410C', '#ffffff'];
+  const konfeti = reduksi ? '' : Array.from({ length: 30 }, () =>
+    `<i style="left:${Math.random() * 100}%;background:${warna[Math.floor(Math.random() * warna.length)]};animation-delay:${(1.4 + Math.random() * 1.2).toFixed(2)}s;animation-duration:${(2.2 + Math.random() * 1.6).toFixed(2)}s;rotate:${Math.floor(Math.random() * 360)}deg"></i>`).join('');
+  podium.innerHTML = `<div class="konfeti" aria-hidden="true">${konfeti}</div>
+    <h2>🏆 Juara Sesi ${esc(kodeAktif)}</h2>
+    <div class="podium-panggung">${kolom}</div>`;
+  podium.hidden = false;
+  podium.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+}
+
 function renderPapan() {
   const daftar = daftarTerakhir;
   const tunggu = menunggu();
-  el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : 'Peringkat';
+  renderPodium();
+  el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : berakhir() ? 'Peringkat akhir' : 'Peringkat';
   el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} ${peserta()}` : '';
 
   if (!daftar.length) {
@@ -142,6 +179,8 @@ function bukaSesi(kode) {
   tampilkan('layar-sesi');
   daftarTerakhir = [];
   infoTerakhir = null;
+  podiumUntuk = null;
+  el('podium').hidden = true;
   renderPapan();
   lepasPantau = [
     SESI.pantauSesi(kode, (info) => { infoTerakhir = info; renderStatus(); }),
