@@ -146,7 +146,7 @@ function renderHeader() {
           <button class="dropdown-btn" aria-expanded="false">Menu ▾</button>
           <div class="dropdown-menu">${menu}</div>
         </div>
-        <a class="btn btn-kecil btn-kuning" href="masuk.html">${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') + esc(state.tim) : 'Belajar'}</a>
+        <a class="btn btn-kecil btn-kuning" href="masuk.html"${state.tim ? ` title="${esc(state.tim)}"` : ''}>${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') : ''}Belajar</a>
       </nav>
     </div>`;
 
