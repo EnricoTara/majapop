@@ -17,7 +17,7 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 | Yang ingin diubah | Bagian di `js/data.js` |
 |---|---|
 | Link Google Form untuk unggah hasil | `PENGATURAN.googleFormUrl` |
-| Lama waktu puzzle (detik) dan jumlah baris | `PENGATURAN.waktuPuzzleDetik`, `PENGATURAN.jumlahBarisPuzzle` |
+| Lama waktu puzzle (detik); jumlah baris otomatis mengikuti jumlah jenis majas di `LAGU` | `PENGATURAN.waktuPuzzleDetik` |
 | Materi 8 jenis majas | `MAJAS` |
 | Daftar lagu, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video) |
 | Pertanyaan pemantik | `PEMANTIK` |

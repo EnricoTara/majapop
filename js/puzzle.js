@@ -47,8 +47,7 @@ function renderIntro() {
 }
 
 function jumlahBarisTersedia() {
-  const jenis = new Set(daftarLaguSiap().map((l) => l.majasId));
-  return Math.min(PENGATURAN.jumlahBarisPuzzle, jenis.size);
+  return new Set(daftarLaguSiap().map((l) => l.majasId)).size;
 }
 
 function labelTipe(tipe) {
@@ -64,8 +63,7 @@ function mulai() {
     toast('Belum ada lagu dengan kutipan lirik. Guru perlu mengisinya di js/data.js.');
     return;
   }
-  const jumlahBaris = Math.min(PENGATURAN.jumlahBarisPuzzle, tersedia.length);
-  const terpilih = acak(tersedia).slice(0, jumlahBaris);
+  const terpilih = acak(tersedia);
 
   const kepingan = [];
   terpilih.forEach((m) => {

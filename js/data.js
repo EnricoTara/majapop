@@ -5,10 +5,9 @@
 // ============================================================
 
 const PENGATURAN = {
-  // Lama waktu Papan Puzzle (detik). 300 = 5 menit.
-  waktuPuzzleDetik: 300,
-  // Banyak baris puzzle per permainan (tiap baris = 1 majas = 4 kepingan).
-  jumlahBarisPuzzle: 4,
+  // Lama waktu Papan Puzzle (detik). 600 = 10 menit.
+  // Jumlah baris puzzle otomatis = jumlah jenis majas pada lagu yang sudah diisi.
+  waktuPuzzleDetik: 600,
   // Ganti dengan tautan Google Form milik guru.
   googleFormUrl: 'https://forms.gle/GANTI_DENGAN_LINK_GOOGLE_FORM',
   // Lagu pengiring saat web dibuka (berhenti saat guru memulai sesi). Kosongkan ('') untuk mematikan.
