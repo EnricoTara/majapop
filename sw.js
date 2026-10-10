@@ -2,9 +2,9 @@
 // - File web sendiri: ambil dari jaringan dulu (perubahan guru langsung terlihat),
 //   pakai salinan cache saat offline.
 // - Google Fonts & Leaflet: pakai cache dulu.
-// - YouTube dan gambar peta tidak disimpan.
+// - YouTube, gambar peta, dan musik MP3 tidak disimpan.
 // Naikkan nomor versi jika daftar file INTI berubah.
-const CACHE = 'majapop-v2';
+const CACHE = 'majapop-v3';
 
 const INTI = [
   './',
@@ -39,6 +39,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // Musik (MP3) diputar langsung dari jaringan: respons sebagian (206) tidak bisa disimpan di cache.
+  if (req.headers.has('range') || url.pathname.endsWith('.mp3')) return;
 
   if (url.origin === location.origin) {
     e.respondWith(

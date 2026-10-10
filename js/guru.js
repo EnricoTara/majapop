@@ -81,7 +81,8 @@ function renderPodium() {
       <div class="podium-info">
         <span class="podium-medali" aria-hidden="true">${medali[i]}</span>
         <span class="podium-nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}</span>
-        <span class="podium-poin"><b>${k.poin}</b> poin</span>
+        <span class="podium-poin"><b>✔ ${k.totalBenar}</b> benar</span>
+        <span class="podium-sub">✖ ${k.totalSalah} salah · ⏱ ${SESI.formatDurasi(k.durasi)}</span>
       </div>
       <div class="podium-balok"><span>${i + 1}</span></div>
     </div>`;
@@ -102,6 +103,7 @@ function renderPapan() {
   const tunggu = menunggu();
   renderPodium();
   el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : berakhir() ? 'Peringkat akhir' : 'Peringkat';
+  el('aturan-peringkat').hidden = tunggu || !daftar.length;
   el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} ${peserta()}` : '';
 
   if (!daftar.length) {
@@ -112,7 +114,7 @@ function renderPapan() {
 
   // FLIP: catat posisi lama agar perpindahan peringkat terlihat beranimasi.
   const posLama = {};
-  papanEl.querySelectorAll('.peringkat-baris').forEach((b) => { posLama[b.dataset.id] = { top: b.getBoundingClientRect().top, poin: Number(b.dataset.poin) }; });
+  papanEl.querySelectorAll('.peringkat-baris').forEach((b) => { posLama[b.dataset.id] = { top: b.getBoundingClientRect().top, benar: Number(b.dataset.benar) }; });
 
   const medali = ['🥇', '🥈', '🥉'];
   papanEl.innerHTML = daftar.map((k, i) => {
@@ -122,9 +124,10 @@ function renderPapan() {
       `🔍 ${k.benar || 0}/${k.totalLagu || 0} majas`,
       k.puzzle >= 0 ? `🧩 ${k.puzzle} poin puzzle` : '🧩 belum',
       `✍️ ${k.cipta || 0} kalimat`,
+      `⭐ ${k.poin} poin`,
       `<span class="waktu-update" data-ms="${k.diperbarui || 0}">${waktuRelatif(k.diperbarui)}</span>`,
     ].join(' · ');
-    return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-poin="${k.poin}">
+    return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-benar="${k.totalBenar}">
       <div class="rank">${medali[i] || i + 1}</div>
       <div class="info">
         <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</div>
@@ -132,7 +135,7 @@ function renderPapan() {
         <div class="detail">${detail}</div>
       </div>
       <div class="langkah-label">${labelLangkah(k)}</div>
-      <div class="poin"><b>${k.poin}</b><span>poin</span></div>
+      <div class="nilai"><b>✔ ${k.totalBenar}</b><span>benar</span><small>✖ ${k.totalSalah} · ⏱ ${SESI.formatDurasi(k.durasi)}</small></div>
     </div>`;
   }).join('');
 
@@ -143,7 +146,7 @@ function renderPapan() {
     if (geser) {
       b.animate([{ transform: `translateY(${geser}px)` }, { transform: 'translateY(0)' }], { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)' });
     }
-    if (Number(b.dataset.poin) > lama.poin) b.classList.add('naik');
+    if (Number(b.dataset.benar) > lama.benar) b.classList.add('naik');
   });
 }
 
@@ -193,10 +196,11 @@ function unduhCsv() {
   const sel = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const indiv = individu();
   const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
-  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
+  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
   daftarTerakhir.forEach((k, i) => {
     baris.push([
-      i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), labelLangkah(k).replace(/^\S+\s/, ''), k.poin,
+      i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), labelLangkah(k).replace(/^\S+\s/, ''),
+      k.totalBenar, k.totalSalah, k.durasi ? SESI.formatDurasi(k.durasi) : '', k.poin,
       `${k.benar || 0}/${k.totalLagu || 0}`, k.pertama || 0, k.puzzle >= 0 ? k.puzzle : '', k.puzzleBenar >= 0 ? k.puzzleBenar : '',
       k.cipta || 0, (k.kalimat || []).join(' | '), k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
     ]);

@@ -11,6 +11,12 @@ const PENGATURAN = {
   jumlahBarisPuzzle: 4,
   // Ganti dengan tautan Google Form milik guru.
   googleFormUrl: 'https://forms.gle/GANTI_DENGAN_LINK_GOOGLE_FORM',
+  // Lagu pengiring saat web dibuka (berhenti saat guru memulai sesi). Kosongkan ('') untuk mematikan.
+  musikBeranda: 'music/nada dering - beranda.mp3',
+  // Nada yang diputar sekali saat papan peringkat akhir muncul di HP siswa.
+  musikPeringkat: 'music/nada dering - peringkat.mp3',
+  // Volume musik: 0 (tanpa suara) sampai 1 (paling keras).
+  volumeMusik: 0.4,
 };
 
 // Delapan jenis majas yang dipelajari (sesuai Petunjuk Permainan).

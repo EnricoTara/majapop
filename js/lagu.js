@@ -82,7 +82,10 @@ function laguBerikutnya(id) {
 function pilihLagu(id, gulir) {
   laguAktif = id;
   const l = LAGU.find((x) => x.id === id);
-  const state = updateState((s) => { s.lagu[id] = Object.assign(dataLagu(s, id), { diputar: true }); });
+  const state = updateState((s) => {
+    s.lagu[id] = Object.assign(dataLagu(s, id), { diputar: true });
+    if (laguSiap(l) && !s.lagu[id].benar) mulaiSoal(s);
+  });
   if (!state.selesai.includes('putar')) tandaiSelesai('putar');
   const d = dataLagu(state, id);
   const peran = state.peran || {};
@@ -152,6 +155,7 @@ function jawab(l, btn) {
     const d = s.lagu[l.id];
     d.percobaan += 1;
     if (benar) d.benar = true;
+    catatJawaban(s);
   });
   const umpan = detailEl.querySelector('#umpan');
   if (benar) {

@@ -88,6 +88,7 @@ function mulai() {
   sisa = PENGATURAN.waktuPuzzleDetik;
   dipilih = null;
   berjalan = true;
+  updateState(mulaiSoal);
 
   const peran = loadState().peran || {};
   document.getElementById('info-peran').textContent = peran.puzzle ? `🧩 Penyusun puzzle: ${peran.puzzle}` : '';
@@ -378,6 +379,7 @@ function selesai() {
 
   updateState((s) => {
     s.puzzle = { skor, benar, total: totalKeping, sisaWaktu: sisa, salah: salahTotal, bonus };
+    catatJawaban(s);
   });
   tandaiSelesai('puzzle');
 

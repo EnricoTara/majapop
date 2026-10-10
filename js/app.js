@@ -36,7 +36,19 @@ const PERAN = [
 function stateAwal() {
   // sesi: { kode, kelompokId, mode } jika bergabung ke Sesi Kelas (lihat js/sesi.js).
   // Pada sesi individu, tim = nama siswa dan absen = nomor absen.
-  return { tim: '', kelas: '', absen: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null };
+  // waktuSoal: { awal, akhir } untuk durasi mengerjakan soal (lihat mulaiSoal / catatJawaban).
+  return { tim: '', kelas: '', absen: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null, waktuSoal: null };
+}
+
+// Durasi mengerjakan soal: dari soal pertama dibuka sampai jawaban terakhir.
+// Memakai jam perangkat sendiri, jadi selisihnya tetap tepat walau jam HP tidak pas.
+function mulaiSoal(s) {
+  if (!s.waktuSoal) s.waktuSoal = { awal: Date.now(), akhir: 0 };
+}
+
+function catatJawaban(s) {
+  mulaiSoal(s);
+  s.waktuSoal.akhir = Date.now();
 }
 
 function sesiIndividu(state) {
@@ -174,6 +186,135 @@ function renderFooter() {
     </div>`;
 }
 
+// ---------- Musik ----------
+// Lagu pengiring beranda (berhenti saat guru memulai sesi) dan nada saat peringkat akhir muncul.
+// Browser baru mengizinkan suara setelah pengunjung menyentuh layar, jadi play() dicoba ulang
+// pada sentuhan/tombol pertama. File diunduh hanya saat dibutuhkan.
+const HALAMAN_SOAL = ['lagu.html', 'puzzle.html', 'cipta.html', 'unggah.html'];
+
+const MUSIK = (() => {
+  const KUNCI_MUTE = 'majapop-musik';
+  const KUNCI_POSISI = 'majapop-musik-posisi';
+  const SENTUHAN = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
+  const volume = () => Math.min(1, Math.max(0, PENGATURAN.volumeMusik ?? 0.4));
+  let latarEl = null;
+  let tombol = null;
+  let boleh = false;
+  let timerFade = null;
+  let menungguSentuh = false;
+
+  function dimatikan() {
+    try { return localStorage.getItem(KUNCI_MUTE) === 'mati'; } catch (e) { return false; }
+  }
+
+  function simpanMute(mati) {
+    try { localStorage.setItem(KUNCI_MUTE, mati ? 'mati' : 'nyala'); } catch (e) { /* abaikan */ }
+  }
+
+  function perbaruiTombol() {
+    if (!tombol) return;
+    const bunyi = Boolean(latarEl && !latarEl.paused);
+    tombol.hidden = !boleh;
+    tombol.textContent = bunyi ? '🔊' : '🔇';
+    tombol.setAttribute('aria-pressed', String(bunyi));
+    tombol.setAttribute('aria-label', bunyi ? 'Matikan musik' : 'Nyalakan musik');
+    tombol.title = bunyi ? 'Matikan musik' : 'Nyalakan musik';
+  }
+
+  function siapkan() {
+    if (latarEl || !PENGATURAN.musikBeranda) return Boolean(latarEl);
+    latarEl = new Audio(encodeURI(PENGATURAN.musikBeranda));
+    latarEl.loop = true;
+    latarEl.volume = volume();
+    // Lanjutkan dari posisi di halaman sebelumnya, bukan dari awal.
+    let posisi = 0;
+    try { posisi = Number(sessionStorage.getItem(KUNCI_POSISI)) || 0; } catch (e) { /* abaikan */ }
+    if (posisi) latarEl.addEventListener('loadedmetadata', () => { latarEl.currentTime = posisi % (latarEl.duration || Infinity); }, { once: true });
+    latarEl.addEventListener('play', () => { lepasSentuhan(); perbaruiTombol(); });
+    latarEl.addEventListener('pause', perbaruiTombol);
+    window.addEventListener('pagehide', () => {
+      try { sessionStorage.setItem(KUNCI_POSISI, String(latarEl.currentTime || 0)); } catch (e) { /* abaikan */ }
+    });
+
+    tombol = document.createElement('button');
+    tombol.type = 'button';
+    tombol.className = 'btn-musik';
+    tombol.addEventListener('click', () => {
+      if (latarEl.paused) { simpanMute(false); putar(); } else { simpanMute(true); latarEl.pause(); perbaruiTombol(); }
+    });
+    document.body.appendChild(tombol);
+    return true;
+  }
+
+  function sentuhan(e) {
+    if (e.target.closest && e.target.closest('.btn-musik')) return; // tombol musik punya aksinya sendiri
+    putar();
+  }
+
+  function lepasSentuhan() {
+    if (!menungguSentuh) return;
+    menungguSentuh = false;
+    SENTUHAN.forEach((t) => document.removeEventListener(t, sentuhan, true));
+  }
+
+  function putar() {
+    if (!boleh || !latarEl) return;
+    clearInterval(timerFade);
+    latarEl.volume = volume();
+    latarEl.play().catch(() => {
+      // Diblokir browser: tunggu sentuhan pertama.
+      if (menungguSentuh || dimatikan()) return;
+      menungguSentuh = true;
+      SENTUHAN.forEach((t) => document.addEventListener(t, sentuhan, true));
+    });
+  }
+
+  // Nyalakan (true) atau hentikan perlahan (false) lagu pengiring.
+  function latar(nyala) {
+    boleh = Boolean(nyala) && Boolean(PENGATURAN.musikBeranda);
+    if (boleh) {
+      siapkan();
+      if (!dimatikan()) putar();
+      perbaruiTombol();
+      return;
+    }
+    lepasSentuhan();
+    perbaruiTombol();
+    if (!latarEl || latarEl.paused) return;
+    clearInterval(timerFade);
+    timerFade = setInterval(() => {
+      latarEl.volume = Math.max(0, latarEl.volume - volume() / 10);
+      if (latarEl.volume <= 0.001) {
+        clearInterval(timerFade);
+        latarEl.pause();
+        latarEl.volume = volume();
+      }
+    }, 100);
+  }
+
+  // Nada singkat saat peringkat akhir muncul (mengikuti pilihan mute).
+  function peringkat() {
+    latar(false);
+    if (!PENGATURAN.musikPeringkat || dimatikan()) return;
+    const nada = new Audio(encodeURI(PENGATURAN.musikPeringkat));
+    nada.volume = volume();
+    nada.play().catch(() => { /* diblokir browser: lewati */ });
+  }
+
+  return { latar, peringkat };
+})();
+
+// Keputusan awal berdasarkan status sesi terakhir yang tersimpan; halaman dengan badge sesi
+// akan memperbaruinya secara live (lihat js/sesi.js).
+function musikAwal() {
+  const halaman = location.pathname.split('/').pop() || 'index.html';
+  if (halaman === 'guru.html') return;
+  const sesi = loadState().sesi;
+  const status = sesi && sesi.status;
+  const soal = HALAMAN_SOAL.includes(halaman);
+  MUSIK.latar(status === 'menunggu' || (status !== 'berjalan' && !soal));
+}
+
 // ---------- Stepper alur ----------
 function renderStepper() {
   const el = document.getElementById('stepper');
@@ -216,6 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHeader();
   renderFooter();
   renderStepper();
+  musikAwal();
 });
 
 // Service worker: agar bisa dipasang di layar utama HP dan tetap terbuka saat sinyal hilang.

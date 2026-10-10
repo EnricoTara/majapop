@@ -22,6 +22,9 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 | Daftar lagu, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video) |
 | Pertanyaan pemantik | `PEMANTIK` |
 | Peta sastrawan | `SASTRAWAN` |
+| Musik pengiring beranda dan nada peringkat, serta volumenya | `PENGATURAN.musikBeranda`, `PENGATURAN.musikPeringkat`, `PENGATURAN.volumeMusik` (file MP3 di folder `music/`) |
+
+**Musik:** lagu beranda berputar saat siswa membuka web (termasuk di ruang tunggu) dan berhenti perlahan saat guru menekan **🚀 Mulai Sesi**. Siswa bisa mematikannya lewat tombol 🔊 di pojok kiri bawah. Browser HP baru mengizinkan suara setelah layar disentuh pertama kali, jadi musik mulai pada sentuhan pertama. Nada peringkat diputar sekali saat papan peringkat akhir muncul di HP siswa. Gunakan musik yang boleh dipakai (bebas royalti atau milik sendiri) karena web ini publik.
 
 Setelah mengubah file, simpan lalu upload ulang (`git add -A && git commit -m "Perbarui konten" && git push`). Web akan ikut ter-update dalam sekitar 1 menit.
 
@@ -32,9 +35,11 @@ Guru membuka **Dashboard** (`guru.html`, ada link "Untuk guru" di bagian bawah s
 - **👥 Kelompok**: siswa mengisi nama kelompok, anggota, dan pembagian peran.
 - **👤 Individu**: setiap siswa mengisi nama, kelas, dan no. absen.
 
-Kode 4 angka dan QR akan muncul. Siswa **wajib** memasukkan kode itu di halaman **Bagi Tim**, lalu form otomatis menyesuaikan jenis sesinya. Setelah mengisi data, siswa masuk ke **ruang tunggu** dan nama mereka muncul di dashboard guru. Guru menekan **🚀 Mulai Sesi** ketika semua sudah bergabung, lalu permainan di semua HP siswa terbuka bersamaan. Siswa yang bergabung setelah sesi dimulai langsung bisa bermain. Peringkat, langkah, dan poin setiap kelompok/siswa lalu tampil langsung di dashboard, dan di HP siswa muncul badge "Peringkat X dari Y". Rekap bisa diunduh sebagai CSV (dibuka di Excel). Saat guru menekan **Akhiri sesi**, dashboard menampilkan **podium juara 1-2-3** beranimasi (cocok untuk proyektor), dan di HP siswa muncul peringkat akhirnya.
+Kode 4 angka dan QR akan muncul. Siswa **wajib** memasukkan kode itu di halaman **Bagi Tim**, lalu form otomatis menyesuaikan jenis sesinya. Setelah mengisi data, siswa masuk ke **ruang tunggu** dan nama mereka muncul di dashboard guru. Guru menekan **🚀 Mulai Sesi** ketika semua sudah bergabung, lalu permainan di semua HP siswa terbuka bersamaan. Siswa yang bergabung setelah sesi dimulai langsung bisa bermain. Peringkat dan langkah setiap kelompok/siswa lalu tampil langsung di dashboard, dan di HP siswa muncul badge "Peringkat X dari Y" dengan tombol **📋 Papan peringkat** untuk melihat seluruh peserta sesi (3 teratas disorot, baris sendiri ditandai "kamu"). Rekap bisa diunduh sebagai CSV (dibuka di Excel). Saat guru menekan **Akhiri sesi**, dashboard menampilkan **podium juara 1-2-3** beranimasi (cocok untuk proyektor), dan di HP siswa papan peringkat akhir terbuka otomatis.
 
-Poin: 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle, dan 20 per kalimat majas buatan (maks. 3 kalimat).
+Urutan peringkat: **jawaban benar terbanyak → jawaban salah paling sedikit → durasi mengerjakan tercepat**. Benar/salah dihitung dari tebakan majas (setiap tebakan yang keliru = 1 salah) dan kepingan puzzle. Durasi dihitung dari soal pertama dibuka sampai jawaban terakhir.
+
+Poin (tetap ditampilkan dan ikut di rekap): 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle, dan 20 per kalimat majas buatan (maks. 3 kalimat).
 
 ### Mengaktifkan (sekali saja, gratis)
 

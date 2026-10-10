@@ -71,7 +71,22 @@ const SESI = (() => {
     const cipta = (state.ciptaan || []).length;
     const puzzle = state.puzzle ? state.puzzle.skor : null;
     const poin = benar * 10 + pertama * 5 + (puzzle || 0) + Math.min(cipta, MAKS_CIPTA_DINILAI) * 20;
-    return { poin, benar, pertama, totalLagu: siapList.length, puzzle, puzzleBenar: state.puzzle ? state.puzzle.benar : null, cipta };
+    // Dasar peringkat: semua jawaban benar/salah (tebakan majas + kepingan puzzle) dan durasinya.
+    const salahLagu = siapList.reduce((n, l) => n + Math.max(0, (d(l.id).percobaan || 0) - (d(l.id).benar ? 1 : 0)), 0);
+    const totalBenar = benar + (state.puzzle ? state.puzzle.benar || 0 : 0);
+    const totalSalah = salahLagu + (state.puzzle ? state.puzzle.salah || 0 : 0);
+    const w = state.waktuSoal;
+    const durasi = w && w.akhir ? Math.max(0, Math.round((w.akhir - w.awal) / 1000)) : 0;
+    return { poin, benar, pertama, totalLagu: siapList.length, puzzle, puzzleBenar: state.puzzle ? state.puzzle.benar : null, cipta, totalBenar, totalSalah, durasi };
+  }
+
+  // Detik → "m:ss" (atau "j:mm:ss"); "–" jika belum ada jawaban.
+  function formatDurasi(detik) {
+    if (!detik) return '–';
+    const j = Math.floor(detik / 3600);
+    const m = Math.floor((detik % 3600) / 60);
+    const d = String(detik % 60).padStart(2, '0');
+    return j ? `${j}:${String(m).padStart(2, '0')}:${d}` : `${m}:${d}`;
   }
 
   function hitungPoin(state) {
@@ -188,6 +203,9 @@ const SESI = (() => {
       puzzle: r.puzzle === null ? -1 : r.puzzle,
       puzzleBenar: r.puzzleBenar === null ? -1 : r.puzzleBenar,
       cipta: r.cipta,
+      totalBenar: r.totalBenar,
+      totalSalah: r.totalSalah,
+      durasi: r.durasi,
       kalimat: (state.ciptaan || []).slice(0, 5).map((c) => `[${(majasById(c.majasId) || {}).jenis || c.majasId}] ${String(c.kalimat).slice(0, 300)}`),
       diperbarui: firebase.database.ServerValue.TIMESTAMP,
     };
@@ -217,10 +235,22 @@ const SESI = (() => {
     return Promise.race([kirim(), new Promise((ok) => setTimeout(ok, 4000))]);
   }
 
+  // Peringkat: benar terbanyak → salah paling sedikit → durasi tercepat.
+  // Data dari versi lama (tanpa totalBenar/durasi) dihitung semampunya.
   function urutkan(kelompok) {
     return Object.entries(kelompok || {})
-      .map(([id, k]) => ({ id, ...k }))
-      .sort((a, b) => (b.poin - a.poin) || (b.langkahKe - a.langkahKe) || ((a.diperbarui || 0) - (b.diperbarui || 0)));
+      .map(([id, k]) => ({
+        id,
+        ...k,
+        totalBenar: k.totalBenar ?? ((k.benar || 0) + Math.max(0, k.puzzleBenar || 0)),
+        totalSalah: k.totalSalah ?? 0,
+        durasi: k.durasi || 0,
+      }))
+      .sort((a, b) => (b.totalBenar - a.totalBenar)
+        || (a.totalSalah - b.totalSalah)
+        || ((a.durasi || Infinity) - (b.durasi || Infinity))
+        || (b.langkahKe - a.langkahKe)
+        || ((a.diperbarui || 0) - (b.diperbarui || 0)));
   }
 
   function pantauKelompok(kode, cb) {
@@ -285,6 +315,75 @@ const SESI = (() => {
     }, 1200);
   }
 
+  // ---------- Papan peringkat lengkap di HP siswa ----------
+  // Semua peserta sesi, 3 teratas disorot, baris sendiri ditandai "kamu".
+  let papanEl = null;
+  let papanData = { daftar: [], kode: '', kelompokId: '', indiv: false, berakhir: false };
+
+  function isiPapan() {
+    if (!papanEl) return;
+    const { daftar, kode, kelompokId, indiv, berakhir } = papanData;
+    const medali = ['🥇', '🥈', '🥉'];
+    papanEl.querySelector('#ps-info').textContent =
+      `Sesi ${kode} · ${daftar.length} ${indiv ? 'siswa' : 'kelompok'} · ${berakhir ? 'Hasil akhir' : '● Live'}`;
+    papanEl.querySelector('#ps-daftar').innerHTML = daftar.length ? daftar.map((k, i) => `
+      <li class="${i < 3 ? 'top' + (i + 1) : ''} ${k.id === kelompokId ? 'saya' : ''}">
+        <span class="ps-rank">${medali[i] || i + 1}</span>
+        <span class="ps-nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.id === kelompokId ? ' <span class="ps-kamu">kamu</span>' : ''}</span>
+        <span class="ps-nilai"><b title="Jawaban benar">✔ ${k.totalBenar}</b><span title="Jawaban salah">✖ ${k.totalSalah}</span><span title="Durasi mengerjakan">⏱ ${formatDurasi(k.durasi)}</span></span>
+      </li>`).join('') : `<li class="ps-kosong">Belum ada ${indiv ? 'siswa' : 'kelompok'} yang bergabung.</li>`;
+  }
+
+  function tutupPapan() {
+    if (!papanEl) return;
+    papanEl.remove();
+    papanEl = null;
+    document.removeEventListener('keydown', escPapan);
+  }
+
+  function escPapan(e) {
+    if (e.key === 'Escape') tutupPapan();
+  }
+
+  function bukaPapan() {
+    if (papanEl) return;
+    papanEl = document.createElement('div');
+    papanEl.className = 'modal buka papan-siswa';
+    papanEl.setAttribute('role', 'dialog');
+    papanEl.setAttribute('aria-modal', 'true');
+    papanEl.setAttribute('aria-labelledby', 'ps-judul');
+    papanEl.innerHTML = `
+      <div class="modal-isi">
+        <button type="button" class="ps-tutup" aria-label="Tutup papan peringkat">✕</button>
+        <h2 id="ps-judul">🏆 Papan Peringkat</h2>
+        <p class="kecil ps-info" id="ps-info"></p>
+        <p class="kecil ps-aturan">Urutan: jawaban benar terbanyak → salah paling sedikit → waktu tercepat.</p>
+        <ol class="papan-mini" id="ps-daftar" aria-live="polite"></ol>
+      </div>`;
+    papanEl.addEventListener('click', (e) => {
+      if (e.target === papanEl || e.target.closest('.ps-tutup')) tutupPapan();
+    });
+    document.addEventListener('keydown', escPapan);
+    document.body.appendChild(papanEl);
+    isiPapan();
+    papanEl.querySelector('.ps-tutup').focus();
+    const saya = papanEl.querySelector('.papan-mini .saya');
+    if (saya) saya.scrollIntoView({ block: 'nearest' });
+  }
+
+  // ---------- Musik mengikuti status sesi ----------
+  // Status disimpan langsung ke localStorage (tanpa saveState) agar tidak memicu kirim progress,
+  // lalu dipakai halaman lain untuk keputusan musik awal (musikAwal di js/app.js).
+  function aturMusik(kode, status) {
+    const s = loadState();
+    if (s.sesi && s.sesi.kode === kode && s.sesi.status !== status) {
+      s.sesi.status = status;
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) { /* abaikan */ }
+    }
+    const soal = HALAMAN_SOAL.includes(location.pathname.split('/').pop() || 'index.html');
+    MUSIK.latar(status === 'menunggu' || (status === 'selesai' && !soal));
+  }
+
   // ---------- Badge peringkat di HP siswa ----------
   function pasangBadge() {
     const state = loadState();
@@ -303,7 +402,12 @@ const SESI = (() => {
     let aktifSesi = true;
     let menunggu = false;
     let daftarTerakhir = [];
+    let daftarDimuat = false;
+    let infoDimuat = false;
     const indiv = modeSesi(state.sesi) === 'individu';
+    const KUNCI_HASIL = 'majapop-hasil-dilihat';
+    badge.addEventListener('click', (e) => { if (e.target.closest('.btn-papan')) bukaPapan(); });
+    const tombolPapan = '<button type="button" class="btn-papan">📋 Papan peringkat</button>';
     // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Bagi Tim.
     const kunci = (location.pathname.split('/').pop() || '') !== 'masuk.html';
     function badgePeringkat() {
@@ -311,19 +415,32 @@ const SESI = (() => {
       const s = loadState();
       const daftar = daftarTerakhir;
       const i = daftar.findIndex((k) => k.id === (s.sesi && s.sesi.kelompokId));
+      const nilai = i === -1 ? '' : `<span class="poin-badge">✔ ${daftar[i].totalBenar} benar</span>`;
+      papanData = { daftar, kode, kelompokId: s.sesi && s.sesi.kelompokId, indiv, berakhir: !aktifSesi };
+      isiPapan();
       if (!aktifSesi) {
         badge.innerHTML = i === -1
-          ? `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span>`
-          : `<span>⏹ Sesi selesai · Peringkat akhir ${indiv ? 'kamu' : 'kelompokmu'}: <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
+          ? `<span>⏹ Sesi ${esc(kode)} sudah diakhiri guru.</span><span class="badge-kanan">${tombolPapan}</span>`
+          : `<span>⏹ Sesi selesai · Peringkat akhir ${indiv ? 'kamu' : 'kelompokmu'}: <b>${i + 1}</b> dari ${daftar.length}</span><span class="badge-kanan">${nilai}${tombolPapan}</span>`;
+        // Hasil akhir dibuka otomatis sekali per sesi (tidak saat masih di ruang tunggu).
+        let dilihat = null;
+        try { dilihat = localStorage.getItem(KUNCI_HASIL); } catch (e) { /* abaikan */ }
+        if (infoDimuat && daftarDimuat && daftar.length && !ruangEl && dilihat !== kode) {
+          try { localStorage.setItem(KUNCI_HASIL, kode); } catch (e) { /* abaikan */ }
+          bukaPapan();
+          MUSIK.peringkat();
+        }
         return;
       }
       badge.innerHTML = i === -1
-        ? `<span>📡 Sesi ${esc(kode)}</span><span class="kecil">${daftar.length} ${indiv ? 'siswa' : 'kelompok'} bergabung</span>`
-        : `<span>🏆 Peringkat <b>${i + 1}</b> dari ${daftar.length}</span><span class="poin-badge">${daftar[i].poin} poin</span>`;
+        ? `<span>📡 Sesi ${esc(kode)}</span><span class="badge-kanan"><span class="kecil">${daftar.length} ${indiv ? 'siswa' : 'kelompok'} bergabung</span>${tombolPapan}</span>`
+        : `<span>🏆 Peringkat <b>${i + 1}</b> dari ${daftar.length}</span><span class="badge-kanan">${nilai}${tombolPapan}</span>`;
     }
     pantauSesi(kode, (info) => {
       aktifSesi = Boolean(info && info.aktif);
       menunggu = sedangMenunggu(info);
+      infoDimuat = true;
+      aturMusik(kode, !aktifSesi ? 'selesai' : menunggu ? 'menunggu' : 'berjalan');
       if (menunggu) badge.innerHTML = `<span>⏳ Ruang tunggu · Sesi ${esc(kode)}</span><span class="kecil">Menunggu guru memulai…</span>`;
       else badgePeringkat();
       if (!kunci) return;
@@ -340,6 +457,7 @@ const SESI = (() => {
     });
     pantauKelompok(kode, (daftar) => {
       daftarTerakhir = daftar;
+      daftarDimuat = true;
       isiRuangTunggu(daftar, state.sesi.kelompokId, indiv);
       badgePeringkat();
     });
@@ -347,7 +465,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, langkahSaatIni, pasangBadge };
+  return { aktif, siap, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());
