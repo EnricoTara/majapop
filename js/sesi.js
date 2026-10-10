@@ -408,7 +408,7 @@ const SESI = (() => {
     const KUNCI_HASIL = 'majapop-hasil-dilihat';
     badge.addEventListener('click', (e) => { if (e.target.closest('.btn-papan')) bukaPapan(); });
     const tombolPapan = '<button type="button" class="btn-papan">📋 Papan peringkat</button>';
-    // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Bagi Tim.
+    // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Masukkan Kode.
     const kunci = (location.pathname.split('/').pop() || '') !== 'masuk.html';
     function badgePeringkat() {
       if (menunggu) return;

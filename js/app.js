@@ -7,7 +7,7 @@ const STORE_KEY = 'majapop';
 
 // Alur petualangan (urutan permainan).
 const LANGKAH = [
-  { id: 'tim', label: 'Bagi Tim', ikon: '👥', href: 'masuk.html' },
+  { id: 'tim', label: 'Masukkan Kode', ikon: '🔑', href: 'masuk.html' },
   { id: 'putar', label: 'Putar Lagu', ikon: '🎵', href: 'lagu.html' },
   { id: 'identifikasi', label: 'Identifikasi Majas', ikon: '🔍', href: 'lagu.html#identifikasi' },
   { id: 'puzzle', label: 'Susun Puzzle', ikon: '🧩', href: 'puzzle.html' },
@@ -146,7 +146,7 @@ function renderHeader() {
           <button class="dropdown-btn" aria-expanded="false">Menu ▾</button>
           <div class="dropdown-menu">${menu}</div>
         </div>
-        <a class="btn btn-kecil btn-kuning" href="masuk.html">${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') + esc(state.tim) : 'Masuk'}</a>
+        <a class="btn btn-kecil btn-kuning" href="masuk.html">${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') + esc(state.tim) : 'Belajar'}</a>
       </nav>
     </div>`;
 

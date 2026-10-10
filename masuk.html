@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="MajaPOP!">
-  <title>Bagi Tim – MajaPOP!</title>
+  <title>Masukkan Kode – MajaPOP!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
@@ -24,15 +24,15 @@
 
     <section class="halaman-judul">
       <span class="label-atas">Langkah 1</span>
-      <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Bagi Tim 👥</h1>
-      <p id="subjudul">Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.</p>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Masukkan Kode 🔑</h1>
+      <p id="subjudul">Masukkan kode 4 angka dari guru untuk bergabung ke sesi kelas.</p>
     </section>
 
     <form id="form-tim" class="kartu" novalidate>
       <div class="field kode-sesi" id="field-kode" hidden>
         <label for="kode">📡 Kode sesi dari guru</label>
         <input type="text" id="kode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Contoh: 4821" autocomplete="off">
-        <p class="kecil" style="margin:6px 0 0">Masukkan kode 4 angka yang ditampilkan guru. Form akan menyesuaikan jenis sesinya: kelompok atau individu.</p>
+        <p class="kecil" style="margin:6px 0 0">Kode ditampilkan di layar guru. Form akan menyesuaikan jenis sesinya: kelompok atau individu.</p>
         <div class="aksi"><button type="button" class="btn" id="cek-kode">Masuk Sesi →</button></div>
       </div>
 
@@ -123,7 +123,7 @@
       }
       modeForm = mode;
       const indiv = mode === 'individu';
-      document.getElementById('judul').textContent = indiv ? 'Data Diri 👤' : 'Bagi Tim 👥';
+      document.getElementById('judul').textContent = indiv ? 'Data Diri 👤' : 'Masukkan Kode 🔑';
       document.getElementById('subjudul').textContent = indiv
         ? 'Sesi ini dikerjakan sendiri. Tulis nama, kelas, dan nomor absenmu agar progresmu muncul di layar guru.'
         : 'Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.';
@@ -142,6 +142,8 @@
       sesiDipilih = null;
       document.getElementById('isian').hidden = true;
       document.getElementById('field-kode').hidden = false;
+      document.getElementById('judul').textContent = 'Masukkan Kode 🔑';
+      document.getElementById('subjudul').textContent = 'Masukkan kode 4 angka dari guru untuk bergabung ke sesi kelas.';
     }
 
     async function cekKode() {
