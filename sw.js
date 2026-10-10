@@ -4,7 +4,7 @@
 // - Google Fonts & Leaflet: pakai cache dulu.
 // - YouTube, gambar peta, dan musik MP3 tidak disimpan.
 // Naikkan nomor versi jika daftar file INTI berubah.
-const CACHE = 'majapop-v3';
+const CACHE = 'majapop-v4';
 
 const INTI = [
   './',
@@ -18,7 +18,7 @@ const INTI = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(INTI)));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(INTI.map((u) => new Request(u, { cache: 'reload' })))));
   self.skipWaiting();
 });
 
@@ -43,8 +43,9 @@ self.addEventListener('fetch', (e) => {
   if (req.headers.has('range') || url.pathname.endsWith('.mp3')) return;
 
   if (url.origin === location.origin) {
+    // cache: 'no-cache' = selalu tanya server dulu (cache HTTP GitHub Pages 10 menit tidak dipakai mentah-mentah).
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then((res) => simpan(req, res))
         .catch(() => caches.match(req, { ignoreSearch: true })
           .then((r) => r || (req.mode === 'navigate' ? caches.match('index.html') : undefined)))
