@@ -179,7 +179,7 @@ const SESI = (() => {
     if (!info.aktif) throw new Error(`Sesi ${kode} sudah diakhiri guru.`);
     const lama = loadState().sesi;
     const kelompokId = lama && lama.kode === kode && lama.kelompokId ? lama.kelompokId : db.ref().push().key;
-    return { kode, kelompokId, mode: modeSesi(info) };
+    return { kode, kelompokId, mode: modeSesi(info), status: sedangMenunggu(info) ? 'menunggu' : 'berjalan' };
   }
 
   function ringkasan(state) {
@@ -298,20 +298,22 @@ const SESI = (() => {
       <span class="lobi-nama ${k.id === kelompokId ? 'saya' : ''} ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.id === kelompokId ? ' (kamu)' : ''}</span>`).join('');
   }
 
-  function tutupRuangTunggu(isi, otomatis) {
+  function tutupRuangTunggu(isi, otomatis, langsung) {
     if (!ruangEl) return;
     const el = ruangEl;
+    const lepas = () => {
+      el.remove();
+      document.body.classList.remove('menunggu-sesi');
+      const main = document.querySelector('main');
+      if (main) main.inert = false;
+    };
+    if (langsung) { ruangEl = null; lepas(); return; }
     el.querySelector('.modal-isi').innerHTML = isi;
     if (!otomatis) return;
     ruangEl = null;
     setTimeout(() => {
       el.classList.add('hilang');
-      setTimeout(() => {
-        el.remove();
-        document.body.classList.remove('menunggu-sesi');
-        const main = document.querySelector('main');
-        if (main) main.inert = false;
-      }, 350);
+      setTimeout(lepas, 350);
     }, 1200);
   }
 
@@ -410,6 +412,9 @@ const SESI = (() => {
     const tombolPapan = '<button type="button" class="btn-papan">📋 Papan peringkat</button>';
     // Ruang tunggu hanya menutupi halaman permainan, bukan halaman Masukkan Kode.
     const kunci = (location.pathname.split('/').pop() || '') !== 'masuk.html';
+    // Belum tahu sesi sudah dimulai: tutup halaman sejak awal agar soal tidak sempat terlihat.
+    let pernahMenunggu = false;
+    if (kunci && state.sesi.status !== 'berjalan') bukaRuangTunggu(state);
     function badgePeringkat() {
       if (menunggu) return;
       const s = loadState();
@@ -445,8 +450,11 @@ const SESI = (() => {
       else badgePeringkat();
       if (!kunci) return;
       if (menunggu) {
+        pernahMenunggu = true;
         bukaRuangTunggu(loadState());
         isiRuangTunggu(daftarTerakhir, state.sesi.kelompokId, indiv);
+      } else if (aktifSesi && !pernahMenunggu) {
+        tutupRuangTunggu('', true, true); // ternyata sudah berjalan: langsung buka tanpa animasi
       } else if (!aktifSesi) {
         tutupRuangTunggu(`<div class="besar" aria-hidden="true">⏹</div><h2>Sesi sudah diakhiri</h2>
           <p>Guru sudah mengakhiri sesi ${esc(kode)}. Minta kode sesi baru ke guru, ya.</p>

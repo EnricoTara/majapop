@@ -194,7 +194,7 @@ const awal = loadState();
 const pertamaBelum = daftarLaguSiap().find((l) => !dataLagu(awal, l.id).benar) || daftarLaguSiap()[0] || LAGU[0];
 renderGrid();
 detailEl.innerHTML = `<div class="kartu tengah"><p style="margin:0">👆 Pilih salah satu lagu di atas untuk membuka Song Card.</p></div>`;
-if (location.hash === '#identifikasi') pilihLagu(pertamaBelum.id, true);
+if (location.hash === '#identifikasi' && !syaratHalaman()) pilihLagu(pertamaBelum.id, true);
 window.addEventListener('hashchange', () => {
-  if (location.hash === '#identifikasi' && !laguAktif) pilihLagu(pertamaBelum.id, true);
+  if (location.hash === '#identifikasi' && !laguAktif && !syaratHalaman()) pilihLagu(pertamaBelum.id, true);
 });

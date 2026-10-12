@@ -330,12 +330,13 @@ function renderStepper() {
   el.className = 'stepper';
   el.innerHTML = LANGKAH.map((l, i) => {
     const selesai = state.selesai.includes(l.id);
-    const terbuka = i === 0 || state.selesai.includes(LANGKAH[i - 1].id) || selesai;
+    const terbuka = langkahTerbuka(state, i);
     const kelas = [selesai ? 'selesai' : '', l.id === aktif ? 'aktif' : '', terbuka ? '' : 'terkunci'].join(' ');
-    return `<a class="step ${kelas}" href="${l.href}" title="${esc(l.label)}">
-      <span class="step-ikon">${selesai ? '✓' : l.ikon}</span>
-      <span class="step-label">${i + 1}. ${esc(l.label)}</span>
-    </a>`;
+    const isi = `<span class="step-ikon">${selesai ? '✓' : terbuka ? l.ikon : '🔒'}</span>
+      <span class="step-label">${i + 1}. ${esc(l.label)}</span>`;
+    return terbuka
+      ? `<a class="step ${kelas}" href="${l.href}" title="${esc(l.label)}">${isi}</a>`
+      : `<span class="step ${kelas}" title="${esc(l.label)} (terkunci)" aria-disabled="true">${isi}</span>`;
   }).join('<span class="step-garis" aria-hidden="true"></span>');
 
   // Di layar sempit stepper bisa digeser: posisikan langkah aktif di tengah.
@@ -344,6 +345,50 @@ function renderStepper() {
 }
 
 function refreshStepper() { renderStepper(); }
+
+// ---------- Urutan langkah ----------
+// Sudah memasukkan kode? Dengan Sesi Kelas aktif, wajib tergabung ke sesi guru.
+function sudahTerdaftar(state) {
+  if (!state.tim || !state.selesai.includes('tim')) return false;
+  return typeof SESI === 'undefined' || !SESI.aktif() || Boolean(state.sesi && state.sesi.kode);
+}
+
+// Langkah ke-i terbuka jika langkah sebelumnya sudah selesai (langkah pertama selalu terbuka).
+function langkahTerbuka(state, i) {
+  if (i === 0) return true;
+  if (!sudahTerdaftar(state)) return false;
+  return state.selesai.includes(LANGKAH[i - 1].id) || state.selesai.includes(LANGKAH[i].id);
+}
+
+// Halaman permainan → langkah pertama yang dikerjakan di halaman itu.
+const LANGKAH_HALAMAN = { 'lagu.html': 'putar', 'puzzle.html': 'puzzle', 'cipta.html': 'cipta', 'unggah.html': 'unggah' };
+
+// Langkah yang harus dikerjakan dulu sebelum halaman ini boleh dibuka, atau null jika sudah terbuka.
+function syaratHalaman() {
+  const id = LANGKAH_HALAMAN[location.pathname.split('/').pop() || 'index.html'];
+  if (!id) return null;
+  const state = loadState();
+  const i = LANGKAH.findIndex((l) => l.id === id);
+  if (langkahTerbuka(state, i)) return null;
+  return sudahTerdaftar(state) ? LANGKAH[i - 1] : LANGKAH[0];
+}
+
+// Tutup isi halaman permainan bila langkah sebelumnya belum dikerjakan.
+function kunciHalaman() {
+  const syarat = syaratHalaman();
+  const main = document.querySelector('main');
+  if (!syarat || !main) return;
+  const ke = LANGKAH.indexOf(syarat) + 1;
+  main.innerHTML = `
+    <div class="kartu kunci-langkah">
+      <div class="besar" aria-hidden="true">🔒</div>
+      <h2>Tahap ini masih terkunci</h2>
+      <p>${syarat.id === 'tim'
+        ? 'Masukkan kode sesi dari guru dulu, lalu tunggu guru memulai sesi.'
+        : `Selesaikan langkah <b>${ke}. ${esc(syarat.label)}</b> dulu ya, baru tahap ini terbuka.`}</p>
+      <a class="btn" href="${syarat.href}">${syarat.ikon} ${esc(syarat.label)}</a>
+    </div>`;
+}
 
 // Tampilkan peringatan jika tim belum diisi. Mengembalikan true jika tim sudah ada.
 function cekTim(container) {
@@ -363,6 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHeader();
   renderFooter();
   renderStepper();
+  kunciHalaman();
   musikAwal();
 });
 

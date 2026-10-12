@@ -256,7 +256,10 @@ main { min-height: 60vh; }
 .step-ikon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ungu-muda); font-size: .95rem; }
 .step.selesai .step-ikon { background: var(--hijau); color: #fff; font-weight: 800; }
 .step.aktif { border-color: var(--pink); background: var(--pink-muda); }
-.step.terkunci { opacity: .55; }
+.step.terkunci { opacity: .55; cursor: not-allowed; }
+.kunci-langkah { max-width: 520px; margin: 48px auto; text-align: center; }
+.kunci-langkah .besar { font-size: 3rem; line-height: 1; margin-bottom: 8px; }
+.kunci-langkah p { color: var(--teks-pudar); margin-bottom: 18px; }
 .step-garis { flex: 1 0 12px; height: 3px; background: var(--garis); border-radius: 3px; min-width: 12px; }
 
 /* ---------- Formulir ---------- */
