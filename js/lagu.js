@@ -22,6 +22,11 @@ function dataLagu(state, id) {
   return state.lagu[id] || { diputar: false, benar: false, percobaan: 0, makna: '' };
 }
 
+// Langkah 2 (Putar Lagu) sudah ditutup? Baru setelah itu Identifikasi Majas terbuka.
+function sudahDengar() {
+  return loadState().selesai.includes('putar');
+}
+
 function renderGrid() {
   const state = loadState();
   gridEl.innerHTML = LAGU.map((l, i) => {
@@ -52,6 +57,10 @@ function renderGrid() {
   document.getElementById('progres-pertama').textContent = benar ? `Tepat di tebakan pertama: ${pertama}` : '';
   document.getElementById('progres-isi').style.width = siap.length ? `${(benar / siap.length) * 100}%` : '0';
   document.getElementById('lanjut').hidden = !siap.length || benar < siap.length;
+
+  // Tombol penutup langkah 2: muncul selama belum selesai, aktif setelah satu lagu dibuka.
+  document.getElementById('selesai-dengar').hidden = state.selesai.includes('putar');
+  document.getElementById('btn-selesai-dengar').disabled = !Object.values(state.lagu).some((d) => d.diputar);
 }
 
 function playerHtml(l) {
@@ -82,16 +91,22 @@ function laguBerikutnya(id) {
 function pilihLagu(id, gulir) {
   laguAktif = id;
   const l = LAGU.find((x) => x.id === id);
+  // Soal majas baru muncul setelah langkah 2 ditutup lewat tombol "Selesai mendengarkan".
+  const dengar = sudahDengar();
   const state = updateState((s) => {
     s.lagu[id] = Object.assign(dataLagu(s, id), { diputar: true });
-    if (laguSiap(l) && !s.lagu[id].benar) mulaiSoal(s);
+    if (dengar && laguSiap(l) && !s.lagu[id].benar) mulaiSoal(s);
   });
-  if (!state.selesai.includes('putar')) tandaiSelesai('putar');
   const d = dataLagu(state, id);
   const peran = state.peran || {};
   const siap = laguSiap(l);
+  const soal = siap && dengar;
 
-  const bagianSoal = siap ? `
+  const bagianSoal = siap && !dengar ? `
+        <div class="banner" style="margin-top:0">
+          <span>🎧 Dengarkan lagunya dulu. Klik <b>Selesai mendengarkan</b> untuk mulai menebak majas.</span>
+        </div>
+        <div class="aksi aksi-penuh"><button type="button" class="btn btn-kecil lagu-berikut">Lagu berikutnya →</button></div>` : soal ? `
         <p class="kecil" style="margin-bottom:6px">Kutipan lirik:</p>
         <blockquote class="kutipan">“${esc(l.kutipan)}”</blockquote>
         <h3>Majas apa yang ada pada kutipan lirik ini?</h3>
@@ -125,7 +140,7 @@ function pilihLagu(id, gulir) {
 
   detailEl.querySelectorAll('.lagu-berikut').forEach((b) => b.addEventListener('click', () => pilihLagu(laguBerikutnya(id).id, true)));
 
-  if (siap) {
+  if (soal) {
     if (d.benar) tampilkanBenar(l);
     detailEl.querySelector('#pilihan').addEventListener('click', (e) => {
       const btn = e.target.closest('.pilihan');
@@ -187,6 +202,12 @@ function tampilkanBenar(l) {
 gridEl.addEventListener('click', (e) => {
   const btn = e.target.closest('.lagu-kartu');
   if (btn) pilihLagu(btn.dataset.id, true);
+});
+
+document.getElementById('btn-selesai-dengar').addEventListener('click', () => {
+  tandaiSelesai('putar');
+  toast('🔍 Langkah 3 terbuka: saatnya identifikasi majas!');
+  pilihLagu(laguAktif || pertamaBelum.id, true);
 });
 
 // Buka lagu siap pertama yang belum teridentifikasi.
