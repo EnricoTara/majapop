@@ -221,6 +221,16 @@ el('mulai-sesi').addEventListener('click', async () => {
   tombol.disabled = true;
   tombol.textContent = 'Membuat sesi…';
   try {
+    // Satu guru hanya boleh punya satu sesi aktif: buka lagi sesi yang masih berjalan.
+    const lama = sesiGuruTersimpan();
+    if (lama && await SESI.sesiMilikSaya(lama)) {
+      const info = await SESI.infoSesi(lama);
+      if (info && info.aktif) {
+        toast(`Sesi ${lama} masih berjalan. Akhiri dulu sebelum membuat sesi baru.`);
+        bukaSesi(lama);
+        return;
+      }
+    }
     const mode = document.querySelector('input[name="mode"]:checked').value;
     const { kode, ruangTunggu } = await SESI.buatSesi(el('nama-kelas').value.trim(), mode);
     bukaSesi(kode);

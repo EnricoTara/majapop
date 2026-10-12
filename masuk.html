@@ -256,6 +256,8 @@
       }
 
       updateState((s) => {
+        // Kode sesi berbeda dari sebelumnya: mulai dari awal. Kode sama: lanjutkan progres.
+        if (sesiDipilih && (!s.sesi || s.sesi.kode !== sesiDipilih.kode)) resetProgres(s);
         s.tim = nama;
         s.kelas = kelas;
         s.anggota = anggota;

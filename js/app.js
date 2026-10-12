@@ -86,6 +86,12 @@ function resetState() {
   try { localStorage.removeItem(STORE_KEY); } catch (e) { /* abaikan */ }
 }
 
+// Hapus progres permainan, identitas dan sesi tetap (dipakai saat pindah ke kode sesi lain).
+function resetProgres(s) {
+  const awal = stateAwal();
+  ['selesai', 'lagu', 'puzzle', 'ciptaan', 'waktuSoal'].forEach((k) => { s[k] = awal[k]; });
+}
+
 // ---------- Utilitas ----------
 function esc(text) {
   return String(text ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
