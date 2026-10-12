@@ -1,0 +1,24 @@
+{
+  "hosting": {
+    "site": "majapop",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "README.md",
+      "database.rules.json",
+      "guru-*.png",
+      "siswa-*.png",
+      "DESAIN*",
+      "Album/**",
+      "~$*"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(html|js|css|webmanifest)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
+    ]
+  }
+}

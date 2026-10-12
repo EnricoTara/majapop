@@ -4,7 +4,7 @@
 
 MajaPOP! adalah media belajar majas dalam puisi lewat lagu pop dan puzzle interaktif yang dimainkan berkelompok.
 
-🌐 **Buka web:** https://enricotara.github.io/majapop/
+🌐 **Buka web:** https://majapop.web.app/
 
 ## Alur permainan
 
