@@ -8,3 +8,6 @@ Album/
 
 # File sistem macOS.
 .DS_Store
+
+# Cache deploy Firebase Hosting.
+.firebase/
