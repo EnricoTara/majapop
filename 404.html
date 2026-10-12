@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="id">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MajaPOP! pindah alamat</title>
+<script>
+  // MajaPOP! pindah ke majapop.web.app: bawa path, kode sesi (?kode=), dan hash ke alamat baru.
+  var p = location.pathname.replace(/^\/majapop/, '') || '/';
+  location.replace('https://majapop.web.app' + p + location.search + location.hash);
+</script>
+<p style="font-family:sans-serif;text-align:center;margin-top:20vh">MajaPOP! sudah pindah ke <a href="https://majapop.web.app/">majapop.web.app</a></p>
+</html>
