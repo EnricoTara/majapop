@@ -330,7 +330,7 @@ function renderStepper() {
   el.className = 'stepper';
   el.innerHTML = LANGKAH.map((l, i) => {
     const selesai = state.selesai.includes(l.id);
-    const terbuka = langkahTerbuka(state, i);
+    const terbuka = langkahTerbuka(state, i) && (i === 0 || !sesiTidakBerjalan(state));
     const kelas = [selesai ? 'selesai' : '', l.id === aktif ? 'aktif' : '', terbuka ? '' : 'terkunci'].join(' ');
     const isi = `<span class="step-ikon">${selesai ? '✓' : terbuka ? l.ikon : '🔒'}</span>
       <span class="step-label">${i + 1}. ${esc(l.label)}</span>`;
@@ -351,6 +351,13 @@ function refreshStepper() { renderStepper(); }
 function sudahTerdaftar(state) {
   if (!state.tim || !state.selesai.includes('tim')) return false;
   return typeof SESI === 'undefined' || !SESI.aktif() || Boolean(state.sesi && state.sesi.kode);
+}
+
+// Langkah 2 dst. hanya terbuka selama sesi berjalan: belum dimulai guru, sudah diakhiri,
+// atau statusnya belum terbaca dari Firebase = terkunci. Status disimpan oleh gabung / aturMusik (js/sesi.js).
+function sesiTidakBerjalan(state) {
+  if (typeof SESI === 'undefined' || !SESI.aktif() || !state.sesi) return false;
+  return state.sesi.status !== 'berjalan';
 }
 
 // Langkah ke-i terbuka jika langkah sebelumnya sudah selesai (langkah pertama selalu terbuka).

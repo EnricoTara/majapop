@@ -381,6 +381,7 @@ const SESI = (() => {
     if (s.sesi && s.sesi.kode === kode && s.sesi.status !== status) {
       s.sesi.status = status;
       try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) { /* abaikan */ }
+      refreshStepper(); // langkah 2 dst. terbuka begitu guru memulai sesi
     }
     const soal = HALAMAN_SOAL.includes(location.pathname.split('/').pop() || 'index.html');
     MUSIK.latar(status === 'menunggu' || (status === 'selesai' && !soal));

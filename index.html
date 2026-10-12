@@ -123,8 +123,14 @@
         <span class="nama">${esc(f.label)}</span>
         <span class="judul">${esc(f.judul)}</span>
       </a>`).join('');
-    document.getElementById('alur-grid').innerHTML = LANGKAH.map((l) => `
-      <a href="${l.href}"><span class="ikon">${l.ikon}</span><span class="nama">${esc(l.label)}</span></a>`).join('');
+    // Alur mengikuti kunci stepper: langkah yang belum terbuka tidak bisa diklik.
+    const stateAlur = loadState();
+    document.getElementById('alur-grid').innerHTML = LANGKAH.map((l, i) => {
+      const terbuka = langkahTerbuka(stateAlur, i) && (i === 0 || !sesiTidakBerjalan(stateAlur));
+      return terbuka
+        ? `<a href="${l.href}"><span class="ikon">${l.ikon}</span><span class="nama">${esc(l.label)}</span></a>`
+        : `<a class="terkunci" aria-disabled="true" title="Terkunci"><span class="ikon">🔒</span><span class="nama">${esc(l.label)}</span></a>`;
+    }).join('');
   </script>
 </body>
 </html>
