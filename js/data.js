@@ -16,6 +16,11 @@ const PENGATURAN = {
   musikPeringkat: 'music/nada dering - peringkat.mp3',
   // Volume musik: 0 (tanpa suara) sampai 1 (paling keras).
   volumeMusik: 0.4,
+  // Video pengenalan MajaPOP di Beranda: ID video YouTube (teks setelah "v=" atau "youtu.be/").
+  // Unggah sebagai "Tidak publik". Kosongkan ('') untuk menyembunyikan.
+  videoPengenalan: 'VbR6sMJT0CI',
+  // Gambar infografis di bawah video (simpan di folder img/materi/). Kosongkan ([]) untuk menyembunyikan.
+  infografis: ['img/materi/infografis-majas.jpg'],
 };
 
 // Delapan jenis majas yang dipelajari (sesuai Petunjuk Permainan).

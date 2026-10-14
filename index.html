@@ -32,6 +32,7 @@
           <div class="aksi">
             <a class="btn" href="masuk.html">🎵 Mulai Belajar</a>
             <a class="btn btn-garis" href="#kenalan">Kenalan Yuk!</a>
+            <a class="btn btn-garis" href="#video" id="btn-video" hidden>🎬 Tonton Video</a>
           </div>
         </div>
         <div class="hero-art" aria-hidden="true">
@@ -42,6 +43,16 @@
           <span class="nada" style="top:44%;left:44%">♪</span>
           <span class="nada" style="top:-4%;left:48%;animation-delay:-2s">♫</span>
         </div>
+      </div>
+    </section>
+
+    <!-- Video & infografis pengenalan (diisi dari PENGATURAN di js/data.js) -->
+    <section class="bagian" id="video" hidden>
+      <div class="container tengah">
+        <span class="label-atas">Malas Baca? Tonton Aja!</span>
+        <h2>Kenalan Lewat Video 🎬</h2>
+        <div class="video-wrap" id="video-pengenalan"></div>
+        <div class="infografis-grid" id="infografis"></div>
       </div>
     </section>
 
@@ -123,6 +134,36 @@
         <span class="nama">${esc(f.label)}</span>
         <span class="judul">${esc(f.judul)}</span>
       </a>`).join('');
+
+    // Video pengenalan: sampul + tombol ▶ dulu, iframe YouTube baru dimuat saat diketuk
+    // (Beranda tetap ringan, dan musik beranda dihentikan agar tidak bertabrakan dengan suara video).
+    const idVideo = PENGATURAN.videoPengenalan;
+    const infografis = PENGATURAN.infografis || [];
+    if (idVideo || infografis.length) {
+      document.getElementById('video').hidden = false;
+      document.getElementById('btn-video').hidden = false;
+    }
+    if (idVideo) {
+      const wadah = document.getElementById('video-pengenalan');
+      const id = encodeURIComponent(idVideo);
+      // Sampul dari YouTube; jika belum tersedia, gradien MajaPOP di belakangnya tetap tampil.
+      wadah.innerHTML = `
+        <button type="button" class="video-facade" style="--sampul:url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')">
+          <span><span class="putar" aria-hidden="true">▶</span>Apa itu MajaPOP?<small>Tonton video pengenalannya</small></span>
+        </button>`;
+      wadah.querySelector('button').addEventListener('click', () => {
+        MUSIK.latar(false);
+        wadah.innerHTML = `<iframe class="player" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1"
+          title="Apa itu MajaPOP?" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      }, { once: true });
+    }
+    if (infografis.length) {
+      document.getElementById('infografis').innerHTML = infografis.map((src, i) => `
+        <a href="${esc(encodeURI(src))}" target="_blank" rel="noopener">
+          <img src="${esc(encodeURI(src))}" alt="Infografis MajaPOP ${i + 1}" loading="lazy">
+        </a>`).join('') + '<p class="kecil">Ketuk gambar untuk memperbesar.</p>';
+    }
+
     // Alur mengikuti kunci stepper: langkah yang belum terbuka tidak bisa diklik.
     const stateAlur = loadState();
     document.getElementById('alur-grid').innerHTML = LANGKAH.map((l, i) => {

@@ -364,6 +364,32 @@ textarea { min-height: 96px; resize: vertical; }
   background-position: center; background-size: cover; background-repeat: no-repeat;
   text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
 }
+
+/* ---------- Video & infografis pengenalan (Beranda) ---------- */
+.video-wrap { max-width: 860px; margin: 8px auto 0; }
+/* Lapisan: gelap tipis → sampul YouTube (--sampul) → gradien cadangan bila sampul belum ada. */
+.video-facade {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 16/9; padding: 20px;
+  border: 0; border-radius: 14px; cursor: pointer; box-shadow: var(--bayangan);
+  background-image: linear-gradient(rgba(36, 19, 63, .35), rgba(36, 19, 63, .6)), var(--sampul, none),
+    linear-gradient(135deg, var(--ungu), var(--pink));
+  background-position: center; background-size: cover; background-repeat: no-repeat;
+  color: #fff; font: 800 clamp(1.2rem, 3.5vw, 1.8rem)/1.2 var(--font-judul); text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+.video-facade small { display: block; margin-top: 4px; font: 500 .9rem var(--font-isi); }
+.video-facade .putar {
+  display: grid; place-items: center; width: 76px; height: 76px; margin: 0 auto 12px; padding-left: 6px;
+  border-radius: 50%; background: var(--pink); font-size: 2rem; text-shadow: none;
+  box-shadow: 0 8px 20px rgba(219, 39, 119, .45); transition: transform .15s;
+}
+@media (hover: hover) { .video-facade:hover .putar { transform: scale(1.08); } }
+.video-facade:focus-visible { outline: 3px solid var(--kuning); outline-offset: 3px; }
+.infografis-grid { display: grid; gap: 16px; max-width: 560px; margin: 32px auto 0; }
+.infografis-grid img {
+  display: block; width: 100%; height: auto; border-radius: 14px; border: 2px solid var(--garis); box-shadow: var(--bayangan);
+}
+.infografis-grid .kecil { margin: 0; }
+.infografis-grid:empty { display: none; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
 @media (max-width: 860px) { .detail-grid { grid-template-columns: 1fr; } }
 .kutipan {

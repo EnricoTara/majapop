@@ -26,6 +26,7 @@
       <span class="label-atas">Langkah 1</span>
       <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Masukkan Kode 🔑</h1>
       <p id="subjudul">Masukkan kode 4 angka dari guru untuk bergabung ke sesi kelas.</p>
+      <p id="link-video" hidden><a href="index.html#video">🎬 Belum kenal MajaPOP? Tonton video pengenalannya</a></p>
     </section>
 
     <form id="form-tim" class="kartu" novalidate>
@@ -95,6 +96,8 @@
     const absenEl = document.getElementById('absen');
     const kodeEl = document.getElementById('kode');
     const cekEl = document.getElementById('cek-kode');
+    // Siswa yang masuk lewat QR guru tidak melewati Beranda: tawarkan video pengenalannya di sini.
+    document.getElementById('link-video').hidden = !(PENGATURAN.videoPengenalan || (PENGATURAN.infografis || []).length);
     timEl.value = state.tim;
     absenEl.value = state.absen || '';
     document.getElementById('kelas').value = state.kelas;

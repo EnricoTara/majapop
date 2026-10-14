@@ -23,6 +23,10 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 | Pertanyaan pemantik | `PEMANTIK` |
 | Peta sastrawan | `SASTRAWAN` |
 | Musik pengiring beranda dan nada peringkat, serta volumenya | `PENGATURAN.musikBeranda`, `PENGATURAN.musikPeringkat`, `PENGATURAN.volumeMusik` (file MP3 di folder `music/`) |
+| Video pengenalan MajaPOP di Beranda | `PENGATURAN.videoPengenalan` (ID YouTube, teks setelah `v=` atau `youtu.be/`) |
+| Gambar infografis di bawah video | `PENGATURAN.infografis` (daftar file di folder `img/materi/`) |
+
+**Video pengenalan:** unggah videonya ke YouTube dengan visibilitas **Tidak publik**, lalu isi ID-nya. Jangan menaruh file video di folder web: GitHub menolak file di atas 100 MB, dan kuota transfer gratis Firebase Hosting (sekitar 360 MB/hari) bisa habis hanya dalam beberapa kali tonton sehingga web ikut mati. Bagian video juga tertaut dari halaman Masukkan Kode, untuk siswa yang masuk lewat QR guru.
 
 **Musik:** lagu beranda berputar saat siswa membuka web (termasuk di ruang tunggu) dan berhenti perlahan saat guru menekan **🚀 Mulai Sesi**. Siswa bisa mematikannya lewat tombol 🔊 di pojok kiri bawah. Browser HP baru mengizinkan suara setelah layar disentuh pertama kali, jadi musik mulai pada sentuhan pertama. Nada peringkat diputar sekali saat papan peringkat akhir muncul di HP siswa. Gunakan musik yang boleh dipakai (bebas royalti atau milik sendiri) karena web ini publik.
 
