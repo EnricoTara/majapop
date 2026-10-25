@@ -4,6 +4,8 @@
 // ============================================================
 
 const STORE_KEY = 'majapop';
+// Penanda perangkat yang sedang login sebagai guru (diisi js/sesi.js), hanya untuk tampilan header.
+const TANDA_GURU = 'majapop-guru-masuk';
 
 // Alur petualangan (urutan permainan).
 const LANGKAH = [
@@ -134,6 +136,10 @@ function toast(pesan) {
 }
 
 // ---------- Header & footer ----------
+function guruTercatat() {
+  try { return localStorage.getItem(TANDA_GURU) === '1'; } catch (e) { return false; }
+}
+
 function renderHeader() {
   const el = document.getElementById('site-header');
   if (!el) return;
@@ -152,7 +158,9 @@ function renderHeader() {
           <button class="dropdown-btn" aria-expanded="false">Menu ▾</button>
           <div class="dropdown-menu">${menu}</div>
         </div>
-        <a class="btn btn-kecil btn-kuning" href="masuk.html"${state.tim ? ` title="${esc(state.tim)}"` : ''}>${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') : ''}Belajar</a>
+        ${guruTercatat()
+    ? `<a class="btn btn-kecil btn-kuning" href="guru.html">📡 Dashboard</a>`
+    : `<a class="btn btn-kecil btn-kuning" href="masuk.html"${state.tim ? ` title="${esc(state.tim)}"` : ''}>${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') : ''}Belajar</a>`}
       </nav>
     </div>`;
 
@@ -188,7 +196,6 @@ function renderFooter() {
     <div class="container">
       <p><strong>MajaPOP!</strong> Ketika Lagu dan Puzzle Lebih dari Sekadar Hiburan</p>
       <p class="kecil">Media belajar majas dalam puisi melalui lagu pop dan puzzle interaktif.</p>
-      <p class="kecil"><a class="link-guru" href="guru.html">Untuk guru → Dashboard Sesi Kelas</a></p>
     </div>`;
 }
 

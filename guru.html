@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="halaman-guru">
+<body class="halaman-guru cek-login">
   <header id="site-header"></header>
 
   <main class="container">
@@ -24,6 +24,14 @@
       <span class="label-atas">Untuk Guru</span>
       <h1 style="font-size:clamp(2rem,5vw,3rem)">Dashboard Sesi Kelas 📡</h1>
       <p>Pantau progress setiap kelompok atau siswa secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
+      <p class="kecil akun-guru" id="akun-guru" hidden><span>👩‍🏫 Masuk sebagai <b id="nama-guru"></b></span><button type="button" id="keluar-guru">🚪 Keluar</button></p>
+    </section>
+
+    <!-- Status login guru belum bisa diperiksa -->
+    <section id="gagal-hubung" class="kartu" hidden>
+      <h3>Tidak bisa terhubung ke Firebase</h3>
+      <p>Periksa koneksi internet, lalu muat ulang halaman ini.</p>
+      <div class="aksi"><button class="btn" type="button" id="coba-lagi">↻ Coba lagi</button></div>
     </section>
 
     <!-- Firebase belum diatur -->
@@ -75,7 +83,7 @@
           <h3>Cara bergabung</h3>
           <ol>
             <li>Pindai QR, atau buka <b id="alamat-web">majapop.web.app</b></li>
-            <li>Pilih <b>Belajar</b> di pojok kanan atas</li>
+            <li>Pilih <b>Belajar</b> di pojok kanan atas, lalu <b>Saya Siswa</b></li>
             <li>Masukkan kode <b id="kode-kecil">0000</b>, lalu isi <span id="isian-gabung">nama kelompok dan anggota</span></li>
             <li id="langkah-tunggu">Tunggu di ruang tunggu sampai guru menekan <b>Mulai Sesi</b></li>
           </ol>

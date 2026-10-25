@@ -3,7 +3,7 @@
     "sesi": {
       "$kode": {
         ".read": "auth != null",
-        ".write": "auth != null && ((!data.exists() && newData.child('guru').val() === auth.uid) || (data.exists() && data.child('guru').val() === auth.uid))",
+        ".write": "auth != null && auth.token.email === 'rediva@majapop.web.app' && ((!data.exists() && newData.child('guru').val() === auth.uid) || (data.exists() && data.child('guru').val() === auth.uid))",
         ".validate": "$kode.matches(/^[0-9]{4}$/) && newData.hasChildren(['guru', 'aktif'])",
         "guru": { ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())" },
         "aktif": { ".validate": "newData.isBoolean()" },

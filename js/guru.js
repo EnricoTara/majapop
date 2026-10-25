@@ -47,7 +47,7 @@ function labelLangkah(k) {
 
 // ---------- Tampilan ----------
 function tampilkan(layar) {
-  ['belum-aktif', 'layar-mulai', 'layar-sesi'].forEach((id) => { el(id).hidden = id !== layar; });
+  ['belum-aktif', 'gagal-hubung', 'layar-mulai', 'layar-sesi'].forEach((id) => { el(id).hidden = id !== layar; });
 }
 
 function menunggu() {
@@ -281,14 +281,34 @@ document.addEventListener('fullscreenchange', () => {
 
 el('buka-lagi').addEventListener('click', () => bukaSesi(el('buka-lagi').dataset.kode));
 
+el('coba-lagi').addEventListener('click', () => location.reload());
+
+el('keluar-guru').addEventListener('click', async () => {
+  if (!confirm('Keluar dari akun guru? Sesi yang sedang berjalan tetap berjalan dan bisa dibuka lagi setelah masuk.')) return;
+  try { await SESI.keluarGuru(); } catch (e) { toast('Gagal keluar. Periksa koneksi internet.'); return; }
+  location.replace('masuk.html?peran=guru');
+});
+
 // Perbarui tulisan "x dtk lalu" tanpa menunggu data baru.
 setInterval(() => {
   document.querySelectorAll('.waktu-update').forEach((s) => { s.textContent = waktuRelatif(Number(s.dataset.ms)); });
 }, 5000);
 
 // ---------- Mulai ----------
+// Dashboard hanya untuk akun guru: yang belum login diarahkan ke halaman masuk.
+// Isi halaman disembunyikan (body.cek-login) sampai status login terbaca.
 (async () => {
-  if (!SESI.aktif()) { tampilkan('belum-aktif'); return; }
+  if (!SESI.aktif()) { tampilkan('belum-aktif'); document.body.classList.remove('cek-login'); return; }
+  try {
+    if (!(await SESI.guruMasuk())) { location.replace('masuk.html?peran=guru'); return; }
+  } catch (e) {
+    tampilkan('gagal-hubung');
+    document.body.classList.remove('cek-login');
+    return;
+  }
+  el('nama-guru').textContent = SESI.namaGuru();
+  el('akun-guru').hidden = false;
+  document.body.classList.remove('cek-login');
   tampilkan('layar-mulai');
   const tersimpan = sesiGuruTersimpan();
   if (!tersimpan) return;

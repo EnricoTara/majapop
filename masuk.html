@@ -20,66 +20,114 @@
   <header id="site-header"></header>
 
   <main class="container">
-    <div id="stepper" data-aktif="tim"></div>
+    <div class="pilih-mode pilih-peran" role="radiogroup" aria-label="Masuk sebagai">
+      <label class="mode-kartu">
+        <input type="radio" name="peran" value="siswa" checked>
+        <b>🎒 Saya Siswa</b>
+        <span>Masuk dengan kode sesi dari guru.</span>
+      </label>
+      <label class="mode-kartu">
+        <input type="radio" name="peran" value="guru">
+        <b>👩‍🏫 Saya Guru</b>
+        <span>Login untuk membuat dan memantau sesi.</span>
+      </label>
+    </div>
 
-    <section class="halaman-judul">
-      <span class="label-atas">Langkah 1</span>
-      <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Masukkan Kode 🔑</h1>
-      <p id="subjudul">Masukkan kode 4 angka dari guru untuk bergabung ke sesi kelas.</p>
-      <p id="link-video" hidden><a href="index.html#video">🎬 Belum kenal MajaPOP? Tonton video pengenalannya</a></p>
-    </section>
+    <div id="panel-siswa">
+      <div id="stepper" data-aktif="tim"></div>
 
-    <form id="form-tim" class="kartu" novalidate>
-      <div class="field kode-sesi" id="field-kode" hidden>
-        <label for="kode">📡 Kode sesi dari guru</label>
-        <input type="text" id="kode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Contoh: 4821" autocomplete="off">
-        <p class="kecil" style="margin:6px 0 0">Kode ditampilkan di layar guru. Form akan menyesuaikan jenis sesinya: kelompok atau individu.</p>
-        <div class="aksi"><button type="button" class="btn" id="cek-kode">Masuk Sesi →</button></div>
-      </div>
+      <section class="halaman-judul">
+        <span class="label-atas">Langkah 1</span>
+        <h1 style="font-size:clamp(2rem,5vw,3rem)" id="judul">Masukkan Kode 🔑</h1>
+        <p id="subjudul">Masukkan kode 4 angka dari guru untuk bergabung ke sesi kelas.</p>
+        <p id="link-video" hidden><a href="index.html#video">🎬 Belum kenal MajaPOP? Tonton video pengenalannya</a></p>
+      </section>
 
-      <div id="isian" hidden>
-        <div class="info-sesi" id="info-sesi" hidden>
-          <span id="info-sesi-teks"></span>
-          <button type="button" id="ganti-kode">Ganti kode</button>
+      <form id="form-tim" class="kartu" novalidate>
+        <div class="field kode-sesi" id="field-kode" hidden>
+          <label for="kode">📡 Kode sesi dari guru</label>
+          <input type="text" id="kode" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Contoh: 4821" autocomplete="off">
+          <p class="kecil" style="margin:6px 0 0">Kode ditampilkan di layar guru. Form akan menyesuaikan jenis sesinya: kelompok atau individu.</p>
+          <div class="aksi"><button type="button" class="btn" id="cek-kode">Masuk Sesi →</button></div>
         </div>
 
-        <div class="dua-kolom">
-          <div class="field">
-            <label for="tim" id="label-tim">Nama kelompok</label>
-            <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
-          </div>
-          <div class="field">
-            <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
-            <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
-          </div>
-        </div>
-
-        <div class="field" id="field-absen" hidden>
-          <label for="absen">No. absen</label>
-          <input type="text" id="absen" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Contoh: 12" autocomplete="off" style="max-width:160px">
-        </div>
-
-        <div id="bagian-kelompok">
-          <div class="field">
-            <label>Anggota kelompok</label>
-            <div id="anggota-list"></div>
-            <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
+        <div id="isian" hidden>
+          <div class="info-sesi" id="info-sesi" hidden>
+            <span id="info-sesi-teks"></span>
+            <button type="button" id="ganti-kode">Ganti kode</button>
           </div>
 
-          <div class="field">
-            <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
-              <label style="margin:0">Pembagian peran</label>
-              <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="tim" id="label-tim">Nama kelompok</label>
+              <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
             </div>
-            <div class="peran-grid" id="peran-grid"></div>
+            <div class="field">
+              <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
+              <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
+            </div>
+          </div>
+
+          <div class="field" id="field-absen" hidden>
+            <label for="absen">No. absen</label>
+            <input type="text" id="absen" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Contoh: 12" autocomplete="off" style="max-width:160px">
+          </div>
+
+          <div id="bagian-kelompok">
+            <div class="field">
+              <label>Anggota kelompok</label>
+              <div id="anggota-list"></div>
+              <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
+            </div>
+
+            <div class="field">
+              <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
+                <label style="margin:0">Pembagian peran</label>
+                <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
+              </div>
+              <div class="peran-grid" id="peran-grid"></div>
+            </div>
+          </div>
+
+          <div class="aksi aksi-lekat" style="justify-content:flex-end">
+            <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
           </div>
         </div>
+      </form>
+    </div>
 
-        <div class="aksi aksi-lekat" style="justify-content:flex-end">
-          <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
+    <!-- Masuk sebagai guru (akun Firebase Authentication, lihat js/sesi.js) -->
+    <div id="panel-guru" hidden>
+      <section class="halaman-judul">
+        <span class="label-atas">Untuk Guru</span>
+        <h1 style="font-size:clamp(2rem,5vw,3rem)">Masuk Guru 👩‍🏫</h1>
+        <p>Login untuk membuat kode sesi dan memantau peringkat kelas secara langsung.</p>
+      </section>
+
+      <form id="form-guru" class="kartu form-guru" novalidate>
+        <div id="guru-login">
+          <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" maxlength="60" autocomplete="username" autocapitalize="words" spellcheck="false" placeholder="Nama akun guru">
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="input-sandi">
+              <input type="password" id="password" maxlength="100" autocomplete="current-password" placeholder="Password">
+              <button type="button" id="lihat-sandi" aria-label="Tampilkan password" aria-pressed="false">👁</button>
+            </div>
+          </div>
+          <div class="aksi"><button type="submit" class="btn" id="masuk-guru">Masuk sebagai Guru →</button></div>
         </div>
-      </div>
-    </form>
+        <div id="guru-sudah" hidden>
+          <p style="margin-top:0">✅ Kamu sudah masuk sebagai <b id="nama-guru"></b>.</p>
+          <div class="aksi">
+            <a class="btn" href="guru.html">📡 Buka Dashboard</a>
+            <button type="button" class="btn btn-garis" id="keluar-guru">🚪 Keluar</button>
+          </div>
+        </div>
+      </form>
+    </div>
   </main>
 
   <footer id="site-footer"></footer>
@@ -89,6 +137,10 @@
   <script src="js/firebase-config.js"></script>
   <script src="js/sesi.js"></script>
   <script>
+    // Pilih peran: Siswa (kode sesi) atau Guru (login). Link/QR guru (?kode=) selalu ke Siswa.
+    const param = new URLSearchParams(location.search);
+    const peranAwal = param.get('peran') === 'guru' && !param.get('kode') ? 'guru' : 'siswa';
+
     const state = loadState();
     const listEl = document.getElementById('anggota-list');
     const peranEl = document.getElementById('peran-grid');
@@ -213,7 +265,7 @@
       });
       cekEl.addEventListener('click', cekKode);
       document.getElementById('ganti-kode').addEventListener('click', () => { tutupForm(); kodeEl.select(); kodeEl.focus(); });
-      if (kodeEl.value) cekKode();
+      if (kodeEl.value && peranAwal === 'siswa') cekKode();
     } else {
       tampilkanForm(null);
     }
@@ -271,6 +323,68 @@
       tandaiSelesai('tim');
       if (sesiDipilih) await SESI.kirimSegera(); // pastikan langsung muncul di dashboard guru
       location.href = 'lagu.html';
+    });
+
+    // ---------- Masuk sebagai guru ----------
+    const usernameEl = document.getElementById('username');
+    const passwordEl = document.getElementById('password');
+    const lihatEl = document.getElementById('lihat-sandi');
+
+    async function cekAkunGuru() {
+      let sudah = false;
+      try { sudah = await SESI.guruMasuk(); } catch (e) { /* offline / Firebase belum diatur: tampilkan form login */ }
+      document.getElementById('nama-guru').textContent = SESI.namaGuru();
+      document.getElementById('guru-login').hidden = sudah;
+      document.getElementById('guru-sudah').hidden = !sudah;
+      if (!sudah && !document.getElementById('panel-guru').hidden) usernameEl.focus();
+    }
+
+    function pilihPeran(peran) {
+      document.getElementById('panel-siswa').hidden = peran !== 'siswa';
+      document.getElementById('panel-guru').hidden = peran !== 'guru';
+      document.title = peran === 'guru' ? 'Masuk Guru – MajaPOP!' : 'Masukkan Kode – MajaPOP!';
+      if (peran === 'guru') cekAkunGuru();
+      // Kode dari sesi terakhir baru diperiksa saat panel Siswa dibuka.
+      else if (pakaiSesi && kodeEl.value && !sesiDipilih) cekKode();
+    }
+
+    document.querySelectorAll('input[name="peran"]').forEach((r) => {
+      r.checked = r.value === peranAwal;
+      r.addEventListener('change', () => pilihPeran(r.value));
+    });
+    if (peranAwal === 'guru') pilihPeran('guru');
+
+    lihatEl.addEventListener('click', () => {
+      const lihat = passwordEl.type === 'password';
+      passwordEl.type = lihat ? 'text' : 'password';
+      lihatEl.setAttribute('aria-pressed', lihat);
+      lihatEl.setAttribute('aria-label', lihat ? 'Sembunyikan password' : 'Tampilkan password');
+      lihatEl.textContent = lihat ? '🙈' : '👁';
+    });
+
+    document.getElementById('form-guru').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!usernameEl.value.trim()) { toast('Username belum diisi.'); usernameEl.focus(); return; }
+      if (!passwordEl.value) { toast('Password belum diisi.'); passwordEl.focus(); return; }
+      const tombol = document.getElementById('masuk-guru');
+      tombol.disabled = true;
+      tombol.textContent = 'Memeriksa…';
+      try {
+        await SESI.masukGuru(usernameEl.value, passwordEl.value);
+        location.href = 'guru.html';
+      } catch (err) {
+        toast(err.message || 'Gagal masuk. Coba lagi.');
+        passwordEl.select();
+        tombol.disabled = false;
+        tombol.textContent = 'Masuk sebagai Guru →';
+      }
+    });
+
+    document.getElementById('keluar-guru').addEventListener('click', async () => {
+      try { await SESI.keluarGuru(); toast('Sudah keluar dari akun guru.'); } catch (e) { toast('Gagal keluar. Periksa koneksi internet.'); }
+      passwordEl.value = '';
+      renderHeader();
+      cekAkunGuru();
     });
   </script>
 </body>

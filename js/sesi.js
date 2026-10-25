@@ -7,6 +7,10 @@
 const SESI = (() => {
   const VERSI_SDK = '12.19.0';
   const MAKS_CIPTA_DINILAI = 3;
+  // Akun guru di Firebase Authentication (Email/Password). Password hanya tersimpan di Firebase.
+  // Username yang diketik guru dipetakan ke email internal ini (bukan email sungguhan);
+  // email yang sama tertulis di database.rules.json, jadi hanya akun ini yang bisa mengelola sesi.
+  const AKUN_GURU = { nama: 'Rediva Novalisty', email: 'rediva@majapop.web.app' };
   let janjiSiap = null;
   let db = null;
   let uid = null;
@@ -110,6 +114,54 @@ const SESI = (() => {
   // Sesi lama (tanpa field menunggu) dianggap sudah berjalan.
   function sedangMenunggu(info) {
     return Boolean(info && info.aktif && info.menunggu === true);
+  }
+
+  // ---------- Akun guru ----------
+  // "  rediva   NOVALISTY " dianggap sama dengan "Rediva Novalisty".
+  function samakanNama(teks) {
+    return String(teks || '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  // Penanda di localStorage hanya untuk tampilan header (lihat guruTercatat di js/app.js);
+  // izin sebenarnya tetap diperiksa oleh rules Firebase.
+  function catatGuru(masuk) {
+    try { masuk ? localStorage.setItem(TANDA_GURU, '1') : localStorage.removeItem(TANDA_GURU); } catch (e) { /* abaikan */ }
+  }
+
+  function namaGuru() {
+    return AKUN_GURU.nama;
+  }
+
+  // Apakah perangkat ini sedang login sebagai akun guru?
+  async function guruMasuk() {
+    await siap();
+    const u = firebase.auth().currentUser;
+    const masuk = Boolean(u && !u.isAnonymous && u.email === AKUN_GURU.email);
+    catatGuru(masuk);
+    return masuk;
+  }
+
+  async function masukGuru(username, password) {
+    const salah = new Error('Username atau password salah.');
+    if (samakanNama(username) !== samakanNama(AKUN_GURU.nama) || !password) throw salah;
+    await siap();
+    try {
+      uid = (await firebase.auth().signInWithEmailAndPassword(AKUN_GURU.email, password)).user.uid;
+    } catch (e) {
+      if (e.code === 'auth/too-many-requests') throw new Error('Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.');
+      if (e.code === 'auth/network-request-failed') throw new Error('Tidak bisa terhubung. Periksa koneksi internet.');
+      if (e.code === 'auth/operation-not-allowed') throw new Error('Login guru belum diaktifkan di Firebase (Authentication → Email/Password).');
+      throw salah;
+    }
+    catatGuru(true);
+  }
+
+  // Keluar lalu kembali login anonim, agar perangkat ini tetap bisa dipakai siswa.
+  async function keluarGuru() {
+    await siap();
+    await firebase.auth().signOut();
+    catatGuru(false);
+    uid = (await firebase.auth().signInAnonymously()).user.uid;
   }
 
   // ---------- Guru ----------
@@ -474,7 +526,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
+  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());
