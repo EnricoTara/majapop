@@ -46,10 +46,6 @@ function renderIntro() {
     : '';
 }
 
-function jumlahBarisTersedia() {
-  return new Set(daftarLaguSiap().map((l) => l.majasId)).size;
-}
-
 function labelTipe(tipe) {
   return KOLOM.find((k) => k.tipe === tipe).label;
 }

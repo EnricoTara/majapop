@@ -19,93 +19,302 @@
 <body class="halaman-guru cek-login">
   <header id="site-header"></header>
 
-  <main class="container">
-    <section class="halaman-judul">
-      <span class="label-atas">Untuk Guru</span>
-      <h1 style="font-size:clamp(2rem,5vw,3rem)">Dashboard Sesi Kelas 📡</h1>
-      <p>Pantau progress setiap kelompok atau siswa secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
-      <p class="kecil akun-guru" id="akun-guru" hidden><span>👩‍🏫 Masuk sebagai <b id="nama-guru"></b></span><button type="button" id="keluar-guru">🚪 Keluar</button></p>
-    </section>
+  <main class="container portal">
+    <!-- Menu portal guru (tampil setelah login terverifikasi, lihat js/guru-portal.js) -->
+    <aside class="portal-menu" id="portal-menu" hidden>
+      <div class="portal-merek">
+        <span class="portal-avatar" id="portal-avatar" aria-hidden="true">G</span>
+        <span><b id="portal-nama">Guru</b><small>Portal Guru MajaPOP</small></span>
+      </div>
+      <nav class="portal-nav" role="tablist" aria-label="Menu guru" aria-orientation="vertical">
+        <button type="button" role="tab" id="tab-dashboard" data-menu="dashboard" aria-controls="menu-dashboard" aria-selected="true"><span aria-hidden="true">📡</span>Dashboard</button>
+        <button type="button" role="tab" id="tab-kelas" data-menu="kelas" aria-controls="menu-kelas" aria-selected="false"><span aria-hidden="true">🏫</span>Kelas</button>
+        <button type="button" role="tab" id="tab-materi" data-menu="materi" aria-controls="menu-materi" aria-selected="false"><span aria-hidden="true">📘</span>Materi</button>
+        <button type="button" role="tab" id="tab-akun" data-menu="akun" aria-controls="menu-akun" aria-selected="false"><span aria-hidden="true">👤</span>Akun</button>
+      </nav>
+    </aside>
 
-    <!-- Status login guru belum bisa diperiksa -->
-    <section id="gagal-hubung" class="kartu" hidden>
-      <h3>Tidak bisa terhubung ke Firebase</h3>
-      <p>Periksa koneksi internet, lalu muat ulang halaman ini.</p>
-      <div class="aksi"><button class="btn" type="button" id="coba-lagi">↻ Coba lagi</button></div>
-    </section>
+    <div class="portal-isi">
+      <!-- ===== Menu Dashboard: sesi kelas live ===== -->
+      <section id="menu-dashboard" class="portal-panel" role="tabpanel" aria-labelledby="tab-dashboard">
+        <section class="halaman-judul">
+          <span class="label-atas">Untuk Guru</span>
+          <h1 style="font-size:clamp(2rem,5vw,3rem)">Dashboard Sesi Kelas 📡</h1>
+          <p>Pantau progress setiap kelompok atau siswa secara langsung. Tampilkan halaman ini di proyektor agar seluruh kelas bisa melihat peringkat.</p>
+          <p class="kecil akun-guru" id="akun-guru" hidden><span>👩‍🏫 Masuk sebagai <b id="nama-guru"></b></span><button type="button" id="keluar-guru">🚪 Keluar</button></p>
+        </section>
 
-    <!-- Firebase belum diatur -->
-    <section id="belum-aktif" class="kartu" hidden>
-      <h3>Fitur Sesi Kelas belum diaktifkan</h3>
-      <p>Fitur ini membutuhkan Firebase (gratis, tanpa kartu kredit). Ikuti panduan di bagian <strong>"Mengaktifkan Sesi Kelas"</strong> pada file README, lalu isi <code>js/firebase-config.js</code>.</p>
-      <p class="kecil" style="margin:0">Tanpa fitur ini, MajaPOP tetap bisa dimainkan seperti biasa.</p>
-    </section>
-
-    <!-- Mulai sesi -->
-    <section id="layar-mulai" class="kartu" hidden>
-      <h3>Mulai sesi baru</h3>
-      <div class="field">
-        <label>Jenis sesi</label>
-        <div class="pilih-mode" role="radiogroup">
-          <label class="mode-kartu">
-            <input type="radio" name="mode" value="kelompok" checked>
-            <b>👥 Kelompok</b>
-            <span>Siswa bermain berkelompok: nama kelompok, anggota, dan pembagian peran.</span>
-          </label>
-          <label class="mode-kartu">
-            <input type="radio" name="mode" value="individu">
-            <b>👤 Individu</b>
-            <span>Setiap siswa bermain sendiri: nama, kelas, dan no. absen.</span>
-          </label>
+        <div class="ringkasan-guru" id="ringkasan-guru" hidden>
+          <div class="stat-kartu nada-ungu"><span class="stat-ikon" aria-hidden="true">🏫</span><span class="stat-label">Kelas tersimpan</span><b id="stat-kelas">0</b><span class="stat-ket">Kelola di menu Kelas</span></div>
+          <div class="stat-kartu nada-pink"><span class="stat-ikon" aria-hidden="true">🎓</span><span class="stat-label">Siswa terdata</span><b id="stat-siswa">0</b><span class="stat-ket">Dari semua kelas</span></div>
+          <div class="stat-kartu nada-kuning"><span class="stat-ikon" aria-hidden="true">📖</span><span class="stat-label">Jenis majas</span><b id="stat-majas">0</b><span class="stat-ket">Materi dasar MajaPOP</span></div>
+          <div class="stat-kartu nada-toska"><span class="stat-ikon" aria-hidden="true">📝</span><span class="stat-label">Materi tambahan</span><b id="stat-materi">0</b><span class="stat-ket">Buatanmu di menu Materi</span></div>
         </div>
-      </div>
-      <div class="field">
-        <label for="nama-kelas">Nama kelas <span class="kecil">(opsional)</span></label>
-        <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
-      </div>
-      <div class="aksi">
-        <button class="btn" id="mulai-sesi">▶ Buat Kode Sesi</button>
-        <button class="btn btn-garis" id="buka-lagi" hidden></button>
-      </div>
-    </section>
 
-    <!-- Sesi berjalan -->
-    <section id="layar-sesi" hidden>
-      <div class="sesi-atas kartu">
-        <div class="kode-box">
-          <span class="kode-label">Kode sesi</span>
-          <b id="kode-besar">0000</b>
-          <span class="mode-sesi" id="mode-sesi"></span>
-          <span class="status-sesi" id="status-sesi">● Aktif</span>
+        <div class="banner-kelas" id="banner-kelas" hidden>
+          <div>
+            <h3>Siap mengajar bersama MajaPOP? 🎵</h3>
+            <p>Buat kelas dulu, lalu pilih kelasnya saat membuat sesi. Nilai setiap siswa atau kelompok otomatis tersimpan dan bisa dipantau perkembangannya.</p>
+          </div>
+          <button type="button" class="btn btn-kuning" data-ke-menu="kelas">＋ Kelola Kelas</button>
         </div>
-        <div id="qr" class="qr" aria-label="QR code untuk bergabung"></div>
-        <div class="cara-gabung">
-          <h3>Cara bergabung</h3>
-          <ol>
-            <li>Pindai QR, atau buka <b id="alamat-web">majapop.web.app</b></li>
-            <li>Pilih <b>Masuk</b> di pojok kanan atas, lalu <b>Saya Siswa</b></li>
-            <li>Masukkan kode <b id="kode-kecil">0000</b>, lalu isi <span id="isian-gabung">nama kelompok dan anggota</span></li>
-            <li id="langkah-tunggu">Tunggu di ruang tunggu sampai guru menekan <b>Mulai Sesi</b></li>
-          </ol>
-          <p class="kecil" id="info-kelas" style="margin:0"></p>
-        </div>
-      </div>
 
-      <section id="podium" class="podium" hidden aria-live="polite"></section>
+        <!-- Status login guru belum bisa diperiksa -->
+        <section id="gagal-hubung" class="kartu" hidden>
+          <h3>Tidak bisa terhubung ke Firebase</h3>
+          <p>Periksa koneksi internet, lalu muat ulang halaman ini.</p>
+          <div class="aksi"><button class="btn" type="button" id="coba-lagi">↻ Coba lagi</button></div>
+        </section>
 
-      <div class="papan-alat">
-        <h2 style="margin:0"><span id="judul-papan">Peringkat</span> <span class="kecil" id="jumlah-kelompok"></span></h2>
-        <div class="aksi">
-          <button class="btn btn-kuning" id="mulai-permainan" hidden>🚀 Mulai Sesi</button>
-          <button class="btn btn-kecil btn-garis" id="layar-penuh">⛶ Layar penuh</button>
-          <button class="btn btn-kecil btn-ungu" id="unduh-csv">⬇ Unduh rekap</button>
-          <button class="btn btn-kecil" id="akhiri-sesi">⏹ Akhiri sesi</button>
-          <button class="btn btn-kecil btn-kuning" id="sesi-baru" hidden>＋ Sesi baru</button>
+        <!-- Firebase belum diatur -->
+        <section id="belum-aktif" class="kartu" hidden>
+          <h3>Fitur Sesi Kelas belum diaktifkan</h3>
+          <p>Fitur ini membutuhkan Firebase (gratis, tanpa kartu kredit). Ikuti panduan di bagian <strong>"Mengaktifkan Sesi Kelas"</strong> pada file README, lalu isi <code>js/firebase-config.js</code>.</p>
+          <p class="kecil" style="margin:0">Tanpa fitur ini, MajaPOP tetap bisa dimainkan seperti biasa.</p>
+        </section>
+
+        <!-- Mulai sesi -->
+        <section id="layar-mulai" class="kartu" hidden>
+          <h3>Mulai sesi baru</h3>
+          <div class="field" id="field-pilih-kelas" hidden>
+            <label for="pilih-kelas">Kelas <span class="kecil">(nilai peserta otomatis tersimpan ke kelas ini saat sesi diakhiri)</span></label>
+            <select id="pilih-kelas"><option value="">– Tanpa kelas –</option></select>
+          </div>
+          <div class="field">
+            <label>Jenis sesi</label>
+            <div class="pilih-mode" role="radiogroup">
+              <label class="mode-kartu">
+                <input type="radio" name="mode" value="kelompok" checked>
+                <b>👥 Kelompok</b>
+                <span>Siswa bermain berkelompok: nama kelompok, anggota, dan pembagian peran.</span>
+              </label>
+              <label class="mode-kartu">
+                <input type="radio" name="mode" value="individu">
+                <b>👤 Individu</b>
+                <span>Setiap siswa bermain sendiri: nama, kelas, dan no. absen.</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="nama-kelas">Nama kelas <span class="kecil">(opsional)</span></label>
+            <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
+          </div>
+          <div class="aksi">
+            <button class="btn" id="mulai-sesi">▶ Buat Kode Sesi</button>
+            <button class="btn btn-garis" id="buka-lagi" hidden></button>
+          </div>
+        </section>
+
+        <!-- Sesi berjalan -->
+        <section id="layar-sesi" hidden>
+          <div class="sesi-atas kartu">
+            <div class="kode-box">
+              <span class="kode-label">Kode sesi</span>
+              <b id="kode-besar">0000</b>
+              <span class="mode-sesi" id="mode-sesi"></span>
+              <span class="status-sesi" id="status-sesi">● Aktif</span>
+            </div>
+            <div id="qr" class="qr" aria-label="QR code untuk bergabung"></div>
+            <div class="cara-gabung">
+              <h3>Cara bergabung</h3>
+              <ol>
+                <li>Pindai QR, atau buka <b id="alamat-web">majapop.web.app</b></li>
+                <li>Pilih <b>Masuk</b> di pojok kanan atas, lalu <b>Saya Siswa</b></li>
+                <li>Masukkan kode <b id="kode-kecil">0000</b>, lalu isi <span id="isian-gabung">nama kelompok dan anggota</span></li>
+                <li id="langkah-tunggu">Tunggu di ruang tunggu sampai guru menekan <b>Mulai Sesi</b></li>
+              </ol>
+              <p class="kecil" id="info-kelas" style="margin:0"></p>
+            </div>
+          </div>
+
+          <section id="podium" class="podium" hidden aria-live="polite"></section>
+
+          <div class="papan-alat">
+            <h2 style="margin:0"><span id="judul-papan">Peringkat</span> <span class="kecil" id="jumlah-kelompok"></span></h2>
+            <div class="aksi">
+              <button class="btn btn-kuning" id="mulai-permainan" hidden>🚀 Mulai Sesi</button>
+              <button class="btn btn-kecil btn-garis" id="layar-penuh">⛶ Layar penuh</button>
+              <button class="btn btn-kecil btn-ungu" id="unduh-csv">⬇ Unduh rekap</button>
+              <button class="btn btn-kecil" id="akhiri-sesi">⏹ Akhiri sesi</button>
+              <button class="btn btn-kecil btn-kuning" id="sesi-baru" hidden>＋ Sesi baru</button>
+            </div>
+          </div>
+          <p class="kecil aturan-peringkat" id="aturan-peringkat" hidden>Urutan peringkat: jawaban benar terbanyak → salah paling sedikit → waktu mengerjakan tercepat. Benar/salah dihitung dari tebakan majas dan kepingan puzzle.</p>
+          <div id="papan-peringkat" class="papan-peringkat" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <!-- ===== Menu Kelas: kelola kelas + progres nilai (js/guru-kelas.js) ===== -->
+      <section id="menu-kelas" class="portal-panel" role="tabpanel" aria-labelledby="tab-kelas" hidden>
+        <section class="halaman-judul">
+          <span class="label-atas">Kelas</span>
+          <h1 style="font-size:clamp(2rem,5vw,3rem)">Kelola Kelas 🏫</h1>
+          <p>Simpan daftar kelas, siswa, dan kelompok. Sesi yang dibuat dari sebuah kelas otomatis menyimpan nilai pesertanya saat sesi diakhiri.</p>
+        </section>
+
+        <div class="aksi"><button type="button" class="btn" id="tambah-kelas">＋ Tambah Kelas</button></div>
+        <form id="form-kelas" class="kartu form-portal" hidden novalidate>
+          <h3>Kelas baru</h3>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="kelas-nama">Nama kelas</label>
+              <input type="text" id="kelas-nama" maxlength="80" placeholder="Contoh: XI IPA 2">
+            </div>
+            <div class="field">
+              <label for="kelas-jenis">Jenis pembelajaran</label>
+              <select id="kelas-jenis"><option value="kelompok">👥 Kelompok</option><option value="individu">👤 Individu</option></select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="kelas-catatan">Catatan <span class="kecil">(opsional)</span></label>
+            <textarea id="kelas-catatan" maxlength="450" placeholder="Contoh: Bahasa Indonesia, setiap Rabu jam ke-3"></textarea>
+          </div>
+          <div class="aksi"><button type="submit" class="btn">Simpan Kelas</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
+        </form>
+        <div id="daftar-kelas" class="grid-kartu" aria-live="polite"></div>
+
+        <section id="progres" class="progres" hidden>
+          <div class="progres-banner">
+            <span class="label-atas">Pantau Pembelajaran</span>
+            <h2>Progres &amp; Nilai Kelas 📊</h2>
+            <p>Nilai individu dan kelompok sesuai kelas yang dipilih.</p>
+          </div>
+          <div class="kartu progres-pilih">
+            <label for="progres-kelas">Pilih kelas</label>
+            <select id="progres-kelas"></select>
+          </div>
+          <div class="ringkasan-guru" id="progres-stat"></div>
+          <div class="progres-alat">
+            <div class="tab-progres" role="group" aria-label="Jenis progres">
+              <button type="button" data-mode="siswa" aria-pressed="true">👤 Individu</button>
+              <button type="button" data-mode="kelompok" aria-pressed="false">👥 Kelompok</button>
+            </div>
+            <div class="aksi">
+              <button type="button" class="btn btn-kecil btn-garis" data-form="siswa">＋ Siswa</button>
+              <button type="button" class="btn btn-kecil btn-garis" data-form="kelompok">＋ Kelompok</button>
+              <button type="button" class="btn btn-kecil" data-form="nilai">＋ Catat Nilai</button>
+            </div>
+          </div>
+          <div id="progres-form" class="kartu form-portal" hidden></div>
+          <div class="progres-grafik">
+            <div class="kartu">
+              <h3 id="judul-batang">Perbandingan Nilai Siswa</h3>
+              <p class="kecil">Rata-rata nilai setiap peserta, skala 0–100. Ketuk batang untuk melihat perkembangannya.</p>
+              <div id="grafik-batang"></div>
+            </div>
+            <div class="kartu">
+              <h3>Perkembangan Nilai</h3>
+              <p class="kecil" id="garis-nama"></p>
+              <div id="grafik-garis"></div>
+            </div>
+          </div>
+          <div class="kartu">
+            <div class="kepala-kartu">
+              <div><h3 id="judul-rekap">Rekap Nilai Individu</h3><p class="kecil">Ketuk nama untuk melihat riwayat nilainya.</p></div>
+              <button type="button" class="btn btn-kecil btn-garis" id="unduh-nilai">⬇ Unduh CSV</button>
+            </div>
+            <div class="tabel-gulir"><table class="tabel-rekap" id="tabel-rekap"></table></div>
+            <div id="riwayat" class="riwayat"></div>
+          </div>
+          <p class="kecil catatan-privasi">🔒 Data kelas dan nilai tersimpan di akun guru (Firebase) dan hanya bisa dibuka setelah login sebagai guru. Nilai kelompok tidak otomatis menjadi nilai masing-masing anggotanya.</p>
+        </section>
+      </section>
+
+      <!-- ===== Menu Materi (js/guru-portal.js) ===== -->
+      <section id="menu-materi" class="portal-panel" role="tabpanel" aria-labelledby="tab-materi" hidden>
+        <section class="halaman-judul">
+          <span class="label-atas">Materi</span>
+          <h1 style="font-size:clamp(2rem,5vw,3rem)">Bank Materi Majas 📘</h1>
+          <p>Materi dasar MajaPOP dan materi tambahan buatanmu. Materi tambahan hanya terlihat oleh guru.</p>
+        </section>
+        <div class="materi-alat">
+          <input type="search" id="cari-materi" placeholder="🔎 Cari jenis majas atau materi…" aria-label="Cari materi">
+          <button type="button" class="btn" id="tambah-materi">＋ Tambah Materi</button>
         </div>
-      </div>
-      <p class="kecil aturan-peringkat" id="aturan-peringkat" hidden>Urutan peringkat: jawaban benar terbanyak → salah paling sedikit → waktu mengerjakan tercepat. Benar/salah dihitung dari tebakan majas dan kepingan puzzle.</p>
-      <div id="papan-peringkat" class="papan-peringkat" aria-live="polite"></div>
-    </section>
+        <form id="form-materi" class="kartu form-portal" hidden novalidate>
+          <h3>Materi baru</h3>
+          <div class="field">
+            <label for="materi-judul">Judul materi</label>
+            <input type="text" id="materi-judul" maxlength="90" placeholder="Contoh: Gaya Bahasa dalam Lirik Lagu">
+          </div>
+          <div class="field">
+            <label for="materi-isi">Isi materi</label>
+            <textarea id="materi-isi" maxlength="3000" placeholder="Tuliskan uraian materi…"></textarea>
+          </div>
+          <div class="aksi"><button type="submit" class="btn">Simpan Materi</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
+        </form>
+        <div id="daftar-materi" class="grid-kartu" aria-live="polite"></div>
+      </section>
+
+      <!-- ===== Menu Akun (js/guru-portal.js) ===== -->
+      <section id="menu-akun" class="portal-panel" role="tabpanel" aria-labelledby="tab-akun" hidden>
+        <section class="halaman-judul">
+          <span class="label-atas">Akun</span>
+          <h1 style="font-size:clamp(2rem,5vw,3rem)">Akun Guru 👤</h1>
+        </section>
+        <div class="akun-hero">
+          <span class="akun-avatar" id="akun-avatar" aria-hidden="true">G</span>
+          <div>
+            <h2 id="akun-nama">Guru</h2>
+            <p id="akun-sekolah"></p>
+            <span class="akun-pill" id="akun-mapel"></span>
+          </div>
+        </div>
+        <form id="form-profil" class="kartu form-portal" novalidate>
+          <h3>Data diri</h3>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="profil-nama">Nama lengkap</label>
+              <input type="text" id="profil-nama" maxlength="90" autocomplete="name" placeholder="Masukkan nama lengkap">
+            </div>
+            <div class="field">
+              <label for="profil-email">Email kontak <span class="kecil">(opsional)</span></label>
+              <input type="text" id="profil-email" inputmode="email" maxlength="160" autocomplete="email" placeholder="contoh: guru@sekolah.sch.id">
+            </div>
+            <div class="field">
+              <label for="profil-sekolah">Nama sekolah</label>
+              <input type="text" id="profil-sekolah" maxlength="130" autocomplete="organization" placeholder="Contoh: SMA Negeri 1">
+            </div>
+            <div class="field">
+              <label for="profil-mapel">Mata pelajaran</label>
+              <input type="text" id="profil-mapel" maxlength="100" placeholder="Bahasa Indonesia">
+            </div>
+          </div>
+          <div class="field">
+            <label for="profil-bio">Bio singkat <span class="kecil">(maks. 450 karakter)</span></label>
+            <textarea id="profil-bio" maxlength="450" placeholder="Ceritakan sedikit tentang dirimu sebagai guru…"></textarea>
+          </div>
+          <p class="kecil">Nama di sini hanya untuk tampilan. Username untuk masuk tetap <b class="nama-login"></b>.</p>
+          <div class="aksi"><button type="submit" class="btn">Simpan Perubahan</button><button type="button" class="btn btn-garis" id="batal-profil">Batalkan edit</button></div>
+          <p class="kecil status-form" id="status-profil" role="status"></p>
+        </form>
+        <form id="form-sandi" class="kartu form-portal" novalidate>
+          <h3>Ganti password</h3>
+          <input type="text" autocomplete="username" class="nama-login-isian" hidden>
+          <div class="field">
+            <label for="sandi-lama">Password lama</label>
+            <input type="password" id="sandi-lama" maxlength="100" autocomplete="current-password">
+          </div>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="sandi-baru">Password baru <span class="kecil">(min. 6 karakter)</span></label>
+              <input type="password" id="sandi-baru" maxlength="100" autocomplete="new-password">
+            </div>
+            <div class="field">
+              <label for="sandi-ulang">Ulangi password baru</label>
+              <input type="password" id="sandi-ulang" maxlength="100" autocomplete="new-password">
+            </div>
+          </div>
+          <div class="aksi"><button type="submit" class="btn btn-ungu" id="ganti-sandi">🔑 Ganti Password</button></div>
+          <p class="kecil status-form" id="status-sandi" role="status"></p>
+        </form>
+        <div class="kartu form-portal">
+          <h3>Keluar</h3>
+          <p>Keluar dari akun guru di perangkat ini. Sesi yang sedang berjalan tetap berjalan dan bisa dibuka lagi setelah masuk.</p>
+          <button type="button" class="btn btn-garis" id="keluar-akun">🚪 Keluar</button>
+        </div>
+      </section>
+    </div>
   </main>
 
   <footer id="site-footer"></footer>
@@ -115,6 +324,9 @@
   <script src="js/app.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/sesi.js"></script>
+  <script src="js/guru-data.js"></script>
+  <script src="js/guru-kelas.js"></script>
+  <script src="js/guru-portal.js"></script>
   <script src="js/guru.js"></script>
 </body>
 </html>

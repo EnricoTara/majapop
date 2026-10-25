@@ -121,6 +121,28 @@ function daftarLaguSiap() {
   return LAGU.filter(laguSiap);
 }
 
+// Satu baris puzzle = satu jenis majas dari lagu yang siap (dipakai Papan Puzzle & nilai sesi guru).
+function jumlahBarisTersedia() {
+  return new Set(daftarLaguSiap().map((l) => l.majasId)).size;
+}
+
+// Unduh tabel sebagai CSV yang langsung rapi di Excel berbahasa Indonesia (BOM + titik koma).
+// Sel yang diawali = + - @ diberi tanda kutip agar tidak dijalankan sebagai rumus Excel.
+function unduhCsv(namaFile, baris) {
+  const sel = (v) => {
+    let t = String(v ?? '');
+    if (/^[=+\-@]/.test(t)) t = `'${t}`;
+    return `"${t.replace(/"/g, '""')}"`;
+  };
+  const csv = '\ufeff' + baris.map((r) => r.map(sel).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = namaFile;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
 function toast(pesan) {
   let el = document.querySelector('.toast');
   if (!el) {

@@ -15,6 +15,7 @@
       "siswa-*.png",
       "DESAIN*",
       "Album/**",
+      "referensi/**",
       "~$*"
     ],
     "headers": [

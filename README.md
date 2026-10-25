@@ -50,6 +50,21 @@ Urutan peringkat: **jawaban benar terbanyak → jawaban salah paling sedikit →
 
 Poin (tetap ditampilkan dan ikut di rekap): 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle, dan 20 per kalimat majas buatan (maks. 3 kalimat).
 
+## Portal Guru: Dashboard, Kelas, Materi, Akun
+
+Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
+
+- **📡 Dashboard**: ringkasan (jumlah kelas, siswa, materi) dan Sesi Kelas seperti di atas. Saat membuat sesi, guru bisa memilih **Kelas**; nama kelas dan jenis sesinya terisi otomatis.
+- **🏫 Kelas**: tambah kelas (kelompok/individu), lalu lihat **Progres & Nilai Kelas**: rata-rata individu dan kelompok, grafik nilai per peserta, grafik perkembangan, rekap, dan riwayat. Guru bisa menambah siswa (satu nama per baris), kelompok, nilai manual (0–100), mengganti kelompok siswa, dan mengunduh CSV per kelas.
+- **📘 Materi**: 8 materi dasar (dari `MAJAS` di `js/data.js`) dan materi tambahan buatan guru. Materi tambahan hanya terlihat oleh guru.
+- **👤 Akun**: profil guru (nama tampilan, sekolah, mapel, bio), **ganti password**, dan tombol keluar. Username untuk masuk tetap "Rediva Novalisty".
+
+**Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.
+
+Rumus nilai (0–100) = jawaban benar ÷ jumlah soal × 100. Jumlah soal = 1 tebakan majas per lagu (8) + kepingan puzzle (8 baris × 4 = 32) = 40. Bagian yang tidak dikerjakan dihitung 0. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
+
+Data portal tersimpan di Firebase (`guru/<uid>`) dan hanya bisa dibaca/diubah akun guru (lihat `database.rules.json`). Jaga kerahasiaan nama dan nilai siswa saat membagikan file CSV.
+
 ### Mengaktifkan (sekali saja, gratis)
 
 Fitur ini memakai Firebase paket **Spark** (gratis, tanpa kartu kredit). Kalau belum diaktifkan, MajaPOP tetap bisa dimainkan seperti biasa.

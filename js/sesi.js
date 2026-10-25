@@ -164,10 +164,31 @@ const SESI = (() => {
     uid = (await firebase.auth().signInAnonymously()).user.uid;
   }
 
+  // Ganti password akun guru: wajib memasukkan password lama dulu (syarat Firebase).
+  async function gantiPassword(lama, baru) {
+    await siap();
+    const u = firebase.auth().currentUser;
+    if (!u || u.isAnonymous) throw new Error('Masuk sebagai guru dulu.');
+    try {
+      await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, lama));
+    } catch (e) {
+      if (e.code === 'auth/too-many-requests') throw new Error('Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.');
+      if (e.code === 'auth/network-request-failed') throw new Error('Tidak bisa terhubung. Periksa koneksi internet.');
+      throw new Error('Password lama salah.');
+    }
+    try {
+      await u.updatePassword(baru);
+    } catch (e) {
+      if (e.code === 'auth/weak-password') throw new Error('Password baru minimal 6 karakter.');
+      throw new Error('Gagal mengganti password. Coba lagi.');
+    }
+  }
+
   // ---------- Guru ----------
   // Mengembalikan { kode, ruangTunggu }. ruangTunggu false jika rules di Firebase
   // belum mengenal field "menunggu": sesi tetap dibuat, tetapi langsung berjalan.
-  async function buatSesi(namaKelas, mode) {
+  // kelasId: kelas di portal guru (opsional); nilai peserta disimpan ke kelas itu saat sesi diakhiri.
+  async function buatSesi(namaKelas, mode, kelasId) {
     await siap();
     let ruangTunggu = true;
     for (let i = 0; i < 15; i++) {
@@ -176,6 +197,7 @@ const SESI = (() => {
       const data = { guru: uid, aktif: true, kelas: String(namaKelas || '').slice(0, 40), dibuat: firebase.database.ServerValue.TIMESTAMP };
       // Sesi kelompok tidak perlu menyimpan mode (bawaannya kelompok), jadi tetap jalan dengan rules lama.
       if (modeSesi({ mode }) === 'individu') data.mode = 'individu';
+      if (kelasId) data.kelasId = String(kelasId).slice(0, 40);
       if (ruangTunggu) data.menunggu = true;
       try {
         // Rules menolak menimpa sesi yang sudah ada, jadi kode bentrok otomatis gagal.
@@ -254,6 +276,7 @@ const SESI = (() => {
       totalLagu: r.totalLagu,
       puzzle: r.puzzle === null ? -1 : r.puzzle,
       puzzleBenar: r.puzzleBenar === null ? -1 : r.puzzleBenar,
+      puzzleTotal: state.puzzle && state.puzzle.total ? state.puzzle.total : -1,
       cipta: r.cipta,
       totalBenar: r.totalBenar,
       totalSalah: r.totalSalah,
@@ -526,7 +549,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
+  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());

@@ -9,6 +9,8 @@ let daftarTerakhir = [];
 let infoTerakhir = null;
 let lepasPantau = [];
 let podiumUntuk = null; // kode sesi yang podiumnya sudah ditampilkan
+let daftarDimuat = false; // daftar peserta sesi aktif sudah terbaca dari Firebase
+let nilaiUntuk = null; // kode sesi yang nilainya sudah dikirim ke kelas
 
 function simpanSesiGuru(kode) {
   try { kode ? localStorage.setItem(KUNCI_GURU, kode) : localStorage.removeItem(KUNCI_GURU); } catch (e) { /* abaikan */ }
@@ -183,17 +185,31 @@ function bukaSesi(kode) {
   daftarTerakhir = [];
   infoTerakhir = null;
   podiumUntuk = null;
+  daftarDimuat = false;
   el('podium').hidden = true;
   renderPapan();
   lepasPantau = [
-    SESI.pantauSesi(kode, (info) => { infoTerakhir = info; renderStatus(); }),
-    SESI.pantauKelompok(kode, (daftar) => { daftarTerakhir = daftar; renderPapan(); }),
+    SESI.pantauSesi(kode, (info) => { infoTerakhir = info; renderStatus(); simpanNilaiKeKelas(); }),
+    SESI.pantauKelompok(kode, (daftar) => { daftarTerakhir = daftar; daftarDimuat = true; renderPapan(); simpanNilaiKeKelas(); }),
   ];
 }
 
+// Sesi yang dibuat dari sebuah kelas: setelah diakhiri, nilai setiap peserta disimpan ke kelas itu
+// (menu Kelas). Sekali per sesi; GURU_DATA juga menolak menyimpan dua kali.
+async function simpanNilaiKeKelas() {
+  if (!berakhir() || !infoTerakhir.kelasId || !daftarDimuat || nilaiUntuk === kodeAktif) return;
+  nilaiUntuk = kodeAktif;
+  try {
+    const hasil = await GURU_DATA.simpanHasilSesi(kodeAktif, infoTerakhir, daftarTerakhir);
+    if (hasil && hasil.jumlah) toast(`📊 Nilai ${hasil.jumlah} ${peserta()} tersimpan ke kelas ${hasil.kelas}.`);
+  } catch (e) {
+    nilaiUntuk = null;
+    toast('Nilai belum tersimpan ke kelas. Buka lagi sesi ini saat koneksi lancar.');
+  }
+}
+
 // ---------- Rekap CSV (dibuka di Excel) ----------
-function unduhCsv() {
-  const sel = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+function unduhRekap() {
   const indiv = individu();
   const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
   const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
@@ -205,14 +221,7 @@ function unduhCsv() {
       k.cipta || 0, (k.kalimat || []).join(' | '), k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
     ]);
   });
-  // BOM + titik koma agar langsung rapi di Excel berbahasa Indonesia.
-  const csv = '﻿' + baris.map((r) => r.map(sel).join(';')).join('\r\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `majapop-sesi-${indiv ? 'individu-' : ''}${kodeAktif}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  unduhCsv(`majapop-sesi-${indiv ? 'individu-' : ''}${kodeAktif}.csv`, baris);
 }
 
 // ---------- Tombol ----------
@@ -232,7 +241,7 @@ el('mulai-sesi').addEventListener('click', async () => {
       }
     }
     const mode = document.querySelector('input[name="mode"]:checked').value;
-    const { kode, ruangTunggu } = await SESI.buatSesi(el('nama-kelas').value.trim(), mode);
+    const { kode, ruangTunggu } = await SESI.buatSesi(el('nama-kelas').value.trim(), mode, el('pilih-kelas').value);
     bukaSesi(kode);
     if (!ruangTunggu) alert('Sesi dibuat tanpa ruang tunggu (siswa langsung mulai), karena aturan Firebase belum diperbarui. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules agar ruang tunggu aktif.');
   } catch (e) {
@@ -267,7 +276,7 @@ el('sesi-baru').addEventListener('click', () => {
 
 el('unduh-csv').addEventListener('click', () => {
   if (!daftarTerakhir.length) { toast(`Belum ada ${peserta()} untuk direkap.`); return; }
-  unduhCsv();
+  unduhRekap();
 });
 
 el('layar-penuh').addEventListener('click', () => {
@@ -283,11 +292,7 @@ el('buka-lagi').addEventListener('click', () => bukaSesi(el('buka-lagi').dataset
 
 el('coba-lagi').addEventListener('click', () => location.reload());
 
-el('keluar-guru').addEventListener('click', async () => {
-  if (!confirm('Keluar dari akun guru? Sesi yang sedang berjalan tetap berjalan dan bisa dibuka lagi setelah masuk.')) return;
-  try { await SESI.keluarGuru(); } catch (e) { toast('Gagal keluar. Periksa koneksi internet.'); return; }
-  location.replace('masuk.html?peran=guru');
-});
+el('keluar-guru').addEventListener('click', PORTAL.keluar);
 
 // Perbarui tulisan "x dtk lalu" tanpa menunggu data baru.
 setInterval(() => {
@@ -308,6 +313,7 @@ setInterval(() => {
   }
   el('nama-guru').textContent = SESI.namaGuru();
   el('akun-guru').hidden = false;
+  PORTAL.mulai();
   document.body.classList.remove('cek-login');
   tampilkan('layar-mulai');
   const tersimpan = sesiGuruTersimpan();
