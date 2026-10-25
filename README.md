@@ -34,7 +34,7 @@ Setelah mengubah file, simpan lalu upload ulang: `git add -A && git commit -m "P
 
 ## Sesi Kelas: progress live per kelompok (seperti Quizizz)
 
-Siswa dan guru masuk lewat pintu yang sama: tombol **Belajar** di pojok kanan atas (halaman `masuk.html`), lalu memilih **🎒 Saya Siswa** atau **👩‍🏫 Saya Guru**.
+Siswa dan guru masuk lewat pintu yang sama: tombol **Masuk** di pojok kanan atas (halaman `masuk.html`), lalu memilih **🎒 Saya Siswa** atau **👩‍🏫 Saya Guru**.
 
 - **Siswa** memasukkan kode sesi dari guru, seperti biasa. Link/QR dari guru langsung membuka pilihan Siswa.
 - **Guru** login dengan username **Rediva Novalisty** dan password akun guru, lalu diarahkan ke **Dashboard** (`guru.html`). Dashboard tidak bisa dibuka tanpa login. Selama masih login, tombol pojok kanan atas berubah menjadi **📡 Dashboard**. Tombol **🚪 Keluar** ada di bawah judul Dashboard.

@@ -160,7 +160,7 @@ function renderHeader() {
         </div>
         ${guruTercatat()
     ? `<a class="btn btn-kecil btn-kuning" href="guru.html">📡 Dashboard</a>`
-    : `<a class="btn btn-kecil btn-kuning" href="masuk.html"${state.tim ? ` title="${esc(state.tim)}"` : ''}>${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') : ''}Belajar</a>`}
+    : `<a class="btn btn-kecil btn-kuning" href="masuk.html"${state.tim ? ` title="${esc(state.tim)}"` : ''}>${state.tim ? (sesiIndividu(state) ? '👤 ' : '👥 ') : ''}Masuk</a>`}
       </nav>
     </div>`;
 
