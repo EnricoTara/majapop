@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="MajaPOP!">
-  <title>Unggah Hasil – MajaPOP!</title>
+  <title>Kirim Hasil – MajaPOP!</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
@@ -25,8 +25,8 @@
 
     <section class="halaman-judul">
       <span class="label-atas">Langkah 6</span>
-      <h1 style="font-size:clamp(2rem,5vw,3rem)">Unggah Hasil Belajar 📤</h1>
-      <p>Unggah hasil belajar yang telah kalian lakukan. Salin ringkasan di bawah, lalu tempelkan ke Google Form.</p>
+      <h1 style="font-size:clamp(2rem,5vw,3rem)">Kirim Hasil ke Guru 📤</h1>
+      <p>Periksa lagi jawaban kalian di bawah, lalu tekan <b>Kirim ke Guru</b>. Hasilnya langsung tercatat di dashboard guru.</p>
     </section>
 
     <div class="ringkasan-grid">
@@ -37,13 +37,13 @@
     </div>
 
     <div class="kartu">
-      <label for="ringkasan">Ringkasan hasil belajar</label>
-      <textarea id="ringkasan" class="ringkasan-teks" readonly></textarea>
-      <div class="aksi aksi-penuh" style="margin-top:14px">
-        <button class="btn btn-ungu" id="salin">📋 Salin ringkasan</button>
-        <a class="btn" id="ke-form" href="#" target="_blank" rel="noopener">📤 Buka Google Form</a>
+      <h2 style="font-size:1.3rem;margin:0" id="judul-jawaban">Jawaban yang akan dikirim</h2>
+      <p class="kecil" id="identitas" style="margin:4px 0 0"></p>
+      <div id="jawaban"></div>
+      <div class="aksi aksi-penuh" style="margin-top:18px">
+        <button class="btn" id="kirim">📤 Kirim ke Guru</button>
       </div>
-      <p class="kecil" id="form-catatan" style="margin-top:12px" hidden>⚠️ Tautan Google Form belum diatur. Guru dapat menggantinya di <code>js/data.js</code> (googleFormUrl).</p>
+      <p class="status-kirim" id="status-kirim" aria-live="polite"></p>
     </div>
 
     <div class="tengah" style="margin-top:36px">
@@ -58,6 +58,7 @@
   <script src="js/app.js"></script>
   <script src="js/firebase-config.js"></script>
   <script src="js/sesi.js"></script>
+  <script src="js/jawaban.js"></script>
   <script>
     cekTim(document.getElementById('banner-tim'));
     const state = loadState();
@@ -71,59 +72,53 @@
     document.getElementById('r-puzzle').textContent = state.puzzle ? state.puzzle.skor : '–';
     document.getElementById('r-cipta').textContent = state.ciptaan.length;
 
-    const peranTeks = PERAN.map((p) => `- ${p.label}: ${state.peran[p.id] || '-'}`).join('\n');
-    const maknaTeks = LAGU.filter((l) => (d(l.id).makna || '').trim())
-      .map((l) => `- ${l.judul} (${l.penyanyi}): ${d(l.id).makna.trim()}`).join('\n') || '- (belum ada)';
-    const ciptaTeks = state.ciptaan
-      .map((c, i) => `${i + 1}. [${majasById(c.majasId)?.jenis || c.majasId} · ${c.tema}] ${c.kalimat}`).join('\n') || '(belum ada)';
-    const p = state.puzzle;
     const indiv = sesiIndividu(state);
 
-    document.getElementById('ringkasan').value = [
-      'HASIL BELAJAR MAJAPOP!',
-      ...(indiv ? [
-        `Nama siswa: ${state.tim || '-'}`,
-        `No. absen : ${state.absen || '-'}`,
-        `Kelas     : ${state.kelas || '-'}`,
-      ] : [
-        `Kelompok : ${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''}`,
-        `Anggota  : ${state.anggota.join(', ') || '-'}`,
-      ]),
-      ...(state.sesi ? [`Sesi kelas: ${state.sesi.kode}${indiv ? ' (individu)' : ''}`] : []),
-      `Total poin: ${SESI.hitungPoin(state)}`,
-      ...(indiv ? [] : ['Peran:', peranTeks]),
-      '',
-      `Identifikasi majas : ${benar.length}/${siap.length} (tepat di tebakan pertama: ${pertama})`,
-      indiv ? 'Makna lirik menurut saya:' : 'Makna lirik menurut kelompok:',
-      maknaTeks,
-      '',
-      p ? `Puzzle : ${p.skor} poin, ${p.benar}/${p.total} kepingan benar, ${p.salah} kesalahan, sisa waktu ${Math.floor(p.sisaWaktu / 60)}:${String(p.sisaWaktu % 60).padStart(2, '0')}`
-        : 'Puzzle : belum dimainkan',
-      '',
-      indiv ? 'Majas buatan saya:' : 'Majas buatan kelompok:',
-      ciptaTeks,
-    ].join('\n');
+    document.getElementById('identitas').textContent = indiv
+      ? `${state.tim || '-'} · No. absen ${state.absen || '-'}${state.kelas ? ` · ${state.kelas}` : ''}`
+      : `${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''} · Anggota: ${state.anggota.join(', ') || '-'}`;
+    // Pratinjau memakai tampilan yang sama dengan yang dilihat guru (uid tidak diperlukan di sini).
+    const pratinjau = {
+      lagu: Object.fromEntries(LAGU.filter((l) => state.lagu[l.id]).map((l) => [l.id, state.lagu[l.id]])),
+      ...(indiv ? {} : { peran: state.peran }),
+      puzzle: state.puzzle,
+      ciptaan: state.ciptaan,
+    };
+    document.getElementById('jawaban').innerHTML = JAWABAN.html(pratinjau);
 
-    document.getElementById('salin').addEventListener('click', async () => {
-      const teks = document.getElementById('ringkasan').value;
-      try {
-        await navigator.clipboard.writeText(teks);
-      } catch (e) {
-        const ta = document.getElementById('ringkasan');
-        ta.select();
-        document.execCommand('copy');
+    const statusEl = document.getElementById('status-kirim');
+    const tombol = document.getElementById('kirim');
+    function tampilStatus(waktu) {
+      statusEl.className = 'status-kirim terkirim';
+      statusEl.textContent = `✅ Terkirim ke guru pukul ${new Date(waktu).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}. Jawaban yang diubah setelah ini tetap ikut terkirim.`;
+      tombol.textContent = '📤 Kirim ulang';
+    }
+    const bisaKirim = Boolean(state.sesi && state.sesi.kode && SESI.aktif());
+    if (!bisaKirim) {
+      tombol.disabled = true;
+      statusEl.className = 'status-kirim';
+      statusEl.textContent = '⚠️ Hasil hanya bisa dikirim lewat sesi kelas. Masukkan kode sesi dari guru di halaman Masukkan Kode.';
+    } else if (state.dikirim) tampilStatus(state.dikirim);
+
+    tombol.addEventListener('click', async () => {
+      tombol.disabled = true;
+      tombol.textContent = 'Mengirim…';
+      const waktu = Date.now();
+      updateState((s) => { s.dikirim = waktu; });
+      const ok = await SESI.kirimSegera();
+      tombol.disabled = false;
+      if (ok) {
+        tandaiSelesai('unggah');
+        tampilStatus(waktu);
+        toast('✅ Hasil terkirim ke guru!');
+        return;
       }
-      toast('📋 Ringkasan disalin! Tempelkan di Google Form.');
-    });
-
-    const formUrl = PENGATURAN.googleFormUrl;
-    const formBelumDiatur = !formUrl || formUrl.includes('GANTI_DENGAN');
-    const keForm = document.getElementById('ke-form');
-    if (formBelumDiatur) document.getElementById('form-catatan').hidden = false;
-    else keForm.href = formUrl;
-    keForm.addEventListener('click', (e) => {
-      if (formBelumDiatur) { e.preventDefault(); toast('Tautan Google Form belum diatur oleh guru.'); return; }
-      tandaiSelesai('unggah');
+      tombol.textContent = '📤 Kirim ke Guru';
+      const info = await SESI.infoSesi(state.sesi.kode).catch(() => null);
+      statusEl.className = 'status-kirim';
+      statusEl.textContent = info && !info.aktif
+        ? `⏹ Sesi ${state.sesi.kode} sudah diakhiri guru, jadi hasil tidak bisa dikirim lagi.`
+        : '⚠️ Belum terkirim. Periksa koneksi internet lalu coba lagi.';
     });
 
     document.getElementById('reset').addEventListener('click', () => {

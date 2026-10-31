@@ -282,18 +282,62 @@ const SESI = (() => {
       totalSalah: r.totalSalah,
       durasi: r.durasi,
       kalimat: (state.ciptaan || []).slice(0, 5).map((c) => `[${(majasById(c.majasId) || {}).jenis || c.majasId}] ${String(c.kalimat).slice(0, 300)}`),
+      ...(state.dikirim ? { dikirim: state.dikirim } : {}),
       diperbarui: firebase.database.ServerValue.TIMESTAMP,
     };
   }
 
+  // Semua jawaban rinci untuk guru: tebakan majas per lagu (berurutan, termasuk yang salah),
+  // makna lirik, peran, hasil puzzle, dan kalimat majas buatan.
+  // Disimpan terpisah di jawaban/<kode>/<id> karena sesi/<kode> ikut dibaca HP semua siswa.
+  function jawabanLengkap(state) {
+    const lagu = {};
+    LAGU.forEach((l) => {
+      const d = state.lagu[l.id] || {};
+      const makna = String(d.makna || '').trim().slice(0, 600);
+      const tebakan = (d.tebakan || []).slice(0, 10).map((t) => String(t).slice(0, 30));
+      if (!makna && !tebakan.length && !d.benar) return;
+      lagu[l.id] = { benar: Boolean(d.benar), percobaan: d.percobaan || 0, ...(tebakan.length ? { tebakan } : {}), ...(makna ? { makna } : {}) };
+    });
+    const peran = {};
+    if (modeSesi(state.sesi) !== 'individu') {
+      PERAN.forEach((p) => { if (state.peran && state.peran[p.id]) peran[p.id] = String(state.peran[p.id]).slice(0, 40); });
+    }
+    const p = state.puzzle;
+    const ciptaan = (state.ciptaan || []).slice(0, 10).map((c) => ({
+      majasId: String(c.majasId || '').slice(0, 30), tema: String(c.tema || '').slice(0, 60), kalimat: String(c.kalimat || '').slice(0, 300),
+    }));
+    return {
+      uid,
+      ...(Object.keys(lagu).length ? { lagu } : {}),
+      ...(Object.keys(peran).length ? { peran } : {}),
+      ...(p ? { puzzle: { skor: p.skor || 0, benar: p.benar || 0, total: p.total || 0, salah: p.salah || 0, sisaWaktu: p.sisaWaktu || 0 } } : {}),
+      ...(ciptaan.length ? { ciptaan } : {}),
+      ...(state.dikirim ? { dikirim: state.dikirim } : {}),
+      diperbarui: firebase.database.ServerValue.TIMESTAMP,
+    };
+  }
+
+  // true jika progress & jawaban tersimpan di Firebase.
   async function kirim() {
     try {
       await siap();
       const s = loadState();
-      if (!s.sesi || !s.sesi.kode) return;
-      await db.ref(`sesi/${s.sesi.kode}/kelompok/${s.sesi.kelompokId}`).set(ringkasan(s));
+      if (!s.sesi || !s.sesi.kode) return false;
+      const { kode, kelompokId } = s.sesi;
+      const ref = `sesi/${kode}/kelompok/${kelompokId}`;
+      // Satu update multi-path: ringkasan (papan peringkat) dan jawaban rinci selalu sinkron.
+      try {
+        await db.ref().update({ [ref]: ringkasan(s), [`jawaban/${kode}/${kelompokId}`]: jawabanLengkap(s) });
+      } catch (e) {
+        // Jawaban ditolak (mis. rules Firebase belum diperbarui): papan peringkat tetap jalan.
+        await db.ref(ref).set(ringkasan(s));
+        return false;
+      }
+      return true;
     } catch (e) {
       // Sesi sudah diakhiri / offline: permainan tetap lanjut secara lokal.
+      return false;
     }
   }
 
@@ -305,9 +349,10 @@ const SESI = (() => {
   }
 
   // Kirim sekarang juga (maks. 4 detik menunggu), misalnya sebelum pindah halaman.
+  // Hasilnya false jika gagal atau belum selesai dalam 4 detik.
   function kirimSegera() {
     clearTimeout(timerKirim);
-    return Promise.race([kirim(), new Promise((ok) => setTimeout(ok, 4000))]);
+    return Promise.race([kirim(), new Promise((ok) => setTimeout(() => ok(false), 4000))]);
   }
 
   // Peringkat: benar terbanyak → salah paling sedikit → durasi tercepat.
@@ -331,6 +376,12 @@ const SESI = (() => {
   function pantauKelompok(kode, cb) {
     siap().then(() => db.ref(`sesi/${kode}/kelompok`).on('value', (snap) => cb(urutkan(snap.val()))));
     return () => { if (db) db.ref(`sesi/${kode}/kelompok`).off(); };
+  }
+
+  // Jawaban rinci semua peserta { <id>: jawaban } (hanya bisa dibaca guru pemilik sesi).
+  function pantauJawaban(kode, cb) {
+    siap().then(() => db.ref(`jawaban/${kode}`).on('value', (snap) => cb(snap.val() || {})));
+    return () => { if (db) db.ref(`jawaban/${kode}`).off(); };
   }
 
   // ---------- Ruang tunggu di HP siswa ----------
@@ -549,7 +600,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
+  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, pantauJawaban, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());

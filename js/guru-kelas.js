@@ -261,7 +261,7 @@ const KELAS = (() => {
       ${r.length ? `<ul class="riwayat-list">${r.map((n) => `
         <li>
           <span class="rw-tgl">${esc(formatTanggal(n.tanggal))}</span>
-          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small></span>
+          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}</span>
           <b class="rw-nilai">${n.nilai}</b>
           <button type="button" class="btn-hapus-kecil" data-hapus-nilai="${esc(n.id)}" aria-label="Hapus nilai ${esc(n.aktivitas)}">Hapus</button>
         </li>`).join('')}</ul>` : '<p class="kecil">Belum ada nilai.</p>'}`;
@@ -459,6 +459,7 @@ const KELAS = (() => {
       const pilih = e.target.closest('[data-fokus]');
       const hapusPeserta = e.target.closest('[data-hapus-peserta]');
       const hapusNilai = e.target.closest('[data-hapus-nilai]');
+      const lihatJawaban = e.target.closest('[data-lihat-jawaban]');
       const titik = e.target.closest('.gg-titik');
       const k = kelasAktif();
       if (titik) { tampilTip(titik); return; }
@@ -471,6 +472,10 @@ const KELAS = (() => {
         const p = (k[mode] || {})[hapusPeserta.dataset.hapusPeserta];
         if (!p || !confirm(`Hapus ${LABEL[mode].satu} "${p.nama}" beserta semua nilainya dari kelas ini?`)) return;
         try { await GURU_DATA.hapusPeserta(k.id, mode, hapusPeserta.dataset.hapusPeserta); } catch (err) { toast('Gagal menghapus.'); }
+      } else if (lihatJawaban) {
+        const n = (k.nilai || {})[lihatJawaban.dataset.lihatJawaban];
+        const p = n && (k[n.peserta] || {})[n.pesertaId];
+        if (n && n.jawaban) JAWABAN.buka(`${n.aktivitas}${p ? ` · ${p.nama}` : ''}`, n.jawaban);
       } else if (hapusNilai) {
         const n = (k.nilai || {})[hapusNilai.dataset.hapusNilai];
         if (!n || !confirm(`Hapus nilai "${n.aktivitas}" (${n.nilai})?`)) return;

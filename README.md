@@ -8,7 +8,9 @@ MajaPOP! adalah media belajar majas dalam puisi lewat lagu pop dan puzzle intera
 
 ## Alur permainan
 
-Masukkan Kode → Putar Lagu → Identifikasi Majas → Susun Puzzle → Cipta Majas → Unggah Hasil
+Masukkan Kode → Putar Lagu → Identifikasi Majas → Susun Puzzle → Cipta Majas → Kirim Hasil
+
+Hasil setiap siswa/kelompok (tebakan majas, makna lirik, puzzle, kalimat majas buatan) terkirim otomatis ke Dashboard Guru lewat sesi kelas, dan tersimpan di riwayat nilai menu Kelas setelah sesi diakhiri.
 
 ## Mengubah isi
 
@@ -16,7 +18,6 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 
 | Yang ingin diubah | Bagian di `js/data.js` |
 |---|---|
-| Link Google Form untuk unggah hasil | `PENGATURAN.googleFormUrl` |
 | Lama waktu puzzle (detik); jumlah baris otomatis mengikuti jumlah jenis majas di `LAGU` | `PENGATURAN.waktuPuzzleDetik` |
 | Materi 8 jenis majas | `MAJAS` |
 | Daftar lagu, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video) |

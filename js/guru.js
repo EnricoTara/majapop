@@ -10,6 +10,8 @@ let infoTerakhir = null;
 let lepasPantau = [];
 let podiumUntuk = null; // kode sesi yang podiumnya sudah ditampilkan
 let daftarDimuat = false; // daftar peserta sesi aktif sudah terbaca dari Firebase
+let jawabanTerakhir = {}; // jawaban rinci per peserta (jawaban/<kode>)
+let jawabanDimuat = false;
 let nilaiUntuk = null; // kode sesi yang nilainya sudah dikirim ke kelas
 
 function simpanSesiGuru(kode) {
@@ -132,9 +134,10 @@ function renderPapan() {
     return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-benar="${k.totalBenar}">
       <div class="rank">${medali[i] || i + 1}</div>
       <div class="info">
-        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</div>
+        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}${k.dikirim ? ' <span class="tanda-kirim">✅ Terkirim</span>' : ''}</div>
         <div class="langkah-bar" aria-label="${k.langkahKe} dari ${LANGKAH.length} langkah">${segmen}</div>
         <div class="detail">${detail}</div>
+        <button type="button" class="btn-jawaban" data-jawaban="${esc(k.id)}">📝 Lihat jawaban</button>
       </div>
       <div class="langkah-label">${labelLangkah(k)}</div>
       <div class="nilai"><b>✔ ${k.totalBenar}</b><span>benar</span><small>✖ ${k.totalSalah} · ⏱ ${SESI.formatDurasi(k.durasi)}</small></div>
@@ -186,21 +189,24 @@ function bukaSesi(kode) {
   infoTerakhir = null;
   podiumUntuk = null;
   daftarDimuat = false;
+  jawabanTerakhir = {};
+  jawabanDimuat = false;
   el('podium').hidden = true;
   renderPapan();
   lepasPantau = [
     SESI.pantauSesi(kode, (info) => { infoTerakhir = info; renderStatus(); simpanNilaiKeKelas(); }),
     SESI.pantauKelompok(kode, (daftar) => { daftarTerakhir = daftar; daftarDimuat = true; renderPapan(); simpanNilaiKeKelas(); }),
+    SESI.pantauJawaban(kode, (jawaban) => { jawabanTerakhir = jawaban; jawabanDimuat = true; simpanNilaiKeKelas(); }),
   ];
 }
 
 // Sesi yang dibuat dari sebuah kelas: setelah diakhiri, nilai setiap peserta disimpan ke kelas itu
 // (menu Kelas). Sekali per sesi; GURU_DATA juga menolak menyimpan dua kali.
 async function simpanNilaiKeKelas() {
-  if (!berakhir() || !infoTerakhir.kelasId || !daftarDimuat || nilaiUntuk === kodeAktif) return;
+  if (!berakhir() || !infoTerakhir.kelasId || !daftarDimuat || !jawabanDimuat || nilaiUntuk === kodeAktif) return;
   nilaiUntuk = kodeAktif;
   try {
-    const hasil = await GURU_DATA.simpanHasilSesi(kodeAktif, infoTerakhir, daftarTerakhir);
+    const hasil = await GURU_DATA.simpanHasilSesi(kodeAktif, infoTerakhir, daftarTerakhir, jawabanTerakhir);
     if (hasil && hasil.jumlah) toast(`📊 Nilai ${hasil.jumlah} ${peserta()} tersimpan ke kelas ${hasil.kelas}.`);
   } catch (e) {
     nilaiUntuk = null;
@@ -212,13 +218,16 @@ async function simpanNilaiKeKelas() {
 function unduhRekap() {
   const indiv = individu();
   const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
-  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', 'Terakhir diperbarui']];
+  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Jumlah majas buatan', 'Kalimat majas buatan', ...(indiv ? [] : ['Peran']), 'Tebakan majas', 'Makna lirik', 'Status kirim', 'Terakhir diperbarui']];
   daftarTerakhir.forEach((k, i) => {
     baris.push([
       i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), labelLangkah(k).replace(/^\S+\s/, ''),
       k.totalBenar, k.totalSalah, k.durasi ? SESI.formatDurasi(k.durasi) : '', k.poin,
       `${k.benar || 0}/${k.totalLagu || 0}`, k.pertama || 0, k.puzzle >= 0 ? k.puzzle : '', k.puzzleBenar >= 0 ? k.puzzleBenar : '',
-      k.cipta || 0, (k.kalimat || []).join(' | '), k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
+      k.cipta || 0, (k.kalimat || []).join(' | '),
+      ...(indiv ? [] : [JAWABAN.teksPeran(jawabanTerakhir[k.id])]), JAWABAN.teksLagu(jawabanTerakhir[k.id]), JAWABAN.teksMakna(jawabanTerakhir[k.id]),
+      k.dikirim ? `Terkirim ${new Date(k.dikirim).toLocaleString('id-ID')}` : 'Belum menekan Kirim',
+      k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
     ]);
   });
   unduhCsv(`majapop-sesi-${indiv ? 'individu-' : ''}${kodeAktif}.csv`, baris);
@@ -286,6 +295,15 @@ el('layar-penuh').addEventListener('click', () => {
 document.addEventListener('fullscreenchange', () => {
   document.body.classList.toggle('proyektor', Boolean(document.fullscreenElement));
   el('layar-penuh').textContent = document.fullscreenElement ? '✕ Keluar layar penuh' : '⛶ Layar penuh';
+});
+
+// Jawaban rinci peserta (tombol di setiap baris peringkat).
+papanEl.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-jawaban]');
+  if (!b) return;
+  const k = daftarTerakhir.find((x) => x.id === b.dataset.jawaban);
+  if (!k) return;
+  JAWABAN.buka(`${k.absen ? `No. ${k.absen} · ` : ''}${k.tim}`, jawabanTerakhir[k.id]);
 });
 
 el('buka-lagi').addEventListener('click', () => bukaSesi(el('buka-lagi').dataset.kode));

@@ -619,7 +619,6 @@ textarea { min-height: 96px; resize: vertical; }
 .ringkasan-grid .kartu { padding: 16px; text-align: center; }
 .ringkasan-grid b { display: block; font: 800 1.9rem var(--font-judul); color: var(--pink); line-height: 1.2; }
 @media (max-width: 760px) { .ringkasan-grid { grid-template-columns: 1fr 1fr; } }
-.ringkasan-teks { font-family: ui-monospace, Consolas, monospace; font-size: .85rem; min-height: 260px; background: #FBF9FF; }
 
 /* ---------- Tombol musik (pojok kiri bawah) ---------- */
 .btn-musik {
@@ -720,6 +719,7 @@ body.cek-login main { visibility: hidden; }
 .lobi-guru { justify-content: flex-start; padding: 6px 0 12px; }
 .lobi-guru .lobi-nama { font-size: 1.25rem; padding: 10px 20px; box-shadow: var(--bayangan); }
 body.proyektor .lobi-guru .lobi-nama { font-size: 1.7rem; }
+body.proyektor .btn-jawaban { display: none; }
 
 /* Podium hasil akhir (dashboard guru) */
 .podium {
@@ -791,6 +791,30 @@ body.menunggu-sesi { overflow: hidden; }
 .ps-kamu { display: inline-block; font: 700 .72rem var(--font-isi); color: #fff; background: var(--pink); border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
 .ps-nilai { display: grid; grid-template-columns: auto auto; justify-items: end; gap: 0 8px; font-size: .78rem; color: var(--teks-pudar); white-space: nowrap; }
 .ps-nilai b { grid-column: 1 / -1; font: 800 1.15rem var(--font-judul); color: var(--hijau); }
+/* Jawaban rinci (js/jawaban.js): modal guru & pratinjau di halaman Kirim Hasil */
+.modal-jawaban { z-index: 945; }
+.modal-jawaban .modal-isi { position: relative; max-width: 640px; max-height: calc(100dvh - 32px); overflow-y: auto; text-align: left; padding: 22px 18px 18px; }
+.modal-jawaban h2 { margin: 0 44px 4px 0; overflow-wrap: anywhere; }
+.jw-status { margin: 0 0 8px; font-weight: 600; }
+.jw-bagian { margin-top: 14px; }
+.jw-bagian h3 { font-size: 1.05rem; margin: 0 0 6px; color: var(--ungu-tua); }
+.jw-bagian p { margin: 0; }
+.jw-daftar { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.jw-daftar > li { border: 2px solid var(--garis); border-radius: 12px; padding: 8px 12px; background: var(--kartu); overflow-wrap: anywhere; }
+.jw-lagu.belum { color: var(--teks-pudar); border-style: dashed; }
+.jw-tebakan { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; }
+.jw-tebak { font-size: .85rem; font-weight: 600; border-radius: 999px; padding: 1px 10px; }
+.jw-tebak.benar { background: #DCFCE7; color: var(--hijau); }
+.jw-tebak.salah { background: #FEE2E2; color: var(--merah); }
+.jw-panah { color: var(--teks-pudar); font-size: .8rem; }
+.jw-makna { margin: 6px 0 0 !important; font-size: .9rem; }
+.jw-label { display: block; font-size: .78rem; font-weight: 700; color: var(--pink); }
+.btn-jawaban { min-height: 34px; padding: 4px 12px; border-radius: 999px; border: 2px solid var(--garis); background: var(--ungu-muda); color: var(--ungu-tua); font: 700 .82rem var(--font-isi); cursor: pointer; }
+.rw-akt .btn-jawaban, .peringkat-baris .btn-jawaban { justify-self: start; margin-top: 6px; }
+.btn-jawaban:focus-visible { outline: 3px solid var(--kuning); outline-offset: 2px; }
+.tanda-kirim { display: inline-block; font-size: .75rem; font-weight: 700; color: var(--hijau); background: #DCFCE7; border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+.status-kirim { font-weight: 700; margin: 12px 0 0; }
+.status-kirim.terkirim { color: var(--hijau); }
 .qr { background: #fff; padding: 10px; border-radius: 16px; border: 2px solid var(--garis); line-height: 0; }
 .qr img, .qr canvas { width: 148px !important; height: 148px !important; }
 .cara-gabung ol { margin: 0 0 8px; padding-left: 1.2em; }
@@ -878,7 +902,7 @@ body.proyektor .langkah-label { font-size: 1.15rem; }
 
   /* Baris peringkat: nama & nilai di atas, progres dan detail selebar kartu. */
   .peringkat-baris {
-    grid-template-columns: 34px 1fr auto; grid-template-areas: 'rank nama nilai' 'bar bar bar' 'detail detail detail' 'label label label';
+    grid-template-columns: 34px 1fr auto; grid-template-areas: 'rank nama nilai' 'bar bar bar' 'detail detail detail' 'label label label' 'jawaban jawaban jawaban';
     gap: 4px 10px; padding: 12px 14px; box-shadow: 0 4px 0 rgba(59, 15, 122, .1);
   }
   .peringkat-baris .info { display: contents; }
@@ -891,6 +915,7 @@ body.proyektor .langkah-label { font-size: 1.15rem; }
   .nilai b { display: inline; font-size: 1.5rem; }
   .nilai span { margin-left: 3px; }
   .nilai small { margin-top: 0; font-size: .75rem; }
+  .peringkat-baris .btn-jawaban { grid-area: jawaban; }
   .langkah-label { grid-area: label; justify-self: start; font-size: .8rem; padding: 3px 12px; margin-top: 4px; }
 
   /* Ruang tunggu guru: kartu nama lebih ringkas. */

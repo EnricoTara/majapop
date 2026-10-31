@@ -19,7 +19,7 @@ const SAMPUL = [
 ];
 
 function dataLagu(state, id) {
-  return state.lagu[id] || { diputar: false, benar: false, percobaan: 0, makna: '' };
+  return state.lagu[id] || { diputar: false, benar: false, percobaan: 0, makna: '', tebakan: [] };
 }
 
 // Langkah 2 (Putar Lagu) sudah ditutup? Baru setelah itu Identifikasi Majas terbuka.
@@ -169,6 +169,8 @@ function jawab(l, btn) {
   const state = updateState((s) => {
     const d = s.lagu[l.id];
     d.percobaan += 1;
+    // Semua pilihan dicatat berurutan (termasuk yang salah) untuk dilihat guru.
+    d.tebakan = [...(d.tebakan || []), btn.dataset.majas];
     if (benar) d.benar = true;
     catatJawaban(s);
   });

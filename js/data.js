@@ -1,15 +1,13 @@
 // ============================================================
 // KONTEN MajaPOP!
 // Ubah isi file ini untuk mengganti materi, lagu, data sastrawan,
-// pertanyaan pemantik, waktu puzzle, dan tautan Google Form.
+// pertanyaan pemantik, dan waktu puzzle.
 // ============================================================
 
 const PENGATURAN = {
   // Lama waktu Papan Puzzle (detik). 600 = 10 menit.
   // Jumlah baris puzzle otomatis = jumlah jenis majas pada lagu yang sudah diisi.
   waktuPuzzleDetik: 600,
-  // Ganti dengan tautan Google Form milik guru.
-  googleFormUrl: 'https://forms.gle/GANTI_DENGAN_LINK_GOOGLE_FORM',
   // Lagu pengiring saat web dibuka (berhenti saat guru memulai sesi). Kosongkan ('') untuk mematikan.
   musikBeranda: 'music/nada dering - beranda.mp3',
   // Nada yang diputar sekali saat papan peringkat akhir muncul di HP siswa.

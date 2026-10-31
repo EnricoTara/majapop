@@ -14,7 +14,7 @@ const LANGKAH = [
   { id: 'identifikasi', label: 'Identifikasi Majas', ikon: '🔍', href: 'lagu.html#identifikasi' },
   { id: 'puzzle', label: 'Susun Puzzle', ikon: '🧩', href: 'puzzle.html' },
   { id: 'cipta', label: 'Cipta Majas', ikon: '✍️', href: 'cipta.html' },
-  { id: 'unggah', label: 'Unggah Hasil', ikon: '📤', href: 'unggah.html' },
+  { id: 'unggah', label: 'Kirim Hasil', ikon: '📤', href: 'unggah.html' },
 ];
 
 // Menu fitur (sesuai kartu "Jangan lupa jelajahi fitur menunya!").
@@ -24,7 +24,7 @@ const FITUR = [
   { label: 'Daftar Lagu', judul: 'Dengarkan dan Identifikasi Majas dalam Lagu', ikon: '🎧', href: 'lagu.html' },
   { label: 'Papan Puzzle', judul: 'Susun Rangkaian Potongan Puzzle secara Tepat', ikon: '🧩', href: 'puzzle.html' },
   { label: 'Isi Potongan Puzzle', judul: 'Pilih Kepingan Puzzle dan Isi dengan Kalimat Majas Buatanmu', ikon: '✍️', href: 'cipta.html' },
-  { label: 'Google Form', judul: 'Unggah Hasil Belajar yang Telah Kalian Lakukan', ikon: '📤', href: 'unggah.html' },
+  { label: 'Kirim Hasil', judul: 'Kirim Hasil Belajar ke Guru', ikon: '📤', href: 'unggah.html' },
   { label: 'Refleksi', judul: 'Putar Roda dan Renungkan Perjalanan Belajarmu', ikon: '🎡', href: 'refleksi.html' },
 ];
 
@@ -40,7 +40,8 @@ function stateAwal() {
   // sesi: { kode, kelompokId, mode } jika bergabung ke Sesi Kelas (lihat js/sesi.js).
   // Pada sesi individu, tim = nama siswa dan absen = nomor absen.
   // waktuSoal: { awal, akhir } untuk durasi mengerjakan soal (lihat mulaiSoal / catatJawaban).
-  return { tim: '', kelas: '', absen: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null, waktuSoal: null };
+  // dikirim: waktu siswa menekan "Kirim ke Guru" di halaman Kirim Hasil (0 = belum).
+  return { tim: '', kelas: '', absen: '', anggota: [], peran: {}, selesai: [], lagu: {}, puzzle: null, ciptaan: [], sesi: null, waktuSoal: null, dikirim: 0 };
 }
 
 // Durasi mengerjakan soal: dari soal pertama dibuka sampai jawaban terakhir.
@@ -92,7 +93,7 @@ function resetState() {
 // Hapus progres permainan, identitas dan sesi tetap (dipakai saat pindah ke kode sesi lain).
 function resetProgres(s) {
   const awal = stateAwal();
-  ['selesai', 'lagu', 'puzzle', 'ciptaan', 'waktuSoal'].forEach((k) => { s[k] = awal[k]; });
+  ['selesai', 'lagu', 'puzzle', 'ciptaan', 'waktuSoal', 'dikirim'].forEach((k) => { s[k] = awal[k]; });
 }
 
 // ---------- Utilitas ----------

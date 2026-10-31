@@ -28,6 +28,40 @@
         "$lain": { ".validate": false }
       }
     },
+    "jawaban": {
+      "$kode": {
+        ".read": "auth != null && auth.token.email === 'rediva@majapop.web.app' && root.child('sesi').child($kode).child('guru').val() === auth.uid",
+        "$id": {
+          ".write": "auth != null && root.child('sesi').child($kode).child('aktif').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
+          ".validate": "newData.hasChildren(['uid', 'diperbarui'])",
+          "uid": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+          "lagu": {
+            "$lagu": {
+              "benar": { ".validate": "newData.isBoolean()" },
+              "percobaan": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
+              "tebakan": { "$i": { ".validate": "newData.isString() && newData.val().length <= 30" } },
+              "makna": { ".validate": "newData.isString() && newData.val().length <= 600" },
+              "$lain": { ".validate": false }
+            }
+          },
+          "peran": { "$peran": { ".validate": "newData.isString() && newData.val().length <= 40" } },
+          "puzzle": {
+            "$f": { ".validate": "newData.isNumber() && newData.val() >= -1000 && newData.val() <= 100000" }
+          },
+          "ciptaan": {
+            "$i": {
+              "majasId": { ".validate": "newData.isString() && newData.val().length <= 30" },
+              "tema": { ".validate": "newData.isString() && newData.val().length <= 60" },
+              "kalimat": { ".validate": "newData.isString() && newData.val().length <= 300" },
+              "$lain": { ".validate": false }
+            }
+          },
+          "dikirim": { ".validate": "newData.isNumber()" },
+          "diperbarui": { ".validate": "newData.isNumber() && newData.val() <= now" },
+          "$lain": { ".validate": false }
+        }
+      }
+    },
     "materi": {
       ".read": "auth != null",
       ".write": "auth != null && auth.token.email === 'rediva@majapop.web.app'",
@@ -94,6 +128,7 @@
                 "nilai": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
                 "sumber": { ".validate": "newData.val() === 'manual' || newData.val() === 'sesi'" },
                 "sesi": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}$/)" },
+                "jawaban": { ".validate": "newData.hasChildren()" },
                 "dibuat": { ".validate": "newData.isNumber()" },
                 "$lain": { ".validate": false }
               }

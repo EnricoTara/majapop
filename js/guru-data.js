@@ -180,8 +180,9 @@ const GURU_DATA = (() => {
 
   // Simpan nilai setiap peserta sesi ke kelas asalnya (sekali per sesi).
   // Peserta dicocokkan dengan daftar kelas (no. absen / nama); yang belum ada otomatis ditambahkan.
+  // jawaban: { <id peserta sesi>: jawaban rinci } dari jawaban/<kode>, ikut disalin ke entri nilainya.
   // Mengembalikan { kelas, jumlah }, atau null jika sesi tidak terhubung ke kelas / sudah tersimpan.
-  async function simpanHasilSesi(kode, info, peserta) {
+  async function simpanHasilSesi(kode, info, peserta, jawaban = {}) {
     if (!info || !info.kelasId) return null;
     await siapAkar();
     const dasar = `kelas/${info.kelasId}`;
@@ -234,6 +235,10 @@ const GURU_DATA = (() => {
         peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl,
         aktivitas: `Sesi ${kode}`, nilai: nilaiSesi(p), sumber: 'sesi', sesi: kode, dibuat: WAKTU(),
       };
+      if (jawaban[p.id]) {
+        const { uid, ...isi } = jawaban[p.id];
+        u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`].jawaban = isi;
+      }
     });
     u[`${dasar}/sesiTersimpan/${kode}`] = true;
     await akar.update(u);

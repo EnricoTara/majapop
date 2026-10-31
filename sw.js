@@ -4,7 +4,7 @@
 // - Google Fonts & Leaflet: pakai cache dulu.
 // - YouTube, gambar peta, dan musik MP3 tidak disimpan.
 // Naikkan nomor versi jika daftar file INTI berubah.
-const CACHE = 'majapop-v6';
+const CACHE = 'majapop-v7';
 
 const INTI = [
   './',
@@ -12,7 +12,7 @@ const INTI = [
   'lagu.html', 'puzzle.html', 'cipta.html', 'unggah.html', 'refleksi.html', 'guru.html',
   'css/style.css',
   'js/data.js', 'js/app.js', 'js/lagu.js', 'js/puzzle.js', 'js/cipta.js', 'js/pemantik.js', 'js/refleksi.js',
-  'js/firebase-config.js', 'js/sesi.js', 'js/guru.js', 'js/guru-data.js', 'js/guru-kelas.js', 'js/guru-portal.js',
+  'js/firebase-config.js', 'js/sesi.js', 'js/guru.js', 'js/guru-data.js', 'js/guru-kelas.js', 'js/guru-portal.js', 'js/jawaban.js',
   'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
 ];
