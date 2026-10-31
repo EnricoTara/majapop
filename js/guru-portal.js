@@ -237,7 +237,7 @@ const PORTAL = (() => {
         if (idUbah) await GURU_DATA.ubahMateri(idUbah, judul, isi);
         else await GURU_DATA.tambahMateri(judul, isi);
         tutupFormMateri();
-        toast('Materi tersimpan dan tampil di E Modul siswa.');
+        toast('Materi tersimpan dan tampil di halaman Materi siswa.');
       } catch (err) { toast('Gagal menyimpan materi.'); }
     });
     $('daftar-materi').addEventListener('click', async (e) => {

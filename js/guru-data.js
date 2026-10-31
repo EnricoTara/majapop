@@ -1,7 +1,7 @@
 // ============================================================
 // Data portal guru di Firebase (guru/<uid>): profil, kelas beserta siswa,
 // kelompok, dan catatan nilainya. Hanya akun guru yang bisa membaca/menulis.
-// Materi tambahan disimpan di materi/<id> agar ikut tampil di E Modul siswa
+// Materi tambahan disimpan di materi/<id> agar ikut tampil di halaman Materi siswa
 // (semua bisa membaca, hanya guru yang bisa menulis; lihat database.rules.json).
 // ============================================================
 

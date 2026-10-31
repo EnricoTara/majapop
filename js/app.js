@@ -19,7 +19,7 @@ const LANGKAH = [
 
 // Menu fitur (sesuai kartu "Jangan lupa jelajahi fitur menunya!").
 const FITUR = [
-  { label: 'E Modul', judul: 'Jelajahi dan Pahami Materi Dalam E Modul', ikon: '📘', href: 'emodul.html' },
+  { label: 'Materi', judul: 'Jelajahi dan Pahami Materi Majas', ikon: '📘', href: 'emodul.html' },
   { label: 'Pemantik', judul: 'Jelajahi Peta Sastrawan Indonesia', ikon: '🗺️', href: 'pemantik.html' },
   { label: 'Daftar Lagu', judul: 'Dengarkan dan Identifikasi Majas dalam Lagu', ikon: '🎧', href: 'lagu.html' },
   { label: 'Papan Puzzle', judul: 'Susun Rangkaian Potongan Puzzle secara Tepat', ikon: '🧩', href: 'puzzle.html' },

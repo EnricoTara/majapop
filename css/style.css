@@ -281,7 +281,7 @@ textarea { min-height: 96px; resize: vertical; }
 .peran-kartu label { font-family: var(--font-judul); font-size: 1.1rem; color: var(--ungu-tua); }
 @media (max-width: 640px) { .peran-grid { grid-template-columns: 1fr; } }
 
-/* ---------- E Modul ---------- */
+/* ---------- Halaman Materi ---------- */
 .modul-list { display: grid; gap: 14px; }
 .modul-item { background: var(--kartu); border: 2px solid var(--garis); border-radius: var(--radius); overflow: hidden; }
 .modul-item summary {
@@ -365,7 +365,7 @@ textarea { min-height: 96px; resize: vertical; }
   text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
 }
 
-/* ---------- Video & infografis pengenalan (E Modul) ---------- */
+/* ---------- Video & infografis pengenalan (halaman Materi) ---------- */
 .video-wrap { max-width: 860px; margin: 8px auto 0; }
 /* Lapisan: gelap tipis → sampul YouTube (--sampul) → gradien cadangan bila sampul belum ada. */
 .video-facade {

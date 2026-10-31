@@ -16,7 +16,7 @@ const PENGATURAN = {
   musikPeringkat: 'music/nada dering - peringkat.mp3',
   // Volume musik: 0 (tanpa suara) sampai 1 (paling keras).
   volumeMusik: 0.4,
-  // Video pengenalan MajaPOP di E Modul: ID video YouTube (teks setelah "v=" atau "youtu.be/").
+  // Video pengenalan MajaPOP di halaman Materi: ID video YouTube (teks setelah "v=" atau "youtu.be/").
   // Unggah sebagai "Tidak publik". Kosongkan ('') untuk menyembunyikan.
   videoPengenalan: 'VbR6sMJT0CI',
   // Gambar infografis di bawah video (simpan di folder img/materi/). Kosongkan ([]) untuk menyembunyikan.
