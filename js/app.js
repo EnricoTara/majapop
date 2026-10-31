@@ -25,6 +25,7 @@ const FITUR = [
   { label: 'Papan Puzzle', judul: 'Susun Rangkaian Potongan Puzzle secara Tepat', ikon: '🧩', href: 'puzzle.html' },
   { label: 'Isi Potongan Puzzle', judul: 'Pilih Kepingan Puzzle dan Isi dengan Kalimat Majas Buatanmu', ikon: '✍️', href: 'cipta.html' },
   { label: 'Google Form', judul: 'Unggah Hasil Belajar yang Telah Kalian Lakukan', ikon: '📤', href: 'unggah.html' },
+  { label: 'Refleksi', judul: 'Putar Roda dan Renungkan Perjalanan Belajarmu', ikon: '🎡', href: 'refleksi.html' },
 ];
 
 const PERAN = [

@@ -221,6 +221,7 @@ main { min-height: 60vh; }
 .fitur:nth-child(6n+4) .nama { background: var(--oranye); }
 .fitur:nth-child(6n+5) .nama { background: #A16207; }
 .fitur:nth-child(6n+6) .nama { background: var(--hijau); }
+.fitur:nth-child(7) .nama { background: #9333EA; }
 @media (max-width: 860px) { .fitur-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 520px) { .fitur-grid { grid-template-columns: 1fr; } }
 
@@ -305,6 +306,38 @@ textarea { min-height: 96px; resize: vertical; }
 .pemantik-list li { background: var(--kartu); border: 2px solid var(--garis); border-radius: 14px; padding: 16px 16px 16px 56px; position: relative; font-weight: 500; }
 .pemantik-list li::before { content: '💬'; position: absolute; left: 16px; top: 14px; font-size: 1.4rem; }
 @media (max-width: 640px) { .pemantik-list { grid-template-columns: 1fr; } }
+/* ---------- Refleksi / roda ---------- */
+.refleksi-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; align-items: center; margin-top: 24px; }
+.roda-kotak {
+  text-align: center; padding: 26px 20px 18px; border-radius: 28px; border: 2px solid var(--garis);
+  background: linear-gradient(145deg, #fff, var(--ungu-muda)); box-shadow: var(--bayangan);
+}
+.roda-judul { font: 700 .8rem var(--font-isi); letter-spacing: .12em; text-transform: uppercase; color: var(--ungu); margin-bottom: 20px; }
+.roda-wrap {
+  position: relative; width: 100%; max-width: 420px; aspect-ratio: 1; margin: 0 auto; border-radius: 50%; padding: 14px;
+  background: linear-gradient(145deg, #C4A8F5, #F9A8D4); box-shadow: 0 12px 25px rgba(59, 15, 122, .15), inset 0 0 0 2px rgba(255, 255, 255, .6);
+}
+.roda-wrap canvas { display: block; width: 100%; height: 100%; border: 5px solid #fff; border-radius: 50%; }
+.roda-penunjuk {
+  position: absolute; z-index: 3; left: 50%; top: -9px; transform: translateX(-50%); width: 0; height: 0;
+  border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 37px solid var(--ungu-tua);
+  filter: drop-shadow(0 3px 1px #fff);
+}
+.roda-tengah {
+  position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 22%; height: 22%;
+  display: grid; place-items: center; border-radius: 50%; border: 5px solid #fff; background: linear-gradient(135deg, #fff, var(--ungu-muda));
+  box-shadow: 0 4px 14px rgba(59, 15, 122, .2); font: 800 clamp(.85rem, 2vw, 1.2rem)/1.05 var(--font-judul); color: var(--ungu);
+}
+.roda-kotak .btn { margin-top: 24px; min-width: 220px; }
+.roda-kotak .kecil { margin: 14px 0 0; }
+.refleksi-tanya { font-size: clamp(1.3rem, 3vw, 1.7rem); margin-top: 6px; }
+.refleksi-status { min-height: 1.6em; margin: 14px 0 6px; color: var(--ungu); font-weight: 600; }
+.riwayat-refleksi { padding-left: 22px; margin: 16px 0 0; }
+.riwayat-refleksi li { margin: 14px 0; background: var(--kartu); padding: 18px 20px; border-radius: 14px; border: 2px solid var(--garis); white-space: pre-wrap; overflow-wrap: anywhere; }
+.riwayat-refleksi strong { color: var(--ungu-tua); }
+.riwayat-refleksi p { margin: 6px 0 0; }
+@media (max-width: 760px) { .refleksi-grid { grid-template-columns: minmax(0, 1fr); } .roda-kotak { padding: 22px 12px 18px; } }
+@media (prefers-reduced-motion: reduce) { .roda-wrap canvas { transition: none !important; } }
 #peta { height: 460px; border-radius: var(--radius); border: 2px solid var(--garis); z-index: 0; }
 .peta-wrap { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
 .sastrawan-list { display: grid; gap: 8px; max-height: 460px; overflow-y: auto; padding-right: 4px; }

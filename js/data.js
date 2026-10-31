@@ -194,6 +194,18 @@ const PEMANTIK = [
   'Siapa sastrawan yang berasal dari daerah kalian atau dekat dengan daerah kalian? Temukan di peta!',
 ];
 
+// Roda Refleksi setelah bermain. label = tulisan di roda (dua baris), kategori = judul kecil di atas pertanyaan.
+const REFLEKSI = [
+  { label: ['Aku', 'paham'], kategori: 'Aku paham', tanya: 'Apa hal baru yang kamu pahami tentang majas setelah mengikuti pembelajaran?' },
+  { label: ['Majas', 'termudah'], kategori: 'Majas termudah', tanya: 'Jenis majas apa yang paling mudah kamu pahami? Mengapa?' },
+  { label: ['Masih', 'bingung'], kategori: 'Masih bingung', tanya: 'Jenis majas apa yang masih sulit kamu bedakan? Apa yang membuatmu bingung?' },
+  { label: ['Tantangan', 'menulis'], kategori: 'Tantangan menulis', tanya: 'Bagian apa yang paling sulit ketika kamu menulis kalimat majas?' },
+  { label: ['Pengalaman', 'belajar'], kategori: 'Pengalamanku', tanya: 'Bagaimana pengalamanmu selama menyusun majas?' },
+  { label: ['Belajar', 'dari lagu'], kategori: 'Belajar dari lagu', tanya: 'Apa yang kamu pelajari tentang penggunaan majas dari kegiatan mendengarkan lagu?' },
+  { label: ['Kegiatan', 'membantu'], kategori: 'Kegiatan membantu', tanya: 'Kegiatan mana yang paling membantumu menulis majas? Jelaskan alasannya.' },
+  { label: ['Bantuan', 'belajar'], kategori: 'Bantuan belajar', tanya: 'Bantuan apa yang masih kamu butuhkan agar lebih terampil menulis majas?' },
+];
+
 // Peta Sastrawan Indonesia (titik = daerah kelahiran).
 const SASTRAWAN = [
   { nama: 'Chairil Anwar', asal: 'Medan, Sumatera Utara', lat: 3.5952, lng: 98.6722, karya: 'Aku; Krawang-Bekasi; Derai-Derai Cemara' },

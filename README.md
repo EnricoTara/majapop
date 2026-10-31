@@ -22,6 +22,7 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 | Daftar lagu, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video) |
 | Pertanyaan pemantik | `PEMANTIK` |
 | Peta sastrawan | `SASTRAWAN` |
+| Pertanyaan Roda Refleksi (menu Refleksi) | `REFLEKSI` |
 | Musik pengiring beranda dan nada peringkat, serta volumenya | `PENGATURAN.musikBeranda`, `PENGATURAN.musikPeringkat`, `PENGATURAN.volumeMusik` (file MP3 di folder `music/`) |
 | Video pengenalan MajaPOP di halaman Materi | `PENGATURAN.videoPengenalan` (ID YouTube, teks setelah `v=` atau `youtu.be/`) |
 | Gambar infografis di bawah video (halaman Materi) | `PENGATURAN.infografis` (daftar file di folder `img/materi/`) |
