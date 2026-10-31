@@ -26,6 +26,14 @@
       <p><strong>Majas</strong> (gaya bahasa) adalah cara mengungkapkan pikiran dan perasaan dengan bahasa kiasan agar lebih indah, hidup, dan berkesan. Majas sering kita temukan dalam puisi, dan juga dalam lirik lagu yang kita dengarkan setiap hari. Buka setiap kartu untuk mempelajari jenis-jenis majas berikut, termasuk materi tambahan dari gurumu.</p>
     </section>
 
+    <!-- Video & infografis pengenalan (diisi dari PENGATURAN di js/data.js) -->
+    <div class="tengah" id="video" hidden style="margin-top:8px">
+      <span class="label-atas">Malas Baca? Tonton Aja!</span>
+      <h2>Kenalan Lewat Video 🎬</h2>
+      <div class="video-wrap" id="video-pengenalan"></div>
+      <div class="infografis-grid" id="infografis"></div>
+    </div>
+
     <div class="modul-list" id="modul-list" style="margin-top:16px"></div>
     <div class="modul-list" id="modul-guru" style="margin-top:14px" aria-live="polite"></div>
 
@@ -42,6 +50,32 @@
   <script src="js/firebase-config.js"></script>
   <script src="js/sesi.js"></script>
   <script>
+    // Video pengenalan: sampul + tombol ▶ dulu, iframe YouTube baru dimuat saat diketuk
+    // (halaman tetap ringan, dan musik latar dihentikan agar tidak bertabrakan dengan suara video).
+    const idVideo = PENGATURAN.videoPengenalan;
+    const infografis = PENGATURAN.infografis || [];
+    if (idVideo || infografis.length) document.getElementById('video').hidden = false;
+    if (idVideo) {
+      const wadah = document.getElementById('video-pengenalan');
+      const id = encodeURIComponent(idVideo);
+      // Sampul dari YouTube; jika belum tersedia, gradien MajaPOP di belakangnya tetap tampil.
+      wadah.innerHTML = `
+        <button type="button" class="video-facade" style="--sampul:url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')">
+          <span><span class="putar" aria-hidden="true">▶</span>Apa itu MajaPOP?<small>Tonton video pengenalannya</small></span>
+        </button>`;
+      wadah.querySelector('button').addEventListener('click', () => {
+        MUSIK.latar(false);
+        wadah.innerHTML = `<iframe class="player" src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1"
+          title="Apa itu MajaPOP?" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      }, { once: true });
+    }
+    if (infografis.length) {
+      document.getElementById('infografis').innerHTML = infografis.map((src, i) => `
+        <a href="${esc(encodeURI(src))}" target="_blank" rel="noopener">
+          <img src="${esc(encodeURI(src))}" alt="Infografis MajaPOP ${i + 1}" loading="lazy">
+        </a>`).join('') + '<p class="kecil">Ketuk gambar untuk memperbesar.</p>';
+    }
+
     document.getElementById('modul-list').innerHTML = MAJAS.map((m, i) => `
       <details class="modul-item" ${i === 0 ? 'open' : ''}>
         <summary><span class="no">${i + 1}</span> Majas ${esc(m.jenis)}</summary>

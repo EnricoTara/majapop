@@ -365,7 +365,7 @@ textarea { min-height: 96px; resize: vertical; }
   text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
 }
 
-/* ---------- Video & infografis pengenalan (Beranda) ---------- */
+/* ---------- Video & infografis pengenalan (E Modul) ---------- */
 .video-wrap { max-width: 860px; margin: 8px auto 0; }
 /* Lapisan: gelap tipis → sampul YouTube (--sampul) → gradien cadangan bila sampul belum ada. */
 .video-facade {
