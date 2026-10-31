@@ -91,13 +91,13 @@
               <label class="mode-kartu">
                 <input type="radio" name="mode" value="individu">
                 <b>👤 Individu</b>
-                <span>Setiap siswa bermain sendiri: nama, kelas, dan no. absen.</span>
+                <span>Setiap siswa bermain sendiri: nama dan no. absen (opsional).</span>
               </label>
             </div>
           </div>
           <div class="field">
-            <label for="nama-kelas">Nama kelas <span class="kecil">(opsional)</span></label>
-            <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2 – Bahasa Indonesia">
+            <label for="nama-kelas">Kelas <span class="kecil">(wajib, otomatis tercatat untuk semua siswa yang masuk dengan kode ini)</span></label>
+            <input type="text" id="nama-kelas" maxlength="40" placeholder="Contoh: X IPA 2" required>
           </div>
           <div class="aksi">
             <button class="btn" id="mulai-sesi">▶ Buat Kode Sesi</button>

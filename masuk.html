@@ -57,19 +57,13 @@
             <button type="button" id="ganti-kode">Ganti kode</button>
           </div>
 
-          <div class="dua-kolom">
-            <div class="field">
-              <label for="tim" id="label-tim">Nama kelompok</label>
-              <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
-            </div>
-            <div class="field">
-              <label for="kelas">Kelas <span class="kecil">(opsional)</span></label>
-              <input type="text" id="kelas" maxlength="20" placeholder="Contoh: X IPA 2">
-            </div>
+          <div class="field">
+            <label for="tim" id="label-tim">Nama kelompok</label>
+            <input type="text" id="tim" maxlength="40" placeholder="Contoh: Kelompok Pelangi" required>
           </div>
 
           <div class="field" id="field-absen" hidden>
-            <label for="absen">No. absen</label>
+            <label for="absen">No. absen <span class="kecil">(opsional)</span></label>
             <input type="text" id="absen" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Contoh: 12" autocomplete="off" style="max-width:160px">
           </div>
 
@@ -152,7 +146,6 @@
     document.getElementById('link-video').hidden = !(PENGATURAN.videoPengenalan || (PENGATURAN.infografis || []).length);
     timEl.value = state.tim;
     absenEl.value = state.absen || '';
-    document.getElementById('kelas').value = state.kelas;
 
     // Sesi Kelas: kode dari guru wajib diisi dulu, lalu form mengikuti jenis sesinya (kelompok / individu).
     // Tanpa Firebase, form kelompok langsung tampil seperti biasa.
@@ -180,14 +173,14 @@
       const indiv = mode === 'individu';
       document.getElementById('judul').textContent = indiv ? 'Data Diri 👤' : 'Masukkan Kode 🔑';
       document.getElementById('subjudul').textContent = indiv
-        ? 'Sesi ini dikerjakan sendiri. Tulis nama, kelas, dan nomor absenmu agar progresmu muncul di layar guru.'
+        ? 'Sesi ini dikerjakan sendiri. Tulis nama dan no. absenmu (opsional) agar progresmu muncul di layar guru.'
         : 'Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.';
       document.getElementById('label-tim').textContent = indiv ? 'Nama siswa' : 'Nama kelompok';
       timEl.placeholder = indiv ? 'Contoh: Ayu Lestari' : 'Contoh: Kelompok Pelangi';
       document.getElementById('field-absen').hidden = !indiv;
       document.getElementById('bagian-kelompok').hidden = indiv;
       document.getElementById('info-sesi').hidden = !sesi;
-      if (sesi) document.getElementById('info-sesi-teks').textContent = `📡 Sesi ${sesi.kode} · ${indiv ? '👤 Individu' : '👥 Kelompok'}`;
+      if (sesi) document.getElementById('info-sesi-teks').textContent = `📡 Sesi ${sesi.kode} · ${indiv ? '👤 Individu' : '👥 Kelompok'}${sesi.kelas ? ` · 🏫 ${sesi.kelas}` : ''}`;
       document.getElementById('field-kode').hidden = Boolean(sesi) || !pakaiSesi;
       document.getElementById('isian').hidden = false;
     }
@@ -294,12 +287,13 @@
 
       const indiv = individu();
       const nama = timEl.value.trim();
-      const kelas = document.getElementById('kelas').value.trim();
+      // Kelas ditentukan guru saat membuat kode sesi.
+      const kelas = sesiDipilih ? sesiDipilih.kelas || '' : '';
       let anggota, peran, absen = '';
       if (indiv) {
-        absen = Number(absenEl.value);
+        absen = absenEl.value ? Number(absenEl.value) : '';
         if (!nama) { toast('Nama siswa belum diisi.'); timEl.focus(); return; }
-        if (!(absen >= 1 && absen <= 99)) { toast('No. absen belum diisi (1–99).'); absenEl.focus(); return; }
+        if (absen !== '' && !(absen >= 1 && absen <= 99)) { toast('No. absen harus 1–99, atau kosongkan saja.'); absenEl.focus(); return; }
         anggota = [nama];
         peran = Object.fromEntries(PERAN.map((p) => [p.id, nama])); // semua peran dikerjakan sendiri
       } else {

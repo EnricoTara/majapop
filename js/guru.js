@@ -63,7 +63,7 @@ function renderLobi(daftar) {
   const ada = new Set([...papanEl.querySelectorAll('.lobi-nama')].map((c) => c.dataset.id));
   const urut = daftar.slice().sort((a, b) => (a.diperbarui || 0) - (b.diperbarui || 0));
   papanEl.innerHTML = `<div class="lobi-grid lobi-guru">${urut.map((k) => `
-    <span class="lobi-nama ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}</span>`).join('')}</div>`;
+    <span class="lobi-nama ${ada.has(k.id) ? '' : 'baru'}" data-id="${esc(k.id)}">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}</span>`).join('')}</div>`;
 }
 
 // Sesi sudah diakhiri (status sudah terbaca, bukan sekadar belum dimuat).
@@ -134,7 +134,7 @@ function renderPapan() {
     return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-benar="${k.totalBenar}">
       <div class="rank">${medali[i] || i + 1}</div>
       <div class="info">
-        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.kelas ? ` <span class="kecil">${esc(k.kelas)}</span>` : ''}${k.dikirim ? ' <span class="tanda-kirim">✅ Terkirim</span>' : ''}</div>
+        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.dikirim ? ' <span class="tanda-kirim">✅ Terkirim</span>' : ''}</div>
         <div class="langkah-bar" aria-label="${k.langkahKe} dari ${LANGKAH.length} langkah">${segmen}</div>
         <div class="detail">${detail}</div>
         <button type="button" class="btn-jawaban" data-jawaban="${esc(k.id)}">📝 Lihat jawaban</button>
@@ -167,7 +167,7 @@ function renderStatus() {
   el('sesi-baru').hidden = aktif;
   el('info-kelas').textContent = infoTerakhir && infoTerakhir.kelas ? `Kelas: ${infoTerakhir.kelas}` : '';
   el('mode-sesi').textContent = individu() ? '👤 Sesi Individu' : '👥 Sesi Kelompok';
-  el('isian-gabung').textContent = individu() ? 'nama, kelas, dan no. absen' : 'nama kelompok dan anggota';
+  el('isian-gabung').textContent = individu() ? 'nama dan no. absen (opsional)' : 'nama kelompok dan anggota';
   renderPapan();
 }
 
@@ -235,6 +235,9 @@ function unduhRekap() {
 
 // ---------- Tombol ----------
 el('mulai-sesi').addEventListener('click', async () => {
+  const namaKelas = el('nama-kelas').value.trim();
+  // Kelas dari guru otomatis tercatat untuk semua siswa yang masuk dengan kode ini.
+  if (!namaKelas) { toast('Isi kelas dulu sebelum membuat kode sesi.'); el('nama-kelas').focus(); return; }
   const tombol = el('mulai-sesi');
   tombol.disabled = true;
   tombol.textContent = 'Membuat sesi…';
@@ -250,7 +253,7 @@ el('mulai-sesi').addEventListener('click', async () => {
       }
     }
     const mode = document.querySelector('input[name="mode"]:checked').value;
-    const { kode, ruangTunggu } = await SESI.buatSesi(el('nama-kelas').value.trim(), mode, el('pilih-kelas').value);
+    const { kode, ruangTunggu } = await SESI.buatSesi(namaKelas, mode, el('pilih-kelas').value);
     bukaSesi(kode);
     if (!ruangTunggu) alert('Sesi dibuat tanpa ruang tunggu (siswa langsung mulai), karena aturan Firebase belum diperbarui. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules agar ruang tunggu aktif.');
   } catch (e) {

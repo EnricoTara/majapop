@@ -253,7 +253,7 @@ const SESI = (() => {
     if (!info.aktif) throw new Error(`Sesi ${kode} sudah diakhiri guru.`);
     const lama = loadState().sesi;
     const kelompokId = lama && lama.kode === kode && lama.kelompokId ? lama.kelompokId : db.ref().push().key;
-    return { kode, kelompokId, mode: modeSesi(info), status: sedangMenunggu(info) ? 'menunggu' : 'berjalan' };
+    return { kode, kelompokId, mode: modeSesi(info), kelas: String(info.kelas || ''), status: sedangMenunggu(info) ? 'menunggu' : 'berjalan' };
   }
 
   function ringkasan(state) {
@@ -265,7 +265,7 @@ const SESI = (() => {
       mode: modeSesi(state.sesi),
       ...(absen >= 1 && absen <= 99 ? { absen } : {}),
       tim: String(state.tim || 'Tanpa nama').slice(0, 40),
-      kelas: String(state.kelas || '').slice(0, 20),
+      kelas: String(state.kelas || '').slice(0, 40),
       anggota: (state.anggota || []).slice(0, 10).map((a) => String(a).slice(0, 40)),
       langkah: l.id,
       langkahKe: l.ke,

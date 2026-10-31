@@ -75,7 +75,7 @@
     const indiv = sesiIndividu(state);
 
     document.getElementById('identitas').textContent = indiv
-      ? `${state.tim || '-'} · No. absen ${state.absen || '-'}${state.kelas ? ` · ${state.kelas}` : ''}`
+      ? `${state.tim || '-'}${state.absen ? ` · No. absen ${state.absen}` : ''}${state.kelas ? ` · ${state.kelas}` : ''}`
       : `${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''} · Anggota: ${state.anggota.join(', ') || '-'}`;
     // Pratinjau memakai tampilan yang sama dengan yang dilihat guru (uid tidak diperlukan di sini).
     const pratinjau = {
