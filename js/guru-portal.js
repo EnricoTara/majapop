@@ -102,7 +102,7 @@ const PORTAL = (() => {
         <span class="tag tag-pink">Materi guru</span>
         <h3>${esc(m.judul)}</h3>
         <p class="isi-panjang">${esc(m.isi)}</p>
-        <div class="aksi"><button type="button" class="btn btn-kecil btn-garis btn-hapus-teks" data-hapus-materi="${esc(m.id)}">Hapus</button></div>
+        <div class="aksi"><button type="button" class="btn btn-kecil btn-garis" data-ubah-materi="${esc(m.id)}">Edit</button><button type="button" class="btn btn-kecil btn-garis btn-hapus-teks" data-hapus-materi="${esc(m.id)}">Hapus</button></div>
       </article>`);
     const semua = [...tambahan, ...dasar];
     $('daftar-materi').innerHTML = semua.length ? semua.join('') : '<div class="kosong-kartu">Tidak ada materi yang cocok dengan pencarian.</div>';
@@ -210,9 +210,23 @@ const PORTAL = (() => {
 
     // Materi
     $('cari-materi').addEventListener('input', renderMateri);
+    // Form yang sama dipakai untuk materi baru dan edit; idUbah = materi yang sedang diedit.
     const formMateri = $('form-materi');
-    $('tambah-materi').addEventListener('click', () => { formMateri.hidden = false; $('materi-judul').focus(); });
-    formMateri.querySelector('[data-batal]').addEventListener('click', () => { formMateri.reset(); formMateri.hidden = true; });
+    let idUbah = null;
+    const bukaFormMateri = (id) => {
+      const m = id ? (data.materi || {})[id] : null;
+      idUbah = m ? id : null;
+      $('judul-form-materi').textContent = m ? 'Edit materi' : 'Materi baru';
+      $('simpan-materi').textContent = m ? 'Simpan Perubahan' : 'Simpan Materi';
+      $('materi-judul').value = m ? m.judul : '';
+      $('materi-isi').value = m ? m.isi : '';
+      formMateri.hidden = false;
+      formMateri.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('materi-judul').focus();
+    };
+    const tutupFormMateri = () => { formMateri.reset(); formMateri.hidden = true; idUbah = null; };
+    $('tambah-materi').addEventListener('click', () => bukaFormMateri(null));
+    formMateri.querySelector('[data-batal]').addEventListener('click', tutupFormMateri);
     formMateri.addEventListener('submit', async (e) => {
       e.preventDefault();
       const judul = $('materi-judul').value.trim();
@@ -220,18 +234,23 @@ const PORTAL = (() => {
       if (!judul) { toast('Judul materi belum diisi.'); $('materi-judul').focus(); return; }
       if (!isi) { toast('Isi materi belum diisi.'); $('materi-isi').focus(); return; }
       try {
-        await GURU_DATA.tambahMateri(judul, isi);
-        formMateri.reset();
-        formMateri.hidden = true;
-        toast('Materi tersimpan.');
+        if (idUbah) await GURU_DATA.ubahMateri(idUbah, judul, isi);
+        else await GURU_DATA.tambahMateri(judul, isi);
+        tutupFormMateri();
+        toast('Materi tersimpan dan tampil di E Modul siswa.');
       } catch (err) { toast('Gagal menyimpan materi.'); }
     });
     $('daftar-materi').addEventListener('click', async (e) => {
+      const ubah = e.target.closest('[data-ubah-materi]');
+      if (ubah) { bukaFormMateri(ubah.dataset.ubahMateri); return; }
       const b = e.target.closest('[data-hapus-materi]');
       if (!b) return;
       const m = (data.materi || {})[b.dataset.hapusMateri];
       if (!m || !confirm(`Hapus materi "${m.judul}"?`)) return;
-      try { await GURU_DATA.hapusMateri(b.dataset.hapusMateri); } catch (err) { toast('Gagal menghapus materi.'); }
+      try {
+        await GURU_DATA.hapusMateri(b.dataset.hapusMateri);
+        if (idUbah === b.dataset.hapusMateri) tutupFormMateri();
+      } catch (err) { toast('Gagal menghapus materi.'); }
     });
 
     // Akun

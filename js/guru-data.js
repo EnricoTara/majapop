@@ -1,13 +1,15 @@
 // ============================================================
-// Data portal guru di Firebase (guru/<uid>): profil, materi tambahan,
-// kelas beserta siswa, kelompok, dan catatan nilainya.
-// Hanya akun guru yang bisa membaca/menulis (lihat database.rules.json).
+// Data portal guru di Firebase (guru/<uid>): profil, kelas beserta siswa,
+// kelompok, dan catatan nilainya. Hanya akun guru yang bisa membaca/menulis.
+// Materi tambahan disimpan di materi/<id> agar ikut tampil di E Modul siswa
+// (semua bisa membaca, hanya guru yang bisa menulis; lihat database.rules.json).
 // ============================================================
 
 const GURU_DATA = (() => {
   let janjiAkar = null;
   let akar = null;
   let data = {};
+  let materi = {};
   let dimuat = false;
   const pendengar = [];
 
@@ -27,11 +29,40 @@ const GURU_DATA = (() => {
     pendengar.push(cb);
     if (dimuat) cb(data);
     if (pendengar.length > 1) return;
-    siapAkar().then((r) => r.on('value', (snap) => {
-      data = snap.val() || {};
+    let guruDimuat = false;
+    let materiDimuat = false;
+    const kabari = () => {
+      if (!guruDimuat || !materiDimuat) return;
+      data.materi = materi;
       dimuat = true;
       pendengar.forEach((f) => f(data));
-    }));
+    };
+    siapAkar().then((r) => {
+      r.on('value', (snap) => {
+        data = snap.val() || {};
+        guruDimuat = true;
+        if (data.materi) pindahkanMateriLama(data.materi);
+        kabari();
+      });
+      r.root.child('materi').on('value', (snap) => {
+        materi = snap.val() || {};
+        materiDimuat = true;
+        kabari();
+      });
+    });
+  }
+
+  // Materi lama di guru/<uid>/materi (hanya terlihat guru) dipindah ke materi/ agar terlihat siswa.
+  let sedangPindah = false;
+  function pindahkanMateriLama(lama) {
+    if (sedangPindah) return;
+    sedangPindah = true;
+    const u = {};
+    Object.entries(lama).forEach(([id, m]) => {
+      u[`materi/${id}`] = m;
+      u[`guru/${firebase.auth().currentUser.uid}/materi/${id}`] = null;
+    });
+    akar.root.update(u).catch(() => {}).finally(() => { sedangPindah = false; });
   }
 
   // ---------- Bantuan ----------
@@ -70,11 +101,15 @@ const GURU_DATA = (() => {
 
   async function tambahMateri(judul, isi) {
     await siapAkar();
-    await akar.child(`materi/${idBaru()}`).set({ judul, isi, dibuat: WAKTU() });
+    await akar.root.child(`materi/${idBaru()}`).set({ judul, isi, dibuat: WAKTU() });
+  }
+
+  async function ubahMateri(id, judul, isi) {
+    await (await siapAkar()).root.child(`materi/${id}`).update({ judul, isi, diubah: WAKTU() });
   }
 
   async function hapusMateri(id) {
-    await (await siapAkar()).child(`materi/${id}`).remove();
+    await (await siapAkar()).root.child(`materi/${id}`).remove();
   }
 
   // ---------- Kelas ----------
@@ -207,7 +242,7 @@ const GURU_DATA = (() => {
 
   return {
     pantau, daftar, kelasList, kelas, tanggal, samakan,
-    simpanProfil, tambahMateri, hapusMateri,
+    simpanProfil, tambahMateri, ubahMateri, hapusMateri,
     tambahKelas, hapusKelas, tambahSiswa, ubahKelompokSiswa, tambahKelompok, hapusPeserta, catatNilai, hapusNilai,
     nilaiSesi, simpanHasilSesi,
   };

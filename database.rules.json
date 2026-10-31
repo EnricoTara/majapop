@@ -28,6 +28,18 @@
         "$lain": { ".validate": false }
       }
     },
+    "materi": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.email === 'rediva@majapop.web.app'",
+      "$id": {
+        ".validate": "newData.hasChildren(['judul', 'isi'])",
+        "judul": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
+        "isi": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 3000" },
+        "dibuat": { ".validate": "newData.isNumber()" },
+        "diubah": { ".validate": "newData.isNumber()" },
+        "$lain": { ".validate": false }
+      }
+    },
     "guru": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid && auth.token.email === 'rediva@majapop.web.app'",

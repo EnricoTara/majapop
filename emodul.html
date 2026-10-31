@@ -23,10 +23,11 @@
     <section class="halaman-judul">
       <span class="label-atas">E Modul</span>
       <h1 style="font-size:clamp(2rem,5vw,3rem)">Jelajahi dan Pahami Materi 📘</h1>
-      <p><strong>Majas</strong> (gaya bahasa) adalah cara mengungkapkan pikiran dan perasaan dengan bahasa kiasan agar lebih indah, hidup, dan berkesan. Majas sering kita temukan dalam puisi, dan juga dalam lirik lagu yang kita dengarkan setiap hari. Buka setiap kartu untuk mempelajari delapan jenis majas berikut.</p>
+      <p><strong>Majas</strong> (gaya bahasa) adalah cara mengungkapkan pikiran dan perasaan dengan bahasa kiasan agar lebih indah, hidup, dan berkesan. Majas sering kita temukan dalam puisi, dan juga dalam lirik lagu yang kita dengarkan setiap hari. Buka setiap kartu untuk mempelajari jenis-jenis majas berikut, termasuk materi tambahan dari gurumu.</p>
     </section>
 
     <div class="modul-list" id="modul-list" style="margin-top:16px"></div>
+    <div class="modul-list" id="modul-guru" style="margin-top:14px" aria-live="polite"></div>
 
     <div class="aksi" style="justify-content:center;margin-top:36px">
       <a class="btn btn-ungu" href="pemantik.html">🗺️ Lanjut ke Pemantik</a>
@@ -50,6 +51,23 @@
           <div class="kotak kotak-kuning"><strong>Contoh kalimat</strong><em>“${esc(m.contoh)}”</em></div>
         </div>
       </details>`).join('');
+
+    // Materi tambahan dari guru (materi/<id> di Firebase), ikut berubah saat guru menambah/mengedit/menghapus.
+    // Kartu yang sedang terbuka tetap terbuka setelah daftar diperbarui. Offline: cukup materi dasar.
+    SESI.siap().then((db) => db.ref('materi').on('value', (snap) => {
+      const wadah = document.getElementById('modul-guru');
+      const terbuka = new Set([...wadah.querySelectorAll('details[open]')].map((d) => d.dataset.id));
+      const daftar = Object.entries(snap.val() || {})
+        .map(([id, m]) => ({ id, ...m }))
+        .sort((a, b) => (b.dibuat || 0) - (a.dibuat || 0));
+      wadah.innerHTML = daftar.map((m, i) => `
+        <details class="modul-item" data-id="${esc(m.id)}" ${terbuka.has(m.id) ? 'open' : ''}>
+          <summary><span class="no">${MAJAS.length + i + 1}</span> ${esc(m.judul)} <span class="tag tag-pink" style="align-self:center">Materi dari guru</span></summary>
+          <div class="modul-isi">
+            <div class="kotak kotak-pink isi-panjang">${esc(m.isi)}</div>
+          </div>
+        </details>`).join('');
+    })).catch(() => {});
   </script>
 </body>
 </html>

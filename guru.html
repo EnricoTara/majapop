@@ -225,14 +225,14 @@
         <section class="halaman-judul">
           <span class="label-atas">Materi</span>
           <h1 style="font-size:clamp(2rem,5vw,3rem)">Bank Materi Majas 📘</h1>
-          <p>Materi dasar MajaPOP dan materi tambahan buatanmu. Materi tambahan hanya terlihat oleh guru.</p>
+          <p>Materi dasar MajaPOP dan materi tambahan buatanmu. Materi tambahan otomatis tampil di E Modul siswa.</p>
         </section>
         <div class="materi-alat">
           <input type="search" id="cari-materi" placeholder="🔎 Cari jenis majas atau materi…" aria-label="Cari materi">
           <button type="button" class="btn" id="tambah-materi">＋ Tambah Materi</button>
         </div>
         <form id="form-materi" class="kartu form-portal" hidden novalidate>
-          <h3>Materi baru</h3>
+          <h3 id="judul-form-materi">Materi baru</h3>
           <div class="field">
             <label for="materi-judul">Judul materi</label>
             <input type="text" id="materi-judul" maxlength="90" placeholder="Contoh: Gaya Bahasa dalam Lirik Lagu">
@@ -241,7 +241,7 @@
             <label for="materi-isi">Isi materi</label>
             <textarea id="materi-isi" maxlength="3000" placeholder="Tuliskan uraian materi…"></textarea>
           </div>
-          <div class="aksi"><button type="submit" class="btn">Simpan Materi</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
+          <div class="aksi"><button type="submit" class="btn" id="simpan-materi">Simpan Materi</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
         </form>
         <div id="daftar-materi" class="grid-kartu" aria-live="polite"></div>
       </section>
