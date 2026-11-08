@@ -8,9 +8,15 @@ const SESI = (() => {
   const VERSI_SDK = '12.19.0';
   const MAKS_CIPTA_DINILAI = 3;
   // Akun guru di Firebase Authentication (Email/Password). Password hanya tersimpan di Firebase.
-  // Username yang diketik guru dipetakan ke email internal ini (bukan email sungguhan);
-  // email yang sama tertulis di database.rules.json, jadi hanya akun ini yang bisa mengelola sesi.
-  const AKUN_GURU = { nama: 'Rediva Novalisty', email: 'rediva@majapop.web.app' };
+  // Username yang diketik guru dipetakan ke email internal (bukan email sungguhan);
+  // email yang sama tertulis di database.rules.json, jadi hanya akun-akun ini yang bisa mengelola sesi.
+  const DAFTAR_GURU = [
+    { nama: 'Rediva Novalisty', email: 'rediva@majapop.web.app' },
+    { nama: 'Endah Purnomosari', email: 'endah@majapop.web.app' },
+    { nama: 'User Guru A', email: 'guru.a@majapop.web.app' },
+    { nama: 'User Guru B', email: 'guru.b@majapop.web.app' },
+    { nama: 'User Guru C', email: 'guru.c@majapop.web.app' },
+  ];
   let janjiSiap = null;
   let db = null;
   let uid = null;
@@ -128,25 +134,39 @@ const SESI = (() => {
     try { masuk ? localStorage.setItem(TANDA_GURU, '1') : localStorage.removeItem(TANDA_GURU); } catch (e) { /* abaikan */ }
   }
 
+  function akunDariNama(username) {
+    const n = samakanNama(username);
+    return DAFTAR_GURU.find((a) => samakanNama(a.nama) === n) || null;
+  }
+
+  function akunDariEmail(email) {
+    const e = String(email || '').toLowerCase();
+    return DAFTAR_GURU.find((a) => a.email === e) || null;
+  }
+
+  // Nama akun guru yang sedang login di perangkat ini ('' jika bukan guru).
   function namaGuru() {
-    return AKUN_GURU.nama;
+    const u = window.firebase && firebase.apps && firebase.apps.length ? firebase.auth().currentUser : null;
+    const akun = u && !u.isAnonymous ? akunDariEmail(u.email) : null;
+    return akun ? akun.nama : '';
   }
 
   // Apakah perangkat ini sedang login sebagai akun guru?
   async function guruMasuk() {
     await siap();
     const u = firebase.auth().currentUser;
-    const masuk = Boolean(u && !u.isAnonymous && u.email === AKUN_GURU.email);
+    const masuk = Boolean(u && !u.isAnonymous && akunDariEmail(u.email));
     catatGuru(masuk);
     return masuk;
   }
 
   async function masukGuru(username, password) {
     const salah = new Error('Username atau password salah.');
-    if (samakanNama(username) !== samakanNama(AKUN_GURU.nama) || !password) throw salah;
+    const akun = akunDariNama(username);
+    if (!akun || !password) throw salah;
     await siap();
     try {
-      uid = (await firebase.auth().signInWithEmailAndPassword(AKUN_GURU.email, password)).user.uid;
+      uid = (await firebase.auth().signInWithEmailAndPassword(akun.email, password)).user.uid;
     } catch (e) {
       if (e.code === 'auth/too-many-requests') throw new Error('Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.');
       if (e.code === 'auth/network-request-failed') throw new Error('Tidak bisa terhubung. Periksa koneksi internet.');

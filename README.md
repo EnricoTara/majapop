@@ -39,7 +39,17 @@ Setelah mengubah file, simpan lalu upload ulang: `git add -A && git commit -m "P
 Siswa dan guru masuk lewat pintu yang sama: tombol **Masuk** di pojok kanan atas (halaman `masuk.html`), lalu memilih **🎒 Saya Siswa** atau **👩‍🏫 Saya Guru**.
 
 - **Siswa** memasukkan kode sesi dari guru, seperti biasa. Link/QR dari guru langsung membuka pilihan Siswa.
-- **Guru** login dengan username **Rediva Novalisty** dan password akun guru, lalu diarahkan ke **Dashboard** (`guru.html`). Dashboard tidak bisa dibuka tanpa login. Selama masih login, tombol pojok kanan atas berubah menjadi **📡 Dashboard**. Tombol **🚪 Keluar** ada di bawah judul Dashboard.
+- **Guru** login dengan username akunnya (lihat tabel di bawah) dan password akun guru, lalu diarahkan ke **Dashboard** (`guru.html`). Dashboard tidak bisa dibuka tanpa login. Selama masih login, tombol pojok kanan atas berubah menjadi **📡 Dashboard**. Tombol **🚪 Keluar** ada di bawah judul Dashboard.
+
+Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, dan profil sendiri; materi tambahan dipakai bersama):
+
+| Username | Email internal (Firebase) |
+|---|---|
+| Rediva Novalisty | `rediva@majapop.web.app` |
+| Endah Purnomosari | `endah@majapop.web.app` |
+| User Guru A | `guru.a@majapop.web.app` |
+| User Guru B | `guru.b@majapop.web.app` |
+| User Guru C | `guru.c@majapop.web.app` |
 
 Di Dashboard, guru memilih jenis sesi lalu menekan **Buat Kode Sesi**:
 
@@ -59,7 +69,7 @@ Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 - **📡 Dashboard**: ringkasan (jumlah kelas, siswa, materi) dan Sesi Kelas seperti di atas. Saat membuat sesi, guru bisa memilih **Kelas**; nama kelas dan jenis sesinya terisi otomatis.
 - **🏫 Kelas**: tambah kelas (kelompok/individu), lalu lihat **Progres & Nilai Kelas**: rata-rata individu dan kelompok, grafik nilai per peserta, grafik perkembangan, rekap, dan riwayat. Guru bisa menambah siswa (satu nama per baris), kelompok, nilai manual (0–100), mengganti kelompok siswa, dan mengunduh CSV per kelas.
 - **📘 Materi**: 8 materi dasar (dari `MAJAS` di `js/data.js`) dan materi tambahan buatan guru. Materi tambahan hanya terlihat oleh guru.
-- **👤 Akun**: profil guru (nama tampilan, sekolah, mapel, bio), **ganti password**, dan tombol keluar. Username untuk masuk tetap "Rediva Novalisty".
+- **👤 Akun**: profil guru (nama tampilan, sekolah, mapel, bio), **ganti password**, dan tombol keluar. Username untuk masuk tidak berubah.
 
 **Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.
 
@@ -74,7 +84,7 @@ Fitur ini memakai Firebase paket **Spark** (gratis, tanpa kartu kredit). Kalau b
 1. Buka [console.firebase.google.com](https://console.firebase.google.com), lalu klik **Create a project** dan beri nama `majapop`. Google Analytics boleh dimatikan.
 2. **Build → Realtime Database → Create Database**, pilih lokasi **Singapore (asia-southeast1)** dan mode **locked**.
 3. **Build → Authentication → Get started → Sign-in method**: aktifkan **Anonymous** (untuk siswa) dan **Email/Password** (untuk guru), lalu **Save**.
-   Setelah itu buka tab **Users → Add user**: email `rediva@majapop.web.app`, password akun guru. Email ini tidak perlu ada sungguhan; username "Rediva Novalisty" otomatis dipetakan ke email ini (lihat `AKUN_GURU` di [`js/sesi.js`](js/sesi.js)). Password hanya tersimpan di Firebase, tidak di kode.
+   Setelah itu buka tab **Users → Add user**: email `rediva@majapop.web.app`, password akun guru. Email ini tidak perlu ada sungguhan; username "Rediva Novalisty" otomatis dipetakan ke email ini (lihat `DAFTAR_GURU` di [`js/sesi.js`](js/sesi.js)). Ulangi untuk setiap akun guru di tabel di atas. Password hanya tersimpan di Firebase, tidak di kode.
 4. **Realtime Database → tab Rules**: hapus isinya, tempel seluruh isi file [`database.rules.json`](database.rules.json), lalu klik **Publish**. Atau dari terminal: `firebase deploy --only database`.
 5. **Project settings (⚙️) → Your apps → ikon Web `</>`**, daftarkan app bernama `MajaPOP` (tanpa Hosting), lalu salin isi `firebaseConfig`.
 6. Tempel ke [`js/firebase-config.js`](js/firebase-config.js) menjadi `const FIREBASE_CONFIG = { apiKey: "...", ... };`, lalu upload ulang.
@@ -83,7 +93,9 @@ Fitur ini memakai Firebase paket **Spark** (gratis, tanpa kartu kredit). Kalau b
 
 Isi `firebaseConfig` memang aman untuk publik. Yang melindungi data adalah aturan di langkah 4: siswa hanya bisa mengubah data kelompoknya sendiri, dan hanya akun guru yang bisa membuat, memulai, dan mengakhiri sesi.
 
-**Mengganti password guru:** Firebase Console → Authentication → Users → baris `rediva@majapop.web.app` → menu ⋮ → **Reset password** (atau hapus lalu Add user lagi dengan email yang sama). Untuk mengganti username atau email akun guru, ubah `AKUN_GURU` di `js/sesi.js` **dan** email di `database.rules.json`, lalu deploy keduanya.
+**Mengganti password guru:** Firebase Console → Authentication → Users → baris email guru (mis. `rediva@majapop.web.app`) → menu ⋮ → **Reset password** (atau hapus lalu Add user lagi dengan email yang sama). Guru juga bisa menggantinya sendiri lewat menu **👤 Akun**.
+
+**Menambah atau mengganti akun guru:** tambahkan `{ nama, email }` di `DAFTAR_GURU` (`js/sesi.js`) **dan** bagian depan email di pola `matches(/^(rediva|endah|...)@majapop\\.web\\.app$/)` pada `database.rules.json` (ada di beberapa tempat, ganti semuanya), buat user-nya di Authentication → Users → Add user, lalu deploy keduanya (`firebase deploy --only database,hosting`). Jangan izinkan seluruh domain `@majapop.web.app`: siapa pun bisa mendaftarkan email apa saja lewat API key publik.
 
 ## Menjalankan di komputer
 

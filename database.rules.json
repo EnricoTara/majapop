@@ -3,7 +3,7 @@
     "sesi": {
       "$kode": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.token.email === 'rediva@majapop.web.app' && ((!data.exists() && newData.child('guru').val() === auth.uid) || (data.exists() && data.child('guru').val() === auth.uid))",
+        ".write": "auth != null && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/) && ((!data.exists() && newData.child('guru').val() === auth.uid) || (data.exists() && data.child('guru').val() === auth.uid))",
         ".validate": "$kode.matches(/^[0-9]{4}$/) && newData.hasChildren(['guru', 'aktif'])",
         "guru": { ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())" },
         "aktif": { ".validate": "newData.isBoolean()" },
@@ -30,7 +30,7 @@
     },
     "jawaban": {
       "$kode": {
-        ".read": "auth != null && auth.token.email === 'rediva@majapop.web.app' && root.child('sesi').child($kode).child('guru').val() === auth.uid",
+        ".read": "auth != null && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/) && root.child('sesi').child($kode).child('guru').val() === auth.uid",
         "$id": {
           ".write": "auth != null && root.child('sesi').child($kode).child('aktif').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
           ".validate": "newData.hasChildren(['uid', 'diperbarui'])",
@@ -64,7 +64,7 @@
     },
     "materi": {
       ".read": "auth != null",
-      ".write": "auth != null && auth.token.email === 'rediva@majapop.web.app'",
+      ".write": "auth != null && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
       "$id": {
         ".validate": "newData.hasChildren(['judul', 'isi'])",
         "judul": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
@@ -76,8 +76,8 @@
     },
     "guru": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid && auth.token.email === 'rediva@majapop.web.app'",
-        ".write": "auth != null && auth.uid === $uid && auth.token.email === 'rediva@majapop.web.app'",
+        ".read": "auth != null && auth.uid === $uid && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
+        ".write": "auth != null && auth.uid === $uid && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
         "profil": {
           "nama": { ".validate": "newData.isString() && newData.val().length <= 90" },
           "email": { ".validate": "newData.isString() && newData.val().length <= 160" },
