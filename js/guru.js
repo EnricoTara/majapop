@@ -124,11 +124,12 @@ function renderPapan() {
   papanEl.innerHTML = daftar.map((k, i) => {
     const selesai = k.selesai || [];
     const segmen = LANGKAH.map((l) => `<span class="seg ${selesai.includes(l.id) ? 'selesai' : l.id === k.langkah ? 'aktif' : ''}" title="${esc(l.label)}"></span>`).join('');
+    const n = nilaiRinci(k);
     const detail = [
-      `🔍 ${k.benar || 0}/${k.totalLagu || 0} majas`,
-      k.puzzle >= 0 ? `🧩 ${k.puzzle} poin puzzle` : '🧩 belum',
-      `✍️ ${k.cipta || 0} kalimat`,
-      `⭐ ${k.poin} poin`,
+      `🎵 Lagu <b>${n.lagu}</b> (${k.benar || 0}/${k.totalLagu || daftarLaguSiap().length})`,
+      k.puzzleBenar >= 0 ? `🧩 Puzzle <b>${n.puzzle}</b> (${k.puzzleBenar}/${k.puzzleTotal > 0 ? k.puzzleTotal : jumlahBarisTersedia() * 4})` : '🧩 Puzzle <b>0</b> (belum)',
+      `✍️ Majas <b>${n.majas}</b> (${Math.min(k.cipta || 0, MAKS_MAJAS_DINILAI)}/${MAKS_MAJAS_DINILAI})`,
+      `⭐ Nilai pokok <b>${n.pokok}</b>`,
       `<span class="waktu-update" data-ms="${k.diperbarui || 0}">${waktuRelatif(k.diperbarui)}</span>`,
     ].join(' · ');
     return `<div class="peringkat-baris ${i < 3 ? 'top' + (i + 1) : ''}" data-id="${esc(k.id)}" data-benar="${k.totalBenar}">

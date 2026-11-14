@@ -131,6 +131,13 @@
                 "sumber": { ".validate": "newData.val() === 'manual' || newData.val() === 'sesi'" },
                 "sesi": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}$/)" },
                 "jawaban": { ".validate": "newData.hasChildren()" },
+                "rincian": {
+                  ".validate": "newData.hasChildren(['lagu', 'puzzle', 'majas'])",
+                  "lagu": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
+                  "puzzle": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
+                  "majas": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
+                  "$lain": { ".validate": false }
+                },
                 "dibuat": { ".validate": "newData.isNumber()" },
                 "$lain": { ".validate": false }
               }

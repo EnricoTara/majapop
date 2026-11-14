@@ -261,7 +261,7 @@ const KELAS = (() => {
       ${r.length ? `<ul class="riwayat-list">${r.map((n) => `
         <li>
           <span class="rw-tgl">${esc(formatTanggal(n.tanggal))}</span>
-          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}</span>
+          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${n.rincian ? `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} · ✍️ Majas ${n.rincian.majas} → rata-rata</small>` : ''}${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}</span>
           <b class="rw-nilai">${n.nilai}</b>
           <button type="button" class="btn-hapus-kecil" data-hapus-nilai="${esc(n.id)}" aria-label="Hapus nilai ${esc(n.aktivitas)}">Hapus</button>
         </li>`).join('')}</ul>` : '<p class="kecil">Belum ada nilai.</p>'}`;

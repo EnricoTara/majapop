@@ -176,13 +176,9 @@ const GURU_DATA = (() => {
   }
 
   // ---------- Nilai otomatis dari sesi ----------
-  // Nilai 0–100 = jawaban benar ÷ jumlah soal × 100.
-  // Soal = tebakan majas (satu per lagu) + kepingan puzzle (4 per baris); yang tidak dikerjakan dihitung 0.
+  // Nilai pokok 0–100 = rata-rata nilai Lagu, Puzzle, dan Majas (lihat nilaiRinci di js/app.js).
   function nilaiSesi(k) {
-    const keping = k.puzzleTotal > 0 ? k.puzzleTotal : jumlahBarisTersedia() * 4;
-    const soal = (k.totalLagu || daftarLaguSiap().length) + keping;
-    const benar = (k.benar || 0) + Math.max(0, k.puzzleBenar || 0);
-    return soal ? Math.min(100, Math.round((benar / soal) * 100)) : 0;
+    return nilaiRinci(k).pokok;
   }
 
   // Simpan nilai setiap peserta sesi ke kelas asalnya (sekali per sesi).
@@ -238,9 +234,10 @@ const GURU_DATA = (() => {
         });
         pesertaId = g.id;
       }
+      const { lagu, puzzle, majas, pokok } = nilaiRinci(p);
       u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = {
         peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl,
-        aktivitas: `Sesi ${kode}`, nilai: nilaiSesi(p), sumber: 'sesi', sesi: kode, dibuat: WAKTU(),
+        aktivitas: `Sesi ${kode}`, nilai: pokok, rincian: { lagu, puzzle, majas }, sumber: 'sesi', sesi: kode, dibuat: WAKTU(),
       };
       if (jawaban[p.id]) {
         const { uid, ...isi } = jawaban[p.id];

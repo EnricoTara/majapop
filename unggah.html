@@ -30,10 +30,10 @@
     </section>
 
     <div class="ringkasan-grid">
-      <div class="kartu"><b id="r-identifikasi">0/8</b><span class="kecil">majas teridentifikasi</span></div>
-      <div class="kartu"><b id="r-pertama">0</b><span class="kecil">tepat di tebakan pertama</span></div>
-      <div class="kartu"><b id="r-puzzle">–</b><span class="kecil">skor puzzle</span></div>
-      <div class="kartu"><b id="r-cipta">0</b><span class="kecil">majas buatan</span></div>
+      <div class="kartu"><span class="kecil">🎵 Mencocokkan lagu</span><b id="r-lagu">0</b><span class="kecil" id="k-lagu"></span></div>
+      <div class="kartu"><span class="kecil">🧩 Puzzle</span><b id="r-puzzle">0</b><span class="kecil" id="k-puzzle"></span></div>
+      <div class="kartu"><span class="kecil">✍️ Membuat majas</span><b id="r-majas">0</b><span class="kecil" id="k-majas"></span></div>
+      <div class="kartu kartu-pokok"><span class="kecil">⭐ Nilai pokok</span><b id="r-pokok">0</b><span class="kecil">rata-rata ketiganya</span></div>
     </div>
 
     <div class="kartu">
@@ -64,13 +64,21 @@
     const state = loadState();
     const d = (id) => state.lagu[id] || {};
     const siap = daftarLaguSiap();
-    const benar = siap.filter((l) => d(l.id).benar);
-    const pertama = benar.filter((l) => d(l.id).percobaan === 1).length;
-
-    document.getElementById('r-identifikasi').textContent = `${benar.length}/${siap.length}`;
-    document.getElementById('r-pertama').textContent = pertama;
-    document.getElementById('r-puzzle').textContent = state.puzzle ? state.puzzle.skor : '–';
-    document.getElementById('r-cipta').textContent = state.ciptaan.length;
+    const benar = siap.filter((l) => d(l.id).benar).length;
+    const pz = state.puzzle;
+    const nilai = nilaiRinci({
+      benar, totalLagu: siap.length,
+      puzzleBenar: pz ? pz.benar : -1, puzzleTotal: pz && pz.total ? pz.total : -1,
+      cipta: state.ciptaan.length,
+    });
+    const isi = (id, teks) => { document.getElementById(id).textContent = teks; };
+    isi('r-lagu', nilai.lagu);
+    isi('k-lagu', `${benar}/${siap.length} lagu benar`);
+    isi('r-puzzle', nilai.puzzle);
+    isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar` : 'belum dimainkan');
+    isi('r-majas', nilai.majas);
+    isi('k-majas', `${Math.min(state.ciptaan.length, MAKS_MAJAS_DINILAI)}/${MAKS_MAJAS_DINILAI} kalimat majas`);
+    isi('r-pokok', nilai.pokok);
 
     const indiv = sesiIndividu(state);
 

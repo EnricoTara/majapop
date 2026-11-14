@@ -128,6 +128,19 @@ function jumlahBarisTersedia() {
   return new Set(daftarLaguSiap().map((l) => l.majasId)).size;
 }
 
+// Rincian nilai sesi, masing-masing 0–100, lalu nilai pokok = rata-rata ketiganya:
+// Lagu = lagu benar ÷ jumlah lagu, Puzzle = kepingan benar ÷ total kepingan (belum main = 0),
+// Majas = kalimat buatan ÷ MAKS_MAJAS_DINILAI (lebih dari itu tetap 100).
+// Dipakai halaman Kirim Hasil siswa, kartu peserta di Dashboard, dan nilai yang tersimpan ke Kelas.
+const MAKS_MAJAS_DINILAI = 3;
+function nilaiRinci({ benar = 0, totalLagu = 0, puzzleBenar = -1, puzzleTotal = -1, cipta = 0 } = {}) {
+  const persen = (a, b) => (b > 0 ? Math.min(100, Math.round((Math.max(0, a) / b) * 100)) : 0);
+  const lagu = persen(benar, totalLagu > 0 ? totalLagu : daftarLaguSiap().length);
+  const puzzle = persen(puzzleBenar, puzzleTotal > 0 ? puzzleTotal : jumlahBarisTersedia() * 4);
+  const majas = persen(Math.min(cipta, MAKS_MAJAS_DINILAI), MAKS_MAJAS_DINILAI);
+  return { lagu, puzzle, majas, pokok: Math.round((lagu + puzzle + majas) / 3) };
+}
+
 // Unduh tabel sebagai CSV yang langsung rapi di Excel berbahasa Indonesia (BOM + titik koma).
 // Sel yang diawali = + - @ diberi tanda kutip agar tidak dijalankan sebagai rumus Excel.
 function unduhCsv(namaFile, baris) {

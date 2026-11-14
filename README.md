@@ -73,7 +73,14 @@ Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 
 **Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.
 
-Rumus nilai (0–100) = jawaban benar ÷ jumlah soal × 100. Jumlah soal = 1 tebakan majas per lagu (8) + kepingan puzzle (8 baris × 4 = 32) = 40. Bagian yang tidak dikerjakan dihitung 0. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
+Nilai dirinci per bagian, masing-masing 0–100, lalu dirata-rata menjadi **nilai pokok** (nilai yang tersimpan ke kelas dan dipakai untuk rata-rata kelas):
+
+- 🎵 **Lagu** = lagu yang majasnya benar ÷ jumlah lagu (8) × 100
+- 🧩 **Puzzle** = kepingan benar ÷ total kepingan (8 baris × 4 = 32) × 100; belum dimainkan = 0
+- ✍️ **Majas** = kalimat majas buatan ÷ 3 × 100 (lebih dari 3 kalimat tetap 100)
+- ⭐ **Nilai pokok** = (Lagu + Puzzle + Majas) ÷ 3
+
+Contoh: 4 dari 8 lagu benar, 16 dari 32 kepingan, 3 kalimat majas → 50, 50, 100 → nilai pokok 67. Rinciannya tampil di halaman Kirim Hasil siswa, di kartu peserta pada Dashboard, dan di Riwayat nilai pada menu Kelas. Rumusnya ada di `nilaiRinci` ([`js/app.js`](js/app.js)). Nilai sesi yang tersimpan sebelum rumus ini dipakai tidak dihitung ulang dan tampil tanpa rincian. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
 
 Data portal tersimpan di Firebase (`guru/<uid>`) dan hanya bisa dibaca/diubah akun guru (lihat `database.rules.json`). Jaga kerahasiaan nama dan nilai siswa saat membagikan file CSV.
 

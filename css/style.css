@@ -619,6 +619,9 @@ textarea { min-height: 96px; resize: vertical; }
 .ringkasan-grid .kartu { padding: 16px; text-align: center; }
 .ringkasan-grid b { display: block; font: 800 1.9rem var(--font-judul); color: var(--pink); line-height: 1.2; }
 @media (max-width: 760px) { .ringkasan-grid { grid-template-columns: 1fr 1fr; } }
+.ringkasan-grid .kecil { display: block; }
+.ringkasan-grid .kartu-pokok { background: var(--ungu); color: #fff; }
+.ringkasan-grid .kartu-pokok b, .ringkasan-grid .kartu-pokok .kecil { color: #fff; }
 
 /* ---------- Tombol musik (pojok kiri bawah) ---------- */
 .btn-musik {
