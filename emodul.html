@@ -86,9 +86,13 @@
         </div>
       </details>`).join('');
 
-    // Materi tambahan dari guru (materi/<id> di Firebase), ikut berubah saat guru menambah/mengedit/menghapus.
-    // Kartu yang sedang terbuka tetap terbuka setelah daftar diperbarui. Offline: cukup materi dasar.
-    SESI.siap().then((db) => db.ref('materi').on('value', (snap) => {
+    // Materi tambahan milik guru sendiri (materi/<uid guru>/<id> di Firebase): guru yang sedang login,
+    // atau guru pembuat sesi yang diikuti siswa. Ikut berubah saat guru menambah/mengedit/menghapus.
+    // Kartu yang sedang terbuka tetap terbuka setelah daftar diperbarui. Offline / tanpa sesi: cukup materi dasar.
+    SESI.siap().then(async (db) => {
+      const uidGuru = await SESI.guruMateri();
+      if (!uidGuru) return;
+      db.ref(`materi/${uidGuru}`).on('value', (snap) => {
       const wadah = document.getElementById('modul-guru');
       const terbuka = new Set([...wadah.querySelectorAll('details[open]')].map((d) => d.dataset.id));
       const daftar = Object.entries(snap.val() || {})
@@ -101,7 +105,8 @@
             <div class="kotak kotak-pink isi-panjang">${esc(m.isi)}</div>
           </div>
         </details>`).join('');
-    })).catch(() => {});
+      });
+    }).catch(() => {});
   </script>
 </body>
 </html>

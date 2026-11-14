@@ -1,8 +1,9 @@
 // ============================================================
 // Data portal guru di Firebase (guru/<uid>): profil, kelas beserta siswa,
 // kelompok, dan catatan nilainya. Hanya akun guru yang bisa membaca/menulis.
-// Materi tambahan disimpan di materi/<id> agar ikut tampil di halaman Materi siswa
-// (semua bisa membaca, hanya guru yang bisa menulis; lihat database.rules.json).
+// Materi tambahan disimpan di materi/<uid guru>/<id>: setiap guru punya materinya sendiri,
+// dan siswa melihat materi guru pembuat sesi yang diikutinya (lihat SESI.guruMateri).
+// Semua bisa membaca, hanya guru pemiliknya yang bisa menulis; lihat database.rules.json.
 // ============================================================
 
 const GURU_DATA = (() => {
@@ -44,7 +45,7 @@ const GURU_DATA = (() => {
         if (data.materi) pindahkanMateriLama(data.materi);
         kabari();
       });
-      r.root.child('materi').on('value', (snap) => {
+      refMateri().on('value', (snap) => {
         materi = snap.val() || {};
         materiDimuat = true;
         kabari();
@@ -52,14 +53,18 @@ const GURU_DATA = (() => {
     });
   }
 
-  // Materi lama di guru/<uid>/materi (hanya terlihat guru) dipindah ke materi/ agar terlihat siswa.
+  function refMateri() {
+    return akar.root.child(`materi/${firebase.auth().currentUser.uid}`);
+  }
+
+  // Materi lama di guru/<uid>/materi (hanya terlihat guru) dipindah ke materi/<uid>/ agar terlihat siswa.
   let sedangPindah = false;
   function pindahkanMateriLama(lama) {
     if (sedangPindah) return;
     sedangPindah = true;
     const u = {};
     Object.entries(lama).forEach(([id, m]) => {
-      u[`materi/${id}`] = m;
+      u[`materi/${firebase.auth().currentUser.uid}/${id}`] = m;
       u[`guru/${firebase.auth().currentUser.uid}/materi/${id}`] = null;
     });
     akar.root.update(u).catch(() => {}).finally(() => { sedangPindah = false; });
@@ -101,15 +106,17 @@ const GURU_DATA = (() => {
 
   async function tambahMateri(judul, isi) {
     await siapAkar();
-    await akar.root.child(`materi/${idBaru()}`).set({ judul, isi, dibuat: WAKTU() });
+    await refMateri().child(idBaru()).set({ judul, isi, dibuat: WAKTU() });
   }
 
   async function ubahMateri(id, judul, isi) {
-    await (await siapAkar()).root.child(`materi/${id}`).update({ judul, isi, diubah: WAKTU() });
+    await siapAkar();
+    await refMateri().child(id).update({ judul, isi, diubah: WAKTU() });
   }
 
   async function hapusMateri(id) {
-    await (await siapAkar()).root.child(`materi/${id}`).remove();
+    await siapAkar();
+    await refMateri().child(id).remove();
   }
 
   // ---------- Kelas ----------

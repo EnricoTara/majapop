@@ -63,15 +63,17 @@
       }
     },
     "materi": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
-      "$id": {
-        ".validate": "newData.hasChildren(['judul', 'isi'])",
-        "judul": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
-        "isi": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 3000" },
-        "dibuat": { ".validate": "newData.isNumber()" },
-        "diubah": { ".validate": "newData.isNumber()" },
-        "$lain": { ".validate": false }
+      "$guru": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $guru && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
+        "$id": {
+          ".validate": "newData.hasChildren(['judul', 'isi'])",
+          "judul": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
+          "isi": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 3000" },
+          "dibuat": { ".validate": "newData.isNumber()" },
+          "diubah": { ".validate": "newData.isNumber()" },
+          "$lain": { ".validate": false }
+        }
       }
     },
     "guru": {

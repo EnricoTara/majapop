@@ -41,7 +41,7 @@ Siswa dan guru masuk lewat pintu yang sama: tombol **Masuk** di pojok kanan atas
 - **Siswa** memasukkan kode sesi dari guru, seperti biasa. Link/QR dari guru langsung membuka pilihan Siswa.
 - **Guru** login dengan username akunnya (lihat tabel di bawah) dan password akun guru, lalu diarahkan ke **Dashboard** (`guru.html`). Dashboard tidak bisa dibuka tanpa login. Selama masih login, tombol pojok kanan atas berubah menjadi **📡 Dashboard**. Tombol **🚪 Keluar** ada di bawah judul Dashboard.
 
-Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, dan profil sendiri; materi tambahan dipakai bersama):
+Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, profil, dan materi tambahan sendiri; 8 materi dasar sama untuk semua guru):
 
 | Username | Email internal (Firebase) |
 |---|---|
@@ -68,7 +68,7 @@ Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 
 - **📡 Dashboard**: ringkasan (jumlah kelas, siswa, materi) dan Sesi Kelas seperti di atas. Saat membuat sesi, guru bisa memilih **Kelas**; nama kelas dan jenis sesinya terisi otomatis.
 - **🏫 Kelas**: tambah kelas (kelompok/individu), lalu lihat **Progres & Nilai Kelas**: rata-rata individu dan kelompok, grafik nilai per peserta, grafik perkembangan, rekap, dan riwayat. Guru bisa menambah siswa (satu nama per baris), kelompok, nilai manual (0–100), mengganti kelompok siswa, dan mengunduh CSV per kelas.
-- **📘 Materi**: 8 materi dasar (dari `MAJAS` di `js/data.js`) dan materi tambahan buatan guru. Materi tambahan hanya terlihat oleh guru.
+- **📘 Materi**: 8 materi dasar (dari `MAJAS` di `js/data.js`) dan materi tambahan buatan guru. Materi tambahan hanya milik akun guru pembuatnya (disimpan di `materi/<uid guru>` di Firebase), tidak muncul di akun guru lain, dan tampil di halaman Materi untuk siswa yang mengikuti sesi guru tersebut. Siswa yang belum pernah masuk sesi hanya melihat 8 materi dasar.
 - **👤 Akun**: profil guru (nama tampilan, sekolah, mapel, bio), **ganti password**, dan tombol keluar. Username untuk masuk tidak berubah.
 
 **Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.

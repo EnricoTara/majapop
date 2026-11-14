@@ -160,6 +160,19 @@ const SESI = (() => {
     return masuk;
   }
 
+  // UID guru yang materi tambahannya ditampilkan di halaman Materi perangkat ini:
+  // guru yang sedang login, atau guru pembuat sesi yang pernah diikuti siswa.
+  // null = tidak ada (cukup 8 materi dasar).
+  async function guruMateri() {
+    await siap();
+    const u = firebase.auth().currentUser;
+    if (u && !u.isAnonymous && akunDariEmail(u.email)) return u.uid;
+    const sesi = typeof loadState === 'function' ? loadState().sesi : null;
+    if (!sesi || !sesi.kode) return null;
+    const info = await infoSesi(sesi.kode);
+    return info && info.guru ? info.guru : null;
+  }
+
   async function masukGuru(username, password) {
     const salah = new Error('Username atau password salah.');
     const akun = akunDariNama(username);
@@ -620,7 +633,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, namaGuru, guruMasuk, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, pantauJawaban, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
+  return { aktif, siap, namaGuru, guruMasuk, guruMateri, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, pantauJawaban, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());
