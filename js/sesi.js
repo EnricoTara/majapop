@@ -84,10 +84,11 @@ const SESI = (() => {
     // Dasar peringkat: semua jawaban benar/salah (tebakan majas + kepingan puzzle) dan durasinya.
     const salahLagu = siapList.reduce((n, l) => n + Math.max(0, (d(l.id).percobaan || 0) - (d(l.id).benar ? 1 : 0)), 0);
     const totalBenar = benar + (state.puzzle ? state.puzzle.benar || 0 : 0);
-    const totalSalah = salahLagu + (state.puzzle ? state.puzzle.salah || 0 : 0);
+    const puzzleSalah = state.puzzle ? state.puzzle.salah || 0 : 0;
+    const totalSalah = salahLagu + puzzleSalah;
     const w = state.waktuSoal;
     const durasi = w && w.akhir ? Math.max(0, Math.round((w.akhir - w.awal) / 1000)) : 0;
-    return { poin, benar, pertama, totalLagu: siapList.length, puzzle, puzzleBenar: state.puzzle ? state.puzzle.benar : null, cipta, totalBenar, totalSalah, durasi };
+    return { poin, benar, pertama, totalLagu: siapList.length, puzzle, puzzleBenar: state.puzzle ? state.puzzle.benar : null, puzzleTotal: state.puzzle && state.puzzle.total ? state.puzzle.total : -1, salahLagu, puzzleSalah, cipta, totalBenar, totalSalah, durasi };
   }
 
   // Detik → "m:ss" (atau "j:mm:ss"); "–" jika belum ada jawaban.
@@ -307,9 +308,11 @@ const SESI = (() => {
       benar: r.benar,
       pertama: r.pertama,
       totalLagu: r.totalLagu,
+      salahLagu: r.salahLagu,
       puzzle: r.puzzle === null ? -1 : r.puzzle,
       puzzleBenar: r.puzzleBenar === null ? -1 : r.puzzleBenar,
-      puzzleTotal: state.puzzle && state.puzzle.total ? state.puzzle.total : -1,
+      puzzleTotal: r.puzzleTotal,
+      puzzleSalah: r.puzzleSalah,
       cipta: r.cipta,
       totalBenar: r.totalBenar,
       totalSalah: r.totalSalah,

@@ -62,20 +62,15 @@
   <script>
     cekTim(document.getElementById('banner-tim'));
     const state = loadState();
-    const d = (id) => state.lagu[id] || {};
-    const siap = daftarLaguSiap();
-    const benar = siap.filter((l) => d(l.id).benar).length;
+    // Angka yang sama dengan yang dikirim ke guru (SESI.rincian), termasuk jumlah kesalahan.
+    const r = SESI.rincian(state);
     const pz = state.puzzle;
-    const nilai = nilaiRinci({
-      benar, totalLagu: siap.length,
-      puzzleBenar: pz ? pz.benar : -1, puzzleTotal: pz && pz.total ? pz.total : -1,
-      cipta: state.ciptaan.length,
-    });
+    const nilai = nilaiRinci({ ...r, puzzleBenar: r.puzzleBenar ?? -1 });
     const isi = (id, teks) => { document.getElementById(id).textContent = teks; };
     isi('r-lagu', nilai.lagu);
-    isi('k-lagu', `${benar}/${siap.length} lagu benar`);
+    isi('k-lagu', `${r.benar}/${r.totalLagu} lagu benar · ${r.salahLagu} tebakan salah`);
     isi('r-puzzle', nilai.puzzle);
-    isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar` : 'belum dimainkan');
+    isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar · ${r.puzzleSalah} salah` : 'belum dimainkan');
     isi('r-majas', nilai.majas);
     isi('k-majas', `${Math.min(state.ciptaan.length, MAKS_MAJAS_DINILAI)}/${MAKS_MAJAS_DINILAI} kalimat majas`);
     isi('r-pokok', nilai.pokok);

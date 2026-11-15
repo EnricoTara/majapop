@@ -75,12 +75,14 @@ Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 
 Nilai dirinci per bagian, masing-masing 0–100, lalu dirata-rata menjadi **nilai pokok** (nilai yang tersimpan ke kelas dan dipakai untuk rata-rata kelas):
 
-- 🎵 **Lagu** = lagu yang majasnya benar ÷ jumlah lagu (8) × 100
-- 🧩 **Puzzle** = kepingan benar ÷ total kepingan (8 baris × 4 = 32) × 100; belum dimainkan = 0
+- 🎵 **Lagu** = lagu yang majasnya benar ÷ (jumlah lagu (8) + tebakan salah) × 100
+- 🧩 **Puzzle** = kepingan benar ÷ (total kepingan (8 baris × 4 = 32) + kepingan salah) × 100; belum dimainkan = 0
 - ✍️ **Majas** = kalimat majas buatan ÷ 3 × 100 (lebih dari 3 kalimat tetap 100)
 - ⭐ **Nilai pokok** = (Lagu + Puzzle + Majas) ÷ 3
 
-Contoh: 4 dari 8 lagu benar, 16 dari 32 kepingan, 3 kalimat majas → 50, 50, 100 → nilai pokok 67. Rinciannya tampil di halaman Kirim Hasil siswa, di kartu peserta pada Dashboard, dan di Riwayat nilai pada menu Kelas. Rumusnya ada di `nilaiRinci` ([`js/app.js`](js/app.js)). Nilai sesi yang tersimpan sebelum rumus ini dipakai tidak dihitung ulang dan tampil tanpa rincian. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
+Setiap kesalahan (tebakan majas yang salah, kepingan yang kembali ke baki saat Periksa) menambah pembagi, sehingga nilai turun tetapi tidak pernah minus.
+
+Contoh: 8 lagu benar dengan 2 tebakan salah (8/10), 32 kepingan benar dengan 10 kepingan salah (32/42), 2 kalimat majas → 80, 76, 67 → nilai pokok 74. Rinciannya tampil di halaman Kirim Hasil siswa, di kartu peserta pada Dashboard, dan di Riwayat nilai pada menu Kelas. Rumusnya ada di `nilaiRinci` ([`js/app.js`](js/app.js)). Nilai sesi yang tersimpan sebelum rumus ini dipakai tidak dihitung ulang dan tampil tanpa rincian. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
 
 Data portal tersimpan di Firebase (`guru/<uid>`) dan hanya bisa dibaca/diubah akun guru (lihat `database.rules.json`). Jaga kerahasiaan nama dan nilai siswa saat membagikan file CSV.
 
