@@ -74,7 +74,7 @@
               <button type="button" class="btn btn-kecil btn-garis" id="tambah-anggota">+ Tambah anggota</button>
             </div>
 
-            <div class="field">
+            <div class="field" id="field-peran">
               <div class="aksi" style="justify-content:space-between;margin-bottom:10px">
                 <label style="margin:0">Pembagian peran</label>
                 <button type="button" class="btn btn-kecil btn-kuning" id="acak-peran">🎲 Bagi otomatis</button>
@@ -84,7 +84,7 @@
           </div>
 
           <div class="aksi aksi-lekat" style="justify-content:flex-end">
-            <button type="submit" class="btn">Simpan &amp; Lanjut Putar Lagu →</button>
+            <button type="submit" class="btn" id="tombol-lanjut">Simpan &amp; Lanjut Putar Lagu →</button>
           </div>
         </div>
       </form>
@@ -171,16 +171,22 @@
       }
       modeForm = mode;
       const indiv = mode === 'individu';
+      const majas = sesiMajas(sesi);
       document.getElementById('judul').textContent = indiv ? 'Data Diri 👤' : 'Masukkan Kode 🔑';
       document.getElementById('subjudul').textContent = indiv
         ? 'Sesi ini dikerjakan sendiri. Tulis nama dan no. absenmu (opsional) agar progresmu muncul di layar guru.'
-        : 'Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.';
+        : majas
+          ? 'Bentuk kelompok dan tulis nama anggota, lalu ciptakan kalimat majas bersama-sama.'
+          : 'Bentuk kelompok, tulis nama anggota, lalu bagi peran secara seimbang: dengar lagu, tebak majas, temukan makna, dan susun puzzle.';
+      // Peran (dengar lagu, tebak majas, …) hanya untuk sesi Lagu & Puzzle.
+      document.getElementById('field-peran').hidden = majas;
+      document.getElementById('tombol-lanjut').textContent = majas ? 'Simpan & Lanjut Cipta Majas →' : 'Simpan & Lanjut Putar Lagu →';
       document.getElementById('label-tim').textContent = indiv ? 'Nama siswa' : 'Nama kelompok';
       timEl.placeholder = indiv ? 'Contoh: Ayu Lestari' : 'Contoh: Kelompok Pelangi';
       document.getElementById('field-absen').hidden = !indiv;
       document.getElementById('bagian-kelompok').hidden = indiv;
       document.getElementById('info-sesi').hidden = !sesi;
-      if (sesi) document.getElementById('info-sesi-teks').textContent = `📡 Sesi ${sesi.kode} · ${indiv ? '👤 Individu' : '👥 Kelompok'}${sesi.kelas ? ` · 🏫 ${sesi.kelas}` : ''}`;
+      if (sesi) document.getElementById('info-sesi-teks').textContent = `📡 Sesi ${sesi.kode} · ${majas ? '✍️ Cipta Majas' : '🎵 Lagu & Puzzle'} · ${indiv ? '👤 Individu' : '👥 Kelompok'}${sesi.kelas ? ` · 🏫 ${sesi.kelas}` : ''}`;
       document.getElementById('field-kode').hidden = Boolean(sesi) || !pakaiSesi;
       document.getElementById('isian').hidden = false;
     }
@@ -300,8 +306,11 @@
         anggota = daftarAnggota();
         if (!nama) { toast('Nama kelompok belum diisi.'); timEl.focus(); return; }
         if (!anggota.length) { toast('Isi minimal satu nama anggota.'); return; }
-        peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
-        if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
+        if (sesiMajas(sesiDipilih)) peran = {};
+        else {
+          peran = Object.fromEntries(PERAN.map((p) => [p.id, document.getElementById(`peran-${p.id}`).value]));
+          if (PERAN.some((p) => !peran[p.id])) { toast('Semua peran harus punya anggota. Coba "Bagi otomatis".'); return; }
+        }
       }
 
       updateState((s) => {
@@ -316,7 +325,7 @@
       });
       tandaiSelesai('tim');
       if (sesiDipilih) await SESI.kirimSegera(); // pastikan langsung muncul di dashboard guru
-      location.href = 'lagu.html';
+      location.href = sesiMajas(sesiDipilih) ? 'cipta.html' : 'lagu.html';
     });
 
     // ---------- Masuk sebagai guru ----------

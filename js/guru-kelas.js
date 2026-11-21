@@ -261,10 +261,25 @@ const KELAS = (() => {
       ${r.length ? `<ul class="riwayat-list">${r.map((n) => `
         <li>
           <span class="rw-tgl">${esc(formatTanggal(n.tanggal))}</span>
-          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${n.rincian ? `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} · ✍️ Majas ${n.rincian.majas} → rata-rata</small>` : ''}${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}</span>
+          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${teksRincian(n)}${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}${n.jenis === 'majas' && n.sesiPeserta ? `<button type="button" class="btn-jawaban" data-nilai-majas="${esc(n.id)}">✍️ Nilai kalimat</button>` : ''}</span>
           <b class="rw-nilai">${n.nilai}</b>
           <button type="button" class="btn-hapus-kecil" data-hapus-nilai="${esc(n.id)}" aria-label="Hapus nilai ${esc(n.aktivitas)}">Hapus</button>
         </li>`).join('')}</ul>` : '<p class="kecil">Belum ada nilai.</p>'}`;
+  }
+
+  // Keterangan nilai sesi: rincian Lagu & Puzzle, status rubrik Cipta Majas,
+  // atau rincian lama (Lagu, Puzzle, Majas) dari sebelum majas dipisah.
+  function teksRincian(n) {
+    if (n.jenis === 'majas') {
+      const ciptaan = (n.jawaban && n.jawaban.ciptaan) || [];
+      const skor = GURU_DATA.rubrik(n.sesi, n.sesiPeserta);
+      const dinilai = ciptaan.filter((c, i) => skor && nilaiKalimat(skor[kunciKalimat(c, i)]) !== null).length;
+      return `<small>✍️ Rubrik majas · ${dinilai}/${ciptaan.length} kalimat dinilai</small>`;
+    }
+    if (!n.rincian) return '';
+    return n.rincian.majas !== undefined
+      ? `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} · ✍️ Majas ${n.rincian.majas} → rata-rata</small>`
+      : `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} → rata-rata</small>`;
   }
 
   function render() {
@@ -460,6 +475,7 @@ const KELAS = (() => {
       const hapusPeserta = e.target.closest('[data-hapus-peserta]');
       const hapusNilai = e.target.closest('[data-hapus-nilai]');
       const lihatJawaban = e.target.closest('[data-lihat-jawaban]');
+      const nilaiMajasBtn = e.target.closest('[data-nilai-majas]');
       const titik = e.target.closest('.gg-titik');
       const k = kelasAktif();
       if (titik) { tampilTip(titik); return; }
@@ -475,7 +491,17 @@ const KELAS = (() => {
       } else if (lihatJawaban) {
         const n = (k.nilai || {})[lihatJawaban.dataset.lihatJawaban];
         const p = n && (k[n.peserta] || {})[n.pesertaId];
-        if (n && n.jawaban) JAWABAN.buka(`${n.aktivitas}${p ? ` · ${p.nama}` : ''}`, n.jawaban);
+        if (n && n.jawaban) JAWABAN.buka(`${n.aktivitas}${p ? ` · ${p.nama}` : ''}`, n.jawaban, n.jenis === 'majas' ? GURU_DATA.rubrik(n.sesi, n.sesiPeserta) || {} : undefined);
+      } else if (nilaiMajasBtn) {
+        const n = (k.nilai || {})[nilaiMajasBtn.dataset.nilaiMajas];
+        const p = n && (k[n.peserta] || {})[n.pesertaId];
+        if (!n || !n.sesiPeserta) return;
+        RUBRIK.buka({
+          judul: `${p ? p.nama : n.aktivitas} · Sesi ${n.sesi}`,
+          ciptaan: (n.jawaban && n.jawaban.ciptaan) || [],
+          skorAwal: GURU_DATA.rubrik(n.sesi, n.sesiPeserta) || {},
+          onSimpan: (skor) => GURU_DATA.simpanRubrik(n.sesi, n.sesiPeserta, skor),
+        });
       } else if (hapusNilai) {
         const n = (k.nilai || {})[hapusNilai.dataset.hapusNilai];
         if (!n || !confirm(`Hapus nilai "${n.aktivitas}" (${n.nilai})?`)) return;

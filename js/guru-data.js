@@ -1,6 +1,6 @@
 // ============================================================
 // Data portal guru di Firebase (guru/<uid>): profil, kelas beserta siswa,
-// kelompok, dan catatan nilainya. Hanya akun guru yang bisa membaca/menulis.
+// kelompok, catatan nilainya, dan skor rubrik kalimat majas per sesi (rubrik/<kode>/<id peserta sesi>). Hanya akun guru yang bisa membaca/menulis.
 // Materi tambahan disimpan di materi/<uid guru>/<id>: setiap guru punya materinya sendiri,
 // dan siswa melihat materi guru pembuat sesi yang diikutinya (lihat SESI.guruMateri).
 // Semua bisa membaca, hanya guru pemiliknya yang bisa menulis; lihat database.rules.json.
@@ -176,9 +176,32 @@ const GURU_DATA = (() => {
   }
 
   // ---------- Nilai otomatis dari sesi ----------
-  // Nilai pokok 0–100 = rata-rata nilai Lagu, Puzzle, dan Majas (lihat nilaiRinci di js/app.js).
+  // Nilai pokok 0–100 = rata-rata nilai Lagu dan Puzzle (lihat nilaiRinci di js/app.js).
   function nilaiSesi(k) {
     return nilaiRinci(k).pokok;
+  }
+
+  // Skor rubrik majas yang sudah dimuat (lewat pantau): { <kunciKalimat>: { jenis, makna, … } } atau null.
+  function rubrik(kode, idPeserta) {
+    return (data.rubrik && data.rubrik[kode] && data.rubrik[kode][idPeserta]) || null;
+  }
+
+  // Simpan skor rubrik satu peserta sesi Cipta Majas. Jika nilai sesi itu sudah tersimpan ke kelas,
+  // nilainya ikut diperbarui, jadi guru tetap bisa menilai setelah sesi diakhiri.
+  // skor hanya berisi kalimat yang masih ada (dibuat RUBRIK.buka), jadi skor kalimat yang sudah dihapus ikut hilang.
+  async function simpanRubrik(kode, idPeserta, skor) {
+    await siapAkar();
+    const kosong = !skor || !Object.keys(skor).length;
+    const u = { [`rubrik/${kode}/${idPeserta}`]: kosong ? null : skor };
+    const nilai = nilaiMajas(skor) ?? 0;
+    const kelasSnap = await akar.child('kelas').get();
+    Object.entries(kelasSnap.val() || {}).forEach(([kelasId, k]) => {
+      Object.entries(k.nilai || {}).forEach(([id, n]) => {
+        if (n.sesi === kode && n.sesiPeserta === idPeserta) u[`kelas/${kelasId}/nilai/${id}/nilai`] = nilai;
+      });
+    });
+    await akar.update(u);
+    return nilai;
   }
 
   // Simpan nilai setiap peserta sesi ke kelas asalnya (sekali per sesi).
@@ -194,6 +217,8 @@ const GURU_DATA = (() => {
     if (!k || (k.sesiTersimpan && k.sesiTersimpan[kode])) return null;
 
     const indiv = SESI.modeSesi(info) === 'individu';
+    const majas = sesiMajas(info);
+    const skorRubrik = majas ? ((await akar.child(`rubrik/${kode}`).get()).val() || {}) : {};
     const siswa = daftar(k.siswa);
     const kelompok = daftar(k.kelompok);
     const tgl = tanggal(info.mulai || info.dibuat || Date.now());
@@ -234,11 +259,17 @@ const GURU_DATA = (() => {
         });
         pesertaId = g.id;
       }
-      const { lagu, puzzle, majas, pokok } = nilaiRinci(p);
-      u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = {
-        peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl,
-        aktivitas: `Sesi ${kode}`, nilai: pokok, rincian: { lagu, puzzle, majas }, sumber: 'sesi', sesi: kode, dibuat: WAKTU(),
-      };
+      const dasarNilai = { peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl, sumber: 'sesi', sesi: kode, dibuat: WAKTU() };
+      if (majas) {
+        // Nilai = rubrik guru (0 jika belum dinilai); diperbarui oleh simpanRubrik.
+        u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = {
+          ...dasarNilai, aktivitas: `Cipta Majas · Sesi ${kode}`, jenis: 'majas', sesiPeserta: p.id,
+          nilai: nilaiMajas(skorRubrik[p.id], (jawaban[p.id] || {}).ciptaan || []) ?? 0,
+        };
+      } else {
+        const { lagu, puzzle, pokok } = nilaiRinci(p);
+        u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = { ...dasarNilai, aktivitas: `Sesi ${kode}`, nilai: pokok, rincian: { lagu, puzzle } };
+      }
       if (jawaban[p.id]) {
         const { uid, ...isi } = jawaban[p.id];
         u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`].jawaban = isi;
@@ -253,6 +284,6 @@ const GURU_DATA = (() => {
     pantau, daftar, kelasList, kelas, tanggal, samakan,
     simpanProfil, tambahMateri, ubahMateri, hapusMateri,
     tambahKelas, hapusKelas, tambahSiswa, ubahKelompokSiswa, tambahKelompok, hapusPeserta, catatNilai, hapusNilai,
-    nilaiSesi, simpanHasilSesi,
+    nilaiSesi, simpanHasilSesi, rubrik, simpanRubrik,
   };
 })();

@@ -32,8 +32,23 @@ const JAWABAN = (() => {
     return PERAN.filter((p) => peran[p.id]).map((p) => `${p.label}: ${peran[p.id]}`).join(', ');
   }
 
-  function html(j) {
+  // Daftar kalimat majas buatan; rubrik (opsional) = skor guru per kalimat { <i>: { jenis, makna, … } }.
+  function htmlCiptaan(ciptaan, rubrik) {
+    if (!ciptaan.length) return '<p class="kecil">Belum ada.</p>';
+    return `<ol class="jw-daftar jw-cipta">${ciptaan.map((c, i) => {
+      const n = rubrik ? nilaiKalimat(rubrik[kunciKalimat(c, i)]) : null;
+      const skor = rubrik ? `<span class="jw-skor ${n === null ? 'belum' : ''}">${n === null ? 'belum dinilai' : `Nilai ${Math.round(n)}`}</span>` : '';
+      return `<li><span class="jw-label">${esc(jenis(c.majasId))}${c.tema ? ` · ${esc(c.tema)}` : ''}</span>${esc(c.kalimat)}${skor}</li>`;
+    }).join('')}</ol>`;
+  }
+
+  function html(j, rubrik) {
     if (!j) return '<p class="kecil jw-kosong">Belum ada jawaban yang tercatat.</p>';
+    const ciptaanSaja = j.ciptaan || [];
+    if (j.aktivitas === 'majas') {
+      const n = rubrik ? nilaiMajas(rubrik, ciptaanSaja) : null;
+      return `<section class="jw-bagian"><h3>✍️ Majas buatan${n !== null ? ` · nilai majas <b>${n}</b>` : ''}</h3>${htmlCiptaan(ciptaanSaja, rubrik)}</section>`;
+    }
     const lagu = j.lagu || {};
     const barisLagu = daftarLaguSiap().map((l) => {
       const d = lagu[l.id];
@@ -54,9 +69,7 @@ const JAWABAN = (() => {
       <section class="jw-bagian"><h3>🧩 Puzzle</h3>${p
         ? `<p><b>${esc(p.skor)}</b> poin · ${esc(p.benar)}/${esc(p.total)} kepingan benar · ${esc(p.salah)} kesalahan · sisa waktu ${esc(formatWaktu(p.sisaWaktu || 0))}</p>`
         : '<p class="kecil">Belum dimainkan.</p>'}</section>
-      <section class="jw-bagian"><h3>✍️ Majas buatan</h3>${ciptaan.length
-        ? `<ol class="jw-daftar jw-cipta">${ciptaan.map((c) => `<li><span class="jw-label">${esc(jenis(c.majasId))}${c.tema ? ` · ${esc(c.tema)}` : ''}</span>${esc(c.kalimat)}</li>`).join('')}</ol>`
-        : '<p class="kecil">Belum ada.</p>'}</section>`;
+      ${ciptaan.length ? `<section class="jw-bagian"><h3>✍️ Majas buatan</h3>${htmlCiptaan(ciptaan, rubrik)}</section>` : ''}`;
   }
 
   // Modal jawaban (pola sama dengan papan peringkat siswa di js/sesi.js).
@@ -73,7 +86,7 @@ const JAWABAN = (() => {
     if (e.key === 'Escape') tutup();
   }
 
-  function buka(judul, j) {
+  function buka(judul, j, rubrik) {
     tutup();
     modalEl = document.createElement('div');
     modalEl.className = 'modal buka modal-jawaban';
@@ -88,7 +101,7 @@ const JAWABAN = (() => {
         <button type="button" class="ps-tutup" aria-label="Tutup jawaban">✕</button>
         <h2 id="jw-judul">📝 ${esc(judul)}</h2>
         <p class="kecil jw-status">${esc(status)}</p>
-        <div class="jw-isi">${html(j)}</div>
+        <div class="jw-isi">${html(j, rubrik)}</div>
       </div>`;
     modalEl.addEventListener('click', (e) => {
       if (e.target === modalEl || e.target.closest('.ps-tutup')) tutup();

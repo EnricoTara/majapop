@@ -81,6 +81,21 @@
             <select id="pilih-kelas"><option value="">– Tanpa kelas –</option></select>
           </div>
           <div class="field">
+            <label>Aktivitas</label>
+            <div class="pilih-mode" role="radiogroup" aria-label="Aktivitas">
+              <label class="mode-kartu">
+                <input type="radio" name="aktivitas" value="soal" checked>
+                <b>🎵 Lagu &amp; Puzzle</b>
+                <span>Putar lagu, identifikasi majas, dan susun puzzle. Dinilai otomatis.</span>
+              </label>
+              <label class="mode-kartu">
+                <input type="radio" name="aktivitas" value="majas">
+                <b>✍️ Cipta Majas</b>
+                <span>Siswa menulis kalimat majas buatan sendiri. Guru menilainya dengan rubrik.</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
             <label>Jenis sesi</label>
             <div class="pilih-mode" role="radiogroup">
               <label class="mode-kartu">
@@ -326,6 +341,7 @@
   <script src="js/sesi.js"></script>
   <script src="js/guru-data.js"></script>
   <script src="js/jawaban.js"></script>
+  <script src="js/rubrik.js"></script>
   <script src="js/guru-kelas.js"></script>
   <script src="js/guru-portal.js"></script>
   <script src="js/guru.js"></script>

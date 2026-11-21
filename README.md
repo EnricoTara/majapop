@@ -8,9 +8,12 @@ MajaPOP! adalah media belajar majas dalam puisi lewat lagu pop dan puzzle intera
 
 ## Alur permainan
 
-Masukkan Kode → Putar Lagu → Identifikasi Majas → Susun Puzzle → Cipta Majas → Kirim Hasil
+Ada dua jenis aktivitas sesi, dipilih guru saat membuat kode:
 
-Hasil setiap siswa/kelompok (tebakan majas, makna lirik, puzzle, kalimat majas buatan) terkirim otomatis ke Dashboard Guru lewat sesi kelas, dan tersimpan di riwayat nilai menu Kelas setelah sesi diakhiri.
+- **🎵 Lagu & Puzzle**: Masukkan Kode → Putar Lagu → Identifikasi Majas → Susun Puzzle → Kirim Hasil
+- **✍️ Cipta Majas** (terpisah, juga ada di menu): Masukkan Kode → Cipta Majas → Kirim Hasil
+
+Hasil setiap siswa/kelompok (tebakan majas, makna lirik, puzzle, atau kalimat majas buatan) terkirim otomatis ke Dashboard Guru lewat sesi kelas, dan tersimpan di riwayat nilai menu Kelas setelah sesi diakhiri.
 
 ## Mengubah isi
 
@@ -51,16 +54,18 @@ Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, profil, dan mater
 | User Guru B | `guru.b@majapop.web.app` |
 | User Guru C | `guru.c@majapop.web.app` |
 
-Di Dashboard, guru memilih jenis sesi lalu menekan **Buat Kode Sesi**:
+Di Dashboard, guru memilih **aktivitas** (🎵 Lagu & Puzzle atau ✍️ Cipta Majas) dan jenis sesi, lalu menekan **Buat Kode Sesi**:
 
-- **👥 Kelompok**: siswa mengisi nama kelompok, anggota, dan pembagian peran.
+- **👥 Kelompok**: siswa mengisi nama kelompok, anggota, dan pembagian peran (peran hanya untuk Lagu & Puzzle).
 - **👤 Individu**: setiap siswa mengisi nama, kelas, dan no. absen.
 
 Kode 4 angka dan QR akan muncul. Siswa **wajib** memasukkan kode itu di halaman **Masukkan Kode**, lalu form otomatis menyesuaikan jenis sesinya. Setelah mengisi data, siswa masuk ke **ruang tunggu** dan nama mereka muncul di dashboard guru. Guru menekan **🚀 Mulai Sesi** ketika semua sudah bergabung, lalu permainan di semua HP siswa terbuka bersamaan. Siswa yang bergabung setelah sesi dimulai langsung bisa bermain. Peringkat dan langkah setiap kelompok/siswa lalu tampil langsung di dashboard, dan di HP siswa muncul badge "Peringkat X dari Y" dengan tombol **📋 Papan peringkat** untuk melihat seluruh peserta sesi (3 teratas disorot, baris sendiri ditandai "kamu"). Rekap bisa diunduh sebagai CSV (dibuka di Excel). Saat guru menekan **Akhiri sesi**, dashboard menampilkan **podium juara 1-2-3** beranimasi (cocok untuk proyektor), dan di HP siswa papan peringkat akhir terbuka otomatis.
 
 Urutan peringkat: **jawaban benar terbanyak → jawaban salah paling sedikit → durasi mengerjakan tercepat**. Benar/salah dihitung dari tebakan majas (setiap tebakan yang keliru = 1 salah) dan kepingan puzzle. Durasi dihitung dari soal pertama dibuka sampai jawaban terakhir.
 
-Poin (tetap ditampilkan dan ikut di rekap): 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle, dan 20 per kalimat majas buatan (maks. 3 kalimat).
+Poin (tetap ditampilkan dan ikut di rekap): 10 per majas benar, +5 jika tepat di tebakan pertama, ditambah skor puzzle.
+
+Sesi **Cipta Majas** tidak memakai peringkat maupun podium. Dashboard menampilkan kalimat majas setiap peserta (urut bergabung) beserta tombol **✍️ Nilai kalimat** untuk menilainya dengan rubrik (lihat di bawah). Halaman Lagu dan Puzzle terkunci selama siswa berada di sesi Cipta Majas, dan sebaliknya halaman Cipta Majas terkunci di sesi Lagu & Puzzle.
 
 ## Portal Guru: Dashboard, Kelas, Materi, Akun
 
@@ -73,16 +78,30 @@ Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 
 **Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.
 
-Nilai dirinci per bagian, masing-masing 0–100, lalu dirata-rata menjadi **nilai pokok** (nilai yang tersimpan ke kelas dan dipakai untuk rata-rata kelas):
+**Sesi Lagu & Puzzle** dirinci per bagian, masing-masing 0–100, lalu dirata-rata menjadi **nilai pokok** (nilai yang tersimpan ke kelas dan dipakai untuk rata-rata kelas):
 
 - 🎵 **Lagu** = lagu yang majasnya benar ÷ (jumlah lagu (8) + tebakan salah) × 100
 - 🧩 **Puzzle** = kepingan benar ÷ (total kepingan (8 baris × 4 = 32) + kepingan salah) × 100; belum dimainkan = 0
-- ✍️ **Majas** = kalimat majas buatan ÷ 3 × 100 (lebih dari 3 kalimat tetap 100)
-- ⭐ **Nilai pokok** = (Lagu + Puzzle + Majas) ÷ 3
+- ⭐ **Nilai pokok** = (Lagu + Puzzle) ÷ 2
 
 Setiap kesalahan (tebakan majas yang salah, kepingan yang kembali ke baki saat Periksa) menambah pembagi, sehingga nilai turun tetapi tidak pernah minus.
 
-Contoh: 8 lagu benar dengan 2 tebakan salah (8/10), 32 kepingan benar dengan 10 kepingan salah (32/42), 2 kalimat majas → 80, 76, 67 → nilai pokok 74. Rinciannya tampil di halaman Kirim Hasil siswa, di kartu peserta pada Dashboard, dan di Riwayat nilai pada menu Kelas. Rumusnya ada di `nilaiRinci` ([`js/app.js`](js/app.js)). Nilai sesi yang tersimpan sebelum rumus ini dipakai tidak dihitung ulang dan tampil tanpa rincian. Nilai kelompok tidak otomatis menjadi nilai anggotanya.
+Contoh: 8 lagu benar dengan 2 tebakan salah (8/10), 32 kepingan benar dengan 10 kepingan salah (32/42) → 80 dan 76 → nilai pokok 78.
+
+**Sesi Cipta Majas** dinilai guru per kalimat dengan rubrik berikut (`RUBRIK_MAJAS` di [`js/app.js`](js/app.js)). Setiap indikator diberi skor 1–4 (1 kurang, 2 cukup, 3 baik, 4 sangat baik):
+
+| No. | Indikator | Fokus penilaian | Bobot |
+|---|---|---|---|
+| 1 | Ketepatan jenis majas | Kesesuaian kalimat dengan ciri jenis majas yang ditugaskan atau dinyatakan siswa. | 30% |
+| 2 | Kejelasan makna | Kejelasan hubungan makna figuratif dan pesan yang ingin disampaikan. | 25% |
+| 3 | Ketepatan diksi | Ketepatan dan kecermatan pilihan kata dalam membentuk ungkapan. | 20% |
+| 4 | Kreativitas ungkapan | Kemampuan mengembangkan ungkapan sendiri melalui perbandingan, penggambaran, atau permainan bahasa. | 15% |
+| 5 | Kesesuaian dengan pengalaman atau tema | Keterhubungan kalimat majas dengan pengalaman, situasi, atau tema yang dipilih. | 10% |
+
+- **Nilai kalimat** = Σ (skor ÷ 4 × bobot), 0–100. Contoh: skor 4, 3, 3, 2, 4 → 30 + 18,75 + 15 + 7,5 + 10 = 81.
+- **Nilai majas** peserta = rata-rata kalimat yang sudah lengkap dinilai. Nilai ini tersimpan ke kelas sebagai entri tersendiri "Cipta Majas · Sesi 1234" (0 selama belum dinilai).
+
+Guru bisa menilai dari Dashboard (selama sesinya masih terbuka) atau kapan saja dari **Riwayat** di menu Kelas (tombol **✍️ Nilai kalimat**); nilai di kelas ikut diperbarui. Skor rubrik tersimpan di `guru/<uid>/rubrik/<kode sesi>`. Sesi Cipta Majas tanpa kelas hanya bisa dinilai dari Dashboard. Rinciannya tampil di halaman Kirim Hasil siswa, di kartu peserta pada Dashboard, dan di Riwayat nilai pada menu Kelas. Rumusnya ada di `nilaiRinci` ([`js/app.js`](js/app.js)). Nilai sesi yang tersimpan sebelum rumus ini dipakai tidak dihitung ulang (termasuk nilai lama yang masih merata-rata Lagu, Puzzle, dan Majas). Nilai kelompok tidak otomatis menjadi nilai anggotanya.
 
 Data portal tersimpan di Firebase (`guru/<uid>`) dan hanya bisa dibaca/diubah akun guru (lihat `database.rules.json`). Jaga kerahasiaan nama dan nilai siswa saat membagikan file CSV.
 

@@ -1248,3 +1248,48 @@ body.proyektor main.portal { display: block; }
   .akun-hero { padding: 20px; }
   .akun-hero .akun-avatar { width: 60px; height: 60px; font-size: 1.7rem; }
 }
+
+/* ---------- Cipta Majas: rubrik penilaian guru ---------- */
+.rubrik-siswa { margin: 0 0 24px; padding: 14px 18px; }
+.rubrik-siswa summary { cursor: pointer; font-weight: 700; color: var(--ungu-tua); min-height: 32px; display: flex; align-items: center; }
+.rubrik-siswa-daftar { margin: 8px 0 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.rubrik-siswa-daftar li { padding-left: 4px; }
+.rubrik-siswa-daftar li > span:first-child { display: inline; }
+.rubrik-bobot, .rb-bobot { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--kuning-muda); color: var(--ungu-tua); font-size: .78rem; font-weight: 700; }
+
+.jw-skor { display: inline-block; margin-left: 8px; padding: 1px 9px; border-radius: 999px; background: var(--toska-muda); color: var(--toska); font-size: .76rem; font-weight: 700; white-space: nowrap; }
+.jw-skor.belum { background: var(--ungu-muda); color: var(--teks-pudar); font-weight: 600; }
+
+.baris-majas { grid-template-columns: 64px 1fr minmax(110px, auto); }
+.majas-kalimat { margin: 6px 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: .92rem; overflow-wrap: anywhere; }
+.majas-kalimat .jw-label { display: inline; }
+
+.modal-rubrik .modal-isi { max-width: 760px; }
+.rb-kalimat { border: 2px solid var(--garis); border-radius: 14px; padding: 12px 14px; margin-top: 14px; }
+.rb-kepala { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.rb-nilai { font-size: .9rem; color: var(--teks-pudar); white-space: nowrap; }
+.rb-nilai b { font-size: 1.25rem; color: var(--ungu-tua); }
+.rb-teks { margin: 6px 0 10px; font-style: italic; overflow-wrap: anywhere; }
+.rb-tabel { display: grid; gap: 8px; }
+.rb-baris { border: 0; margin: 0; padding: 8px 0 0; border-top: 1px dashed var(--garis); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; align-items: center; }
+.rb-baris legend { float: left; padding: 0; font-size: .9rem; }
+.rb-fokus { display: block; margin-top: 2px; font-size: .78rem; }
+.rb-pilihan { display: grid; grid-template-columns: repeat(4, 64px); gap: 6px; }
+.rb-pilihan label { position: relative; cursor: pointer; }
+.rb-pilihan input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.rb-pilihan span { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 48px; border: 2px solid var(--garis); border-radius: 10px; background: var(--kartu); line-height: 1.1; }
+.rb-pilihan span b { font-size: 1.1rem; color: var(--ungu-tua); }
+.rb-pilihan span small { font-size: .62rem; color: var(--teks-pudar); text-align: center; }
+.rb-pilihan input:checked + span { background: var(--ungu); border-color: var(--ungu); }
+.rb-pilihan input:checked + span b, .rb-pilihan input:checked + span small { color: #fff; }
+.rb-pilihan input:focus-visible + span { outline: 3px solid var(--kuning); outline-offset: 2px; }
+.rb-kaki { position: sticky; bottom: -18px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 16px -18px -18px; padding: 12px 18px; background: var(--kartu); border-top: 2px solid var(--garis); }
+.rb-kaki b { font-size: 1.3rem; color: var(--ungu-tua); }
+
+@media (max-width: 600px) {
+  .baris-majas { grid-template-columns: 34px 1fr auto; grid-template-areas: 'rank nama nilai' 'kalimat kalimat kalimat' 'detail detail detail' 'jawaban jawaban jawaban'; }
+  .baris-majas .majas-kalimat, .baris-majas > .info > p.kecil { grid-area: kalimat; }
+  .rb-baris { grid-template-columns: 1fr; }
+  .rb-pilihan { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .rb-kaki { bottom: calc(-20px - env(safe-area-inset-bottom)); margin: 16px -20px calc(-20px - env(safe-area-inset-bottom)); padding: 12px 20px calc(12px + env(safe-area-inset-bottom)); }
+}

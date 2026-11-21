@@ -13,6 +13,7 @@
         "menunggu": { ".validate": "newData.isBoolean()" },
         "mulai": { ".validate": "newData.isNumber() && newData.val() <= now" },
         "kelasId": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+        "aktivitas": { ".validate": "newData.val() === 'soal' || newData.val() === 'majas'" },
         "kelompok": {
           "$id": {
             ".write": "auth != null && root.child('sesi').child($kode).child('aktif').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
@@ -35,6 +36,7 @@
           ".write": "auth != null && root.child('sesi').child($kode).child('aktif').val() === true && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid))",
           ".validate": "newData.hasChildren(['uid', 'diperbarui'])",
           "uid": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+          "aktivitas": { ".validate": "newData.val() === 'soal' || newData.val() === 'majas'" },
           "lagu": {
             "$lagu": {
               "benar": { ".validate": "newData.isBoolean()" },
@@ -50,6 +52,7 @@
           },
           "ciptaan": {
             "$i": {
+              "id": { ".validate": "newData.isNumber() && newData.val() > 0" },
               "majasId": { ".validate": "newData.isString() && newData.val().length <= 30" },
               "tema": { ".validate": "newData.isString() && newData.val().length <= 60" },
               "kalimat": { ".validate": "newData.isString() && newData.val().length <= 300" },
@@ -131,8 +134,10 @@
                 "sumber": { ".validate": "newData.val() === 'manual' || newData.val() === 'sesi'" },
                 "sesi": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}$/)" },
                 "jawaban": { ".validate": "newData.hasChildren()" },
+                "jenis": { ".validate": "newData.val() === 'majas'" },
+                "sesiPeserta": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
                 "rincian": {
-                  ".validate": "newData.hasChildren(['lagu', 'puzzle', 'majas'])",
+                  ".validate": "newData.hasChildren(['lagu', 'puzzle'])",
                   "lagu": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
                   "puzzle": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
                   "majas": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
@@ -146,6 +151,22 @@
               "$kode": { ".validate": "newData.isBoolean()" }
             },
             "$lain": { ".validate": false }
+          }
+        },
+        "rubrik": {
+          "$kode": {
+            ".validate": "$kode.matches(/^[0-9]{4}$/)",
+            "$peserta": {
+              "$kalimat": {
+                ".validate": "$kalimat.matches(/^[ki][0-9]{1,15}$/)",
+                "jenis": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+                "makna": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+                "diksi": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+                "kreatif": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+                "tema": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 4" },
+                "$lain": { ".validate": false }
+              }
+            }
           }
         },
         "$lain": { ".validate": false }

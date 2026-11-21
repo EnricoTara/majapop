@@ -107,8 +107,9 @@ const SESI = (() => {
   // ke = jumlah langkah yang sudah selesai (0–6); id = langkah pertama yang belum selesai.
   // Siswa bisa melompat lewat Menu, jadi setiap langkah dihitung sendiri-sendiri.
   function langkahSaatIni(state) {
-    const selesai = LANGKAH.filter((l) => (state.selesai || []).includes(l.id)).map((l) => l.id);
-    const berikut = LANGKAH.find((l) => !selesai.includes(l.id));
+    const langkah = daftarLangkah(state);
+    const selesai = langkah.filter((l) => (state.selesai || []).includes(l.id)).map((l) => l.id);
+    const berikut = langkah.find((l) => !selesai.includes(l.id));
     return { ke: selesai.length, id: berikut ? berikut.id : 'selesai', selesai };
   }
 
@@ -222,7 +223,8 @@ const SESI = (() => {
   // Mengembalikan { kode, ruangTunggu }. ruangTunggu false jika rules di Firebase
   // belum mengenal field "menunggu": sesi tetap dibuat, tetapi langsung berjalan.
   // kelasId: kelas di portal guru (opsional); nilai peserta disimpan ke kelas itu saat sesi diakhiri.
-  async function buatSesi(namaKelas, mode, kelasId) {
+  // aktivitas: 'soal' (Lagu & Puzzle) atau 'majas' (Cipta Majas).
+  async function buatSesi(namaKelas, mode, kelasId, aktivitas) {
     await siap();
     let ruangTunggu = true;
     for (let i = 0; i < 15; i++) {
@@ -232,6 +234,8 @@ const SESI = (() => {
       // Sesi kelompok tidak perlu menyimpan mode (bawaannya kelompok), jadi tetap jalan dengan rules lama.
       if (modeSesi({ mode }) === 'individu') data.mode = 'individu';
       if (kelasId) data.kelasId = String(kelasId).slice(0, 40);
+      // Sama seperti mode: sesi Lagu & Puzzle tidak perlu menyimpan aktivitas (bawaannya soal).
+      if (aktivitas === 'majas') data.aktivitas = 'majas';
       if (ruangTunggu) data.menunggu = true;
       try {
         // Rules menolak menimpa sesi yang sudah ada, jadi kode bentrok otomatis gagal.
@@ -287,7 +291,7 @@ const SESI = (() => {
     if (!info.aktif) throw new Error(`Sesi ${kode} sudah diakhiri guru.`);
     const lama = loadState().sesi;
     const kelompokId = lama && lama.kode === kode && lama.kelompokId ? lama.kelompokId : db.ref().push().key;
-    return { kode, kelompokId, mode: modeSesi(info), kelas: String(info.kelas || ''), status: sedangMenunggu(info) ? 'menunggu' : 'berjalan' };
+    return { kode, kelompokId, mode: modeSesi(info), aktivitas: aktivitasSesi(info), kelas: String(info.kelas || ''), status: sedangMenunggu(info) ? 'menunggu' : 'berjalan' };
   }
 
   function ringkasan(state) {
@@ -297,6 +301,7 @@ const SESI = (() => {
     return {
       uid,
       mode: modeSesi(state.sesi),
+      ...(sesiMajas(state) ? { aktivitas: 'majas' } : {}),
       ...(absen >= 1 && absen <= 99 ? { absen } : {}),
       tim: String(state.tim || 'Tanpa nama').slice(0, 40),
       kelas: String(state.kelas || '').slice(0, 40),
@@ -341,10 +346,12 @@ const SESI = (() => {
     }
     const p = state.puzzle;
     const ciptaan = (state.ciptaan || []).slice(0, 10).map((c) => ({
+      ...(Number(c.id) > 0 ? { id: Number(c.id) } : {}),
       majasId: String(c.majasId || '').slice(0, 30), tema: String(c.tema || '').slice(0, 60), kalimat: String(c.kalimat || '').slice(0, 300),
     }));
     return {
       uid,
+      ...(sesiMajas(state) ? { aktivitas: 'majas' } : {}),
       ...(Object.keys(lagu).length ? { lagu } : {}),
       ...(Object.keys(peran).length ? { peran } : {}),
       ...(p ? { puzzle: { skor: p.skor || 0, benar: p.benar || 0, total: p.total || 0, salah: p.salah || 0, sisaWaktu: p.sisaWaktu || 0 } } : {}),
@@ -570,6 +577,8 @@ const SESI = (() => {
     let daftarDimuat = false;
     let infoDimuat = false;
     const indiv = modeSesi(state.sesi) === 'individu';
+    // Sesi Cipta Majas dinilai guru dengan rubrik, jadi tidak ada papan peringkat.
+    const majas = sesiMajas(state);
     const KUNCI_HASIL = 'majapop-hasil-dilihat';
     badge.addEventListener('click', (e) => { if (e.target.closest('.btn-papan')) bukaPapan(); });
     const tombolPapan = '<button type="button" class="btn-papan">📋 Papan peringkat</button>';
@@ -578,8 +587,16 @@ const SESI = (() => {
     // Belum tahu sesi sudah dimulai: tutup halaman sejak awal agar soal tidak sempat terlihat.
     let pernahMenunggu = false;
     if (kunci && state.sesi.status !== 'berjalan') bukaRuangTunggu(state);
+    function badgeMajas() {
+      const n = (loadState().ciptaan || []).length;
+      const isi = `<span class="poin-badge">✍️ ${n} kalimat</span>`;
+      badge.innerHTML = aktifSesi
+        ? `<span>✍️ Sesi Cipta Majas ${esc(kode)}</span><span class="badge-kanan"><span class="kecil">${daftarTerakhir.length} ${indiv ? 'siswa' : 'kelompok'} bergabung</span>${isi}</span>`
+        : `<span>⏹ Sesi ${esc(kode)} sudah diakhiri · Kalimatmu dinilai guru dengan rubrik.</span><span class="badge-kanan">${isi}</span>`;
+    }
     function badgePeringkat() {
       if (menunggu) return;
+      if (majas) { badgeMajas(); return; }
       const s = loadState();
       const daftar = daftarTerakhir;
       const i = daftar.findIndex((k) => k.id === (s.sesi && s.sesi.kelompokId));

@@ -2,6 +2,9 @@
 
 cekTim(document.getElementById('banner-tim'));
 
+document.getElementById('rubrik-siswa').innerHTML = RUBRIK_MAJAS.map((r) =>
+  `<li><span><b>${esc(r.label)}</b><br><span class="kecil">${esc(r.fokus)}</span></span><span class="rubrik-bobot">${r.bobot}%</span></li>`).join('');
+
 const pilihEl = document.getElementById('pilih-keping');
 const form = document.getElementById('form-cipta');
 const listEl = document.getElementById('ciptaan-list');
