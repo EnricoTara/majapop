@@ -214,7 +214,7 @@ const GURU_DATA = (() => {
   }
 
   // ---------- Nilai otomatis dari sesi ----------
-  // Nilai pokok 0–100 = rata-rata nilai Lagu dan Puzzle (lihat nilaiRinci di js/app.js).
+  // Nilai pokok 0–100 = rata-rata nilai Lagu, Puzzle, dan Majas (rubrik guru; lihat nilaiRinci di js/app.js).
   function nilaiSesi(k) {
     return nilaiRinci(k).pokok;
   }
@@ -224,22 +224,30 @@ const GURU_DATA = (() => {
     return (data.rubrik && data.rubrik[kode] && data.rubrik[kode][idPeserta]) || null;
   }
 
-  // Simpan skor rubrik satu peserta sesi Cipta Majas. Jika nilai sesi itu sudah tersimpan ke kelas,
-  // nilainya ikut diperbarui, jadi guru tetap bisa menilai setelah sesi diakhiri.
+  // Simpan skor rubrik kalimat majas satu peserta sesi. Jika nilai sesi itu sudah tersimpan ke kelas,
+  // nilainya ikut diperbarui (Majas di rincian + nilai pokok), jadi guru tetap bisa menilai setelah sesi diakhiri.
   // skor hanya berisi kalimat yang masih ada (dibuat RUBRIK.buka), jadi skor kalimat yang sudah dihapus ikut hilang.
   async function simpanRubrik(kode, idPeserta, skor) {
     await siapAkar();
     const kosong = !skor || !Object.keys(skor).length;
     const u = { [`rubrik/${kode}/${idPeserta}`]: kosong ? null : skor };
-    const nilai = nilaiMajas(skor) ?? 0;
+    const majas = nilaiMajas(skor);
     const kelasSnap = await akar.child('kelas').get();
     Object.entries(kelasSnap.val() || {}).forEach(([kelasId, k]) => {
       Object.entries(k.nilai || {}).forEach(([id, n]) => {
-        if (n.sesi === kode && n.sesiPeserta === idPeserta) u[`kelas/${kelasId}/nilai/${id}/nilai`] = nilai;
+        if (n.sesi !== kode || n.sesiPeserta !== idPeserta) return;
+        const jalur = `kelas/${kelasId}/nilai/${id}`;
+        if (n.jenis === 'majas' || !n.rincian) {
+          // Data lama: sesi Cipta Majas terpisah, nilainya = nilai majas saja.
+          u[`${jalur}/nilai`] = majas ?? 0;
+          return;
+        }
+        u[`${jalur}/rincian/majas`] = majas;
+        u[`${jalur}/nilai`] = pokokDari(n.rincian.lagu, n.rincian.puzzle, majas);
       });
     });
     await akar.update(u);
-    return nilai;
+    return majas ?? 0;
   }
 
   // Simpan nilai setiap peserta sesi ke kelas asalnya (sekali per sesi).
@@ -255,8 +263,9 @@ const GURU_DATA = (() => {
     if (!k || (k.sesiTersimpan && k.sesiTersimpan[kode])) return null;
 
     const indiv = SESI.modeSesi(info) === 'individu';
-    const majas = sesiMajas(info);
-    const skorRubrik = majas ? ((await akar.child(`rubrik/${kode}`).get()).val() || {}) : {};
+    const majasLama = sesiMajas(info);
+    // Kalimat majas yang sudah dinilai guru selama sesi ikut masuk nilai; yang belum menyusul lewat simpanRubrik.
+    const skorRubrik = (await akar.child(`rubrik/${kode}`).get()).val() || {};
     const siswa = daftar(k.siswa);
     const kelompok = daftar(k.kelompok);
     const tgl = tanggal(info.mulai || info.dibuat || Date.now());
@@ -297,16 +306,19 @@ const GURU_DATA = (() => {
         });
         pesertaId = g.id;
       }
-      const dasarNilai = { peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl, sumber: 'sesi', sesi: kode, dibuat: WAKTU() };
-      if (majas) {
+      const dasarNilai = { peserta: indiv ? 'siswa' : 'kelompok', pesertaId, tanggal: tgl, sumber: 'sesi', sesi: kode, sesiPeserta: p.id, dibuat: WAKTU() };
+      const ciptaan = (jawaban[p.id] || {}).ciptaan || [];
+      if (majasLama) {
         // Nilai = rubrik guru (0 jika belum dinilai); diperbarui oleh simpanRubrik.
         u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = {
-          ...dasarNilai, aktivitas: `Cipta Majas · Sesi ${kode}`, jenis: 'majas', sesiPeserta: p.id,
-          nilai: nilaiMajas(skorRubrik[p.id], (jawaban[p.id] || {}).ciptaan || []) ?? 0,
+          ...dasarNilai, aktivitas: `Cipta Majas · Sesi ${kode}`, jenis: 'majas',
+          nilai: nilaiMajas(skorRubrik[p.id], ciptaan) ?? 0,
         };
       } else {
-        const { lagu, puzzle, pokok } = nilaiRinci(p);
-        u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = { ...dasarNilai, aktivitas: `Sesi ${kode}`, nilai: pokok, rincian: { lagu, puzzle } };
+        const { lagu, puzzle, majas, pokok } = nilaiRinci({ ...p, majas: nilaiMajas(skorRubrik[p.id], ciptaan) });
+        u[`${dasar}/nilai/sesi-${kode}-${pesertaId}`] = {
+          ...dasarNilai, aktivitas: `Sesi ${kode}`, nilai: pokok, rincian: { lagu, puzzle, ...(majas === null ? {} : { majas }) },
+        };
       }
       if (jawaban[p.id]) {
         const { uid, ...isi } = jawaban[p.id];

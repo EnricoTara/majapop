@@ -45,7 +45,8 @@ const JAWABAN = (() => {
   function html(j, rubrik) {
     if (!j) return '<p class="kecil jw-kosong">Belum ada jawaban yang tercatat.</p>';
     const ciptaanSaja = j.ciptaan || [];
-    if (j.aktivitas === 'majas') {
+    // Jawaban lama dari sesi Cipta Majas terpisah: hanya berisi kalimat majas.
+    if (sesiMajas(j)) {
       const n = rubrik ? nilaiMajas(rubrik, ciptaanSaja) : null;
       return `<section class="jw-bagian"><h3>✍️ Majas buatan${n !== null ? ` · nilai majas <b>${n}</b>` : ''}</h3>${htmlCiptaan(ciptaanSaja, rubrik)}</section>`;
     }
@@ -63,13 +64,14 @@ const JAWABAN = (() => {
     const peran = teksPeran(j);
     const p = j.puzzle;
     const ciptaan = j.ciptaan || [];
+    const nilaiCipta = rubrik ? nilaiMajas(rubrik, ciptaan) : null;
     return `
       ${peran ? `<section class="jw-bagian"><h3>👥 Peran</h3><p>${esc(peran)}</p></section>` : ''}
       <section class="jw-bagian"><h3>🔍 Identifikasi majas & makna lirik</h3><ul class="jw-daftar">${barisLagu}</ul></section>
       <section class="jw-bagian"><h3>🧩 Puzzle</h3>${p
         ? `<p><b>${esc(p.skor)}</b> poin · ${esc(p.benar)}/${esc(p.total)} kepingan benar · ${esc(p.salah)} kesalahan · sisa waktu ${esc(formatWaktu(p.sisaWaktu || 0))}</p>`
         : '<p class="kecil">Belum dimainkan.</p>'}</section>
-      ${ciptaan.length ? `<section class="jw-bagian"><h3>✍️ Majas buatan</h3>${htmlCiptaan(ciptaan, rubrik)}</section>` : ''}`;
+      <section class="jw-bagian"><h3>✍️ Majas buatan${nilaiCipta !== null ? ` · nilai majas <b>${nilaiCipta}</b>` : ''}</h3>${htmlCiptaan(ciptaan, rubrik)}</section>`;
   }
 
   // Modal jawaban (pola sama dengan papan peringkat siswa di js/sesi.js).

@@ -7,34 +7,23 @@ const STORE_KEY = 'majapop';
 // Penanda perangkat yang sedang login sebagai guru (diisi js/sesi.js), hanya untuk tampilan header.
 const TANDA_GURU = 'majapop-guru-masuk';
 
-// Alur petualangan (urutan permainan). Cipta Majas dikerjakan di sesi tersendiri
-// (guru memilih aktivitas "Cipta Majas" saat membuat kode), jadi punya alurnya sendiri.
-const LANGKAH_SOAL = [
+// Alur petualangan (urutan permainan): satu sesi berisi lagu, puzzle, dan Cipta Majas.
+const LANGKAH = [
   { id: 'tim', label: 'Masukkan Kode', ikon: '🔑', href: 'masuk.html' },
   { id: 'putar', label: 'Putar Lagu', ikon: '🎵', href: 'lagu.html' },
   { id: 'identifikasi', label: 'Identifikasi Majas', ikon: '🔍', href: 'lagu.html#identifikasi' },
   { id: 'puzzle', label: 'Susun Puzzle', ikon: '🧩', href: 'puzzle.html' },
-  { id: 'unggah', label: 'Kirim Hasil', ikon: '📤', href: 'unggah.html' },
-];
-const LANGKAH_MAJAS = [
-  { id: 'tim', label: 'Masukkan Kode', ikon: '🔑', href: 'masuk.html' },
   { id: 'cipta', label: 'Cipta Majas', ikon: '✍️', href: 'cipta.html' },
   { id: 'unggah', label: 'Kirim Hasil', ikon: '📤', href: 'unggah.html' },
 ];
 
-// Aktivitas sesi: 'majas' (Cipta Majas) atau 'soal' (Lagu & Puzzle, bawaan; juga untuk sesi lama).
-// x boleh state siswa ({ sesi }), info sesi dari Firebase, atau ringkasan peserta.
-function aktivitasSesi(x) {
-  const info = x && x.sesi !== undefined ? x.sesi : x;
-  return info && info.aktivitas === 'majas' ? 'majas' : 'soal';
+function daftarLangkah() {
+  return LANGKAH;
 }
 
+// Data lama dari masa Cipta Majas masih menjadi sesi terpisah (jawaban/entri nilai ber-aktivitas 'majas').
 function sesiMajas(x) {
-  return aktivitasSesi(x) === 'majas';
-}
-
-function daftarLangkah(x) {
-  return sesiMajas(x) ? LANGKAH_MAJAS : LANGKAH_SOAL;
+  return Boolean(x && x.aktivitas === 'majas');
 }
 
 // Menu fitur (sesuai kartu "Jangan lupa jelajahi fitur menunya!").
@@ -191,18 +180,27 @@ function jumlahBarisTersedia() {
   return new Set(daftarLaguSiap().map((l) => l.majasId)).size;
 }
 
-// Rincian nilai sesi Lagu & Puzzle, masing-masing 0–100, lalu nilai pokok = rata-rata keduanya:
+// Rincian nilai sesi, masing-masing 0–100, lalu nilai pokok = rata-rata Lagu, Puzzle, dan Majas:
 // Lagu = lagu benar ÷ (jumlah lagu + tebakan salah),
-// Puzzle = kepingan benar ÷ (total kepingan + kepingan salah) (belum main = 0).
+// Puzzle = kepingan benar ÷ (total kepingan + kepingan salah) (belum main = 0),
+// Majas = nilai rubrik guru untuk kalimat majas buatan (lihat nilaiMajas).
 // Setiap kesalahan menambah pembagi, jadi nilai turun tetapi tidak pernah minus.
-// Kalimat majas buatan dinilai terpisah oleh guru dengan RUBRIK_MAJAS (sesi Cipta Majas).
+// Selama guru belum menilai kalimat majas (majas null), nilai pokok sementara = rata-rata Lagu & Puzzle.
 // Dipakai halaman Kirim Hasil siswa, kartu peserta di Dashboard, dan nilai yang tersimpan ke Kelas.
-function nilaiRinci({ benar = 0, totalLagu = 0, salahLagu = 0, puzzleBenar = -1, puzzleTotal = -1, puzzleSalah = 0 } = {}) {
+function nilaiRinci({ benar = 0, totalLagu = 0, salahLagu = 0, puzzleBenar = -1, puzzleTotal = -1, puzzleSalah = 0, majas = null } = {}) {
   const persen = (a, b) => (b > 0 ? Math.min(100, Math.round((Math.max(0, a) / b) * 100)) : 0);
   const salah = (n) => Math.max(0, Number(n) || 0);
   const lagu = persen(benar, (totalLagu > 0 ? totalLagu : daftarLaguSiap().length) + salah(salahLagu));
   const puzzle = persen(puzzleBenar, (puzzleTotal > 0 ? puzzleTotal : jumlahBarisTersedia() * 4) + salah(puzzleSalah));
-  return { lagu, puzzle, pokok: Math.round((lagu + puzzle) / 2) };
+  const m = majas === null || majas === undefined ? null : majas;
+  return { lagu, puzzle, majas: m, pokok: pokokDari(lagu, puzzle, m) };
+}
+
+// Nilai pokok dari nilai bagian (majas null = belum dinilai guru).
+function pokokDari(lagu, puzzle, majas) {
+  return majas === null || majas === undefined
+    ? Math.round((lagu + puzzle) / 2)
+    : Math.round((lagu + puzzle + majas) / 3);
 }
 
 // Rubrik penilaian kalimat majas buatan siswa (dinilai guru). Setiap indikator diberi skor 1–4:
@@ -480,8 +478,7 @@ function renderStepper() {
   const state = loadState();
   const aktif = el.dataset.aktif;
   el.className = 'stepper';
-  const langkah = daftarLangkah(state);
-  el.innerHTML = langkah.map((l, i) => {
+  el.innerHTML = LANGKAH.map((l, i) => {
     const selesai = state.selesai.includes(l.id);
     const terbuka = langkahTerbuka(state, i) && (i === 0 || !sesiTidakBerjalan(state));
     const kelas = [selesai ? 'selesai' : '', l.id === aktif ? 'aktif' : '', terbuka ? '' : 'terkunci'].join(' ');
@@ -517,24 +514,20 @@ function sesiTidakBerjalan(state) {
 function langkahTerbuka(state, i) {
   if (i === 0) return true;
   if (!sudahTerdaftar(state)) return false;
-  const langkah = daftarLangkah(state);
-  return state.selesai.includes(langkah[i - 1].id) || state.selesai.includes(langkah[i].id);
+  return state.selesai.includes(LANGKAH[i - 1].id) || state.selesai.includes(LANGKAH[i].id);
 }
 
 // Halaman permainan → langkah pertama yang dikerjakan di halaman itu.
 const LANGKAH_HALAMAN = { 'lagu.html': 'putar', 'puzzle.html': 'puzzle', 'cipta.html': 'cipta', 'unggah.html': 'unggah' };
 
-// Langkah yang harus dikerjakan dulu sebelum halaman ini boleh dibuka, null jika sudah terbuka,
-// atau { lain: true } jika halaman ini bukan bagian dari aktivitas sesi yang sedang diikuti.
+// Langkah yang harus dikerjakan dulu sebelum halaman ini boleh dibuka, atau null jika sudah terbuka.
 function syaratHalaman() {
   const id = LANGKAH_HALAMAN[location.pathname.split('/').pop() || 'index.html'];
   if (!id) return null;
   const state = loadState();
-  const langkah = daftarLangkah(state);
-  const i = langkah.findIndex((l) => l.id === id);
-  if (i === -1) return sudahTerdaftar(state) ? { lain: true } : langkah[0];
+  const i = LANGKAH.findIndex((l) => l.id === id);
   if (langkahTerbuka(state, i)) return null;
-  return sudahTerdaftar(state) ? langkah[i - 1] : langkah[0];
+  return sudahTerdaftar(state) ? LANGKAH[i - 1] : LANGKAH[0];
 }
 
 // Tutup isi halaman permainan bila langkah sebelumnya belum dikerjakan.
@@ -542,23 +535,7 @@ function kunciHalaman() {
   const syarat = syaratHalaman();
   const main = document.querySelector('main');
   if (!syarat || !main) return;
-  if (syarat.lain) {
-    const majas = sesiMajas(loadState());
-    main.innerHTML = `
-    <div class="kartu kunci-langkah">
-      <div class="besar" aria-hidden="true">${majas ? '✍️' : '🎵'}</div>
-      <h2>${majas ? 'Sesi ini khusus Cipta Majas' : 'Cipta Majas punya sesi sendiri'}</h2>
-      <p>${majas
-        ? 'Di sesi ini kamu cukup menulis kalimat majas. Lagu dan puzzle dikerjakan di sesi Lagu & Puzzle dengan kode lain dari guru.'
-        : 'Kalimat majas dikerjakan di sesi Cipta Majas tersendiri. Minta kode sesi Cipta Majas ke guru, lalu masukkan di halaman Masukkan Kode.'}</p>
-      <div class="aksi" style="justify-content:center">
-        ${majas ? '<a class="btn" href="cipta.html">✍️ Cipta Majas</a>' : '<a class="btn" href="lagu.html">🎵 Lanjut Lagu & Puzzle</a>'}
-        <a class="btn btn-garis" href="masuk.html">🔑 Masukkan kode lain</a>
-      </div>
-    </div>`;
-    return;
-  }
-  const ke = daftarLangkah(loadState()).indexOf(syarat) + 1;
+  const ke = LANGKAH.indexOf(syarat) + 1;
   main.innerHTML = `
     <div class="kartu kunci-langkah">
       <div class="besar" aria-hidden="true">🔒</div>

@@ -261,25 +261,27 @@ const KELAS = (() => {
       ${r.length ? `<ul class="riwayat-list">${r.map((n) => `
         <li>
           <span class="rw-tgl">${esc(formatTanggal(n.tanggal))}</span>
-          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${teksRincian(n)}${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}${n.jenis === 'majas' && n.sesiPeserta ? `<button type="button" class="btn-jawaban" data-nilai-majas="${esc(n.id)}">✍️ Nilai kalimat</button>` : ''}</span>
+          <span class="rw-akt"><b>${esc(n.aktivitas)}</b><small>${n.sumber === 'sesi' ? '📡 Otomatis dari sesi' : '✍️ Dicatat manual'}</small>${teksRincian(n)}${n.jawaban ? `<button type="button" class="btn-jawaban" data-lihat-jawaban="${esc(n.id)}">📝 Lihat jawaban</button>` : ''}${n.sesiPeserta && ((n.jawaban && n.jawaban.ciptaan) || []).length ? `<button type="button" class="btn-jawaban" data-nilai-majas="${esc(n.id)}">✍️ Nilai kalimat</button>` : ''}</span>
           <b class="rw-nilai">${n.nilai}</b>
           <button type="button" class="btn-hapus-kecil" data-hapus-nilai="${esc(n.id)}" aria-label="Hapus nilai ${esc(n.aktivitas)}">Hapus</button>
         </li>`).join('')}</ul>` : '<p class="kecil">Belum ada nilai.</p>'}`;
   }
 
-  // Keterangan nilai sesi: rincian Lagu & Puzzle, status rubrik Cipta Majas,
-  // atau rincian lama (Lagu, Puzzle, Majas) dari sebelum majas dipisah.
+  // Keterangan nilai sesi: rincian Lagu, Puzzle, dan Majas (rubrik guru) → rata-rata.
+  // Entri lama: sesi Cipta Majas terpisah (jenis 'majas') atau rincian sebelum ada rubrik.
   function teksRincian(n) {
-    if (n.jenis === 'majas') {
-      const ciptaan = (n.jawaban && n.jawaban.ciptaan) || [];
-      const skor = GURU_DATA.rubrik(n.sesi, n.sesiPeserta);
-      const dinilai = ciptaan.filter((c, i) => skor && nilaiKalimat(skor[kunciKalimat(c, i)]) !== null).length;
-      return `<small>✍️ Rubrik majas · ${dinilai}/${ciptaan.length} kalimat dinilai</small>`;
-    }
+    const ciptaan = (n.jawaban && n.jawaban.ciptaan) || [];
+    const skor = n.sesiPeserta ? GURU_DATA.rubrik(n.sesi, n.sesiPeserta) : null;
+    const dinilai = ciptaan.filter((c, i) => skor && nilaiKalimat(skor[kunciKalimat(c, i)]) !== null).length;
+    if (n.jenis === 'majas') return `<small>✍️ Rubrik majas · ${dinilai}/${ciptaan.length} kalimat dinilai</small>`;
     if (!n.rincian) return '';
-    return n.rincian.majas !== undefined
-      ? `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} · ✍️ Majas ${n.rincian.majas} → rata-rata</small>`
-      : `<small>🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle} → rata-rata</small>`;
+    const dasar = `🎵 Lagu ${n.rincian.lagu} · 🧩 Puzzle ${n.rincian.puzzle}`;
+    if (n.rincian.majas !== undefined) {
+      const status = n.sesiPeserta && ciptaan.length ? ` (${dinilai}/${ciptaan.length} kalimat dinilai)` : '';
+      return `<small>${dasar} · ✍️ Majas ${n.rincian.majas}${status} → rata-rata</small>`;
+    }
+    if (n.sesiPeserta && ciptaan.length) return `<small>${dasar} · ✍️ Majas belum dinilai → rata-rata sementara</small>`;
+    return `<small>${dasar} → rata-rata</small>`;
   }
 
   function render() {
@@ -491,7 +493,7 @@ const KELAS = (() => {
       } else if (lihatJawaban) {
         const n = (k.nilai || {})[lihatJawaban.dataset.lihatJawaban];
         const p = n && (k[n.peserta] || {})[n.pesertaId];
-        if (n && n.jawaban) JAWABAN.buka(`${n.aktivitas}${p ? ` · ${p.nama}` : ''}`, n.jawaban, n.jenis === 'majas' ? GURU_DATA.rubrik(n.sesi, n.sesiPeserta) || {} : undefined);
+        if (n && n.jawaban) JAWABAN.buka(`${n.aktivitas}${p ? ` · ${p.nama}` : ''}`, n.jawaban, n.sesiPeserta ? GURU_DATA.rubrik(n.sesi, n.sesiPeserta) || {} : undefined);
       } else if (nilaiMajasBtn) {
         const n = (k.nilai || {})[nilaiMajasBtn.dataset.nilaiMajas];
         const p = n && (k[n.peserta] || {})[n.pesertaId];

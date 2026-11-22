@@ -24,19 +24,16 @@
     <div id="banner-tim"></div>
 
     <section class="halaman-judul">
-      <span class="label-atas" id="label-langkah">Langkah 5</span>
+      <span class="label-atas" id="label-langkah">Langkah 6</span>
       <h1 style="font-size:clamp(2rem,5vw,3rem)">Kirim Hasil ke Guru 📤</h1>
       <p>Periksa lagi jawaban kalian di bawah, lalu tekan <b>Kirim ke Guru</b>. Hasilnya langsung tercatat di dashboard guru.</p>
     </section>
 
-    <div class="ringkasan-grid" id="ringkasan-soal">
+    <div class="ringkasan-grid">
       <div class="kartu"><span class="kecil">🎵 Mencocokkan lagu</span><b id="r-lagu">0</b><span class="kecil" id="k-lagu"></span></div>
       <div class="kartu"><span class="kecil">🧩 Puzzle</span><b id="r-puzzle">0</b><span class="kecil" id="k-puzzle"></span></div>
-      <div class="kartu kartu-pokok"><span class="kecil">⭐ Nilai pokok</span><b id="r-pokok">0</b><span class="kecil">rata-rata keduanya</span></div>
-    </div>
-    <div class="ringkasan-grid" id="ringkasan-majas" hidden>
-      <div class="kartu"><span class="kecil">✍️ Kalimat majas buatan</span><b id="r-majas">0</b><span class="kecil">kalimat</span></div>
-      <div class="kartu kartu-pokok"><span class="kecil">⭐ Nilai majas</span><b>📋</b><span class="kecil">diberikan guru dengan rubrik (jenis majas, makna, diksi, kreativitas, tema)</span></div>
+      <div class="kartu"><span class="kecil">✍️ Membuat majas</span><b id="r-majas">📋</b><span class="kecil" id="k-majas"></span></div>
+      <div class="kartu kartu-pokok"><span class="kecil">⭐ Nilai pokok</span><b id="r-pokok">0</b><span class="kecil">sementara rata-rata Lagu &amp; Puzzle; nilai majas dari guru ikut dirata-rata setelah dinilai</span></div>
     </div>
 
     <div class="kartu">
@@ -66,7 +63,6 @@
     cekTim(document.getElementById('banner-tim'));
     const state = loadState();
     const isi = (id, teks) => { document.getElementById(id).textContent = teks; };
-    const majas = sesiMajas(state);
     const indiv = sesiIndividu(state);
 
     // Ringkasan nilai & pratinjau jawaban; dibuat ulang jika guru mengubah daftar lagu.
@@ -75,22 +71,19 @@
       const r = SESI.rincian(state);
       const pz = state.puzzle;
       const nilai = nilaiRinci({ ...r, puzzleBenar: r.puzzleBenar ?? -1 });
-      isi('label-langkah', `${majas ? 'Sesi Cipta Majas · ' : ''}Langkah ${daftarLangkah(state).length}`);
-      document.getElementById('ringkasan-soal').hidden = majas;
-      document.getElementById('ringkasan-majas').hidden = !majas;
+      isi('label-langkah', `Langkah ${daftarLangkah().length}`);
       isi('r-lagu', nilai.lagu);
       isi('k-lagu', `${r.benar}/${r.totalLagu} lagu benar · ${r.salahLagu} tebakan salah`);
       isi('r-puzzle', nilai.puzzle);
       isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar · ${r.puzzleSalah} salah` : 'belum dimainkan');
       isi('r-pokok', nilai.pokok);
-      isi('r-majas', state.ciptaan.length);
+      isi('k-majas', `${state.ciptaan.length} kalimat · dinilai guru dengan rubrik`);
 
       document.getElementById('identitas').textContent = indiv
         ? `${state.tim || '-'}${state.absen ? ` · No. absen ${state.absen}` : ''}${state.kelas ? ` · ${state.kelas}` : ''}`
         : `${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''} · Anggota: ${state.anggota.join(', ') || '-'}`;
       // Pratinjau memakai tampilan yang sama dengan yang dilihat guru (uid tidak diperlukan di sini).
       const pratinjau = {
-        ...(majas ? { aktivitas: 'majas' } : {}),
         lagu: Object.fromEntries(LAGU.filter((l) => state.lagu[l.id]).map((l) => [l.id, state.lagu[l.id]])),
         ...(indiv ? {} : { peran: state.peran }),
         puzzle: state.puzzle,

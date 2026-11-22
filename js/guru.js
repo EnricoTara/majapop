@@ -39,18 +39,28 @@ function individu() {
   return SESI.modeSesi(infoTerakhir) === 'individu';
 }
 
-// Sesi Cipta Majas: tanpa peringkat, kalimat dinilai guru dengan rubrik.
-function majasSesi() {
-  return sesiMajas(infoTerakhir);
-}
-
 // Skor rubrik & nilai majas satu peserta sesi aktif (null = belum dinilai).
 function skorPeserta(id) {
   return GURU_DATA.rubrik(kodeAktif, id);
 }
 
 function nilaiMajasPeserta(id) {
-  return nilaiMajas(skorPeserta(id), (jawabanTerakhir[id] || {}).ciptaan || []);
+  return nilaiMajas(skorPeserta(id), ciptaanPeserta(id));
+}
+
+function ciptaanPeserta(id) {
+  return (jawabanTerakhir[id] || {}).ciptaan || [];
+}
+
+// Berapa kalimat majas peserta yang sudah lengkap dinilai dengan rubrik.
+function jumlahDinilai(id) {
+  const skor = skorPeserta(id);
+  return ciptaanPeserta(id).filter((c, i) => skor && nilaiKalimat(skor[kunciKalimat(c, i)]) !== null).length;
+}
+
+// Nilai Lagu, Puzzle, Majas (rubrik guru), dan pokok satu peserta.
+function nilaiPeserta(k) {
+  return nilaiRinci({ ...k, majas: nilaiMajasPeserta(k.id) });
 }
 
 // Kata untuk peserta sesi: "siswa" (individu) atau "kelompok".
@@ -59,7 +69,7 @@ function peserta() {
 }
 
 function labelLangkah(k) {
-  const l = daftarLangkah(infoTerakhir).find((x) => x.id === k.langkah);
+  const l = LANGKAH.find((x) => x.id === k.langkah);
   return l ? `${l.ikon} ${l.label}` : '🏁 Selesai';
 }
 
@@ -89,7 +99,7 @@ function berakhir() {
 function renderPodium() {
   const podium = el('podium');
   const juara = daftarTerakhir.slice(0, 3);
-  if (!berakhir() || !juara.length || majasSesi()) { podium.hidden = true; return; }
+  if (!berakhir() || !juara.length) { podium.hidden = true; return; }
   if (podiumUntuk === kodeAktif && !podium.hidden) return; // animasi cukup sekali
   podiumUntuk = kodeAktif;
   const medali = ['🥇', '🥈', '🥉'];
@@ -120,9 +130,8 @@ function renderPapan() {
   const daftar = daftarTerakhir;
   const tunggu = menunggu();
   renderPodium();
-  const majas = majasSesi();
-  el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : majas ? 'Kalimat majas peserta' : berakhir() ? 'Peringkat akhir' : 'Peringkat';
-  el('aturan-peringkat').hidden = tunggu || !daftar.length || majas;
+  el('judul-papan').textContent = tunggu ? 'Ruang tunggu' : berakhir() ? 'Peringkat akhir' : 'Peringkat';
+  el('aturan-peringkat').hidden = tunggu || !daftar.length;
   el('jumlah-kelompok').textContent = daftar.length ? `· ${daftar.length} ${peserta()}` : '';
 
   if (!daftar.length) {
@@ -130,7 +139,6 @@ function renderPapan() {
     return;
   }
   if (tunggu) { renderLobi(daftar); return; }
-  if (majas) { renderPapanMajas(daftar); return; }
 
   // FLIP: catat posisi lama agar perpindahan peringkat terlihat beranimasi.
   const posLama = {};
@@ -139,11 +147,15 @@ function renderPapan() {
   const medali = ['🥇', '🥈', '🥉'];
   papanEl.innerHTML = daftar.map((k, i) => {
     const selesai = k.selesai || [];
-    const segmen = LANGKAH_SOAL.map((l) => `<span class="seg ${selesai.includes(l.id) ? 'selesai' : l.id === k.langkah ? 'aktif' : ''}" title="${esc(l.label)}"></span>`).join('');
-    const n = nilaiRinci(k);
+    const segmen = LANGKAH.map((l) => `<span class="seg ${selesai.includes(l.id) ? 'selesai' : l.id === k.langkah ? 'aktif' : ''}" title="${esc(l.label)}"></span>`).join('');
+    const n = nilaiPeserta(k);
+    const nKalimat = ciptaanPeserta(k.id).length;
     const detail = [
       `🎵 Lagu <b>${n.lagu}</b> (${k.benar || 0}/${k.totalLagu || daftarLaguSiap().length} · ✖${k.salahLagu || 0})`,
       k.puzzleBenar >= 0 ? `🧩 Puzzle <b>${n.puzzle}</b> (${k.puzzleBenar}/${k.puzzleTotal > 0 ? k.puzzleTotal : jumlahBarisTersedia() * 4} · ✖${k.puzzleSalah || 0})` : '🧩 Puzzle <b>0</b> (belum)',
+      !nKalimat ? '✍️ Majas (belum menulis)'
+        : n.majas === null ? `✍️ Majas belum dinilai (${nKalimat} kalimat)`
+          : `✍️ Majas <b>${n.majas}</b> (${jumlahDinilai(k.id)}/${nKalimat} dinilai)`,
       `⭐ Nilai pokok <b>${n.pokok}</b>`,
       `<span class="waktu-update" data-ms="${k.diperbarui || 0}">${waktuRelatif(k.diperbarui)}</span>`,
     ].join(' · ');
@@ -151,9 +163,10 @@ function renderPapan() {
       <div class="rank">${medali[i] || i + 1}</div>
       <div class="info">
         <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.dikirim ? ' <span class="tanda-kirim">✅ Terkirim</span>' : ''}</div>
-        <div class="langkah-bar" aria-label="${k.langkahKe} dari ${LANGKAH_SOAL.length} langkah">${segmen}</div>
+        <div class="langkah-bar" aria-label="${k.langkahKe} dari ${LANGKAH.length} langkah">${segmen}</div>
         <div class="detail">${detail}</div>
         <button type="button" class="btn-jawaban" data-jawaban="${esc(k.id)}">📝 Lihat jawaban</button>
+        <button type="button" class="btn-jawaban" data-rubrik="${esc(k.id)}" ${nKalimat ? '' : 'disabled'}>✍️ Nilai kalimat</button>
       </div>
       <div class="langkah-label">${labelLangkah(k)}</div>
       <div class="nilai"><b>✔ ${k.totalBenar}</b><span>benar</span><small>✖ ${k.totalSalah} · ⏱ ${SESI.formatDurasi(k.durasi)}</small></div>
@@ -171,33 +184,6 @@ function renderPapan() {
   });
 }
 
-// Sesi Cipta Majas: urutan bergabung, kalimat setiap peserta, nilai rubrik, dan tombol menilai.
-function renderPapanMajas(daftar) {
-  const urut = daftar.slice().sort((a, b) => (a.diperbarui || 0) - (b.diperbarui || 0));
-  papanEl.innerHTML = urut.map((k, i) => {
-    const ciptaan = (jawabanTerakhir[k.id] || {}).ciptaan || [];
-    const skor = skorPeserta(k.id);
-    const dinilai = ciptaan.filter((c, j) => skor && nilaiKalimat(skor[kunciKalimat(c, j)]) !== null).length;
-    const nilai = nilaiMajasPeserta(k.id);
-    const kalimat = ciptaan.length
-      ? `<ol class="majas-kalimat">${ciptaan.map((c, j) => {
-        const n = skor ? nilaiKalimat(skor[kunciKalimat(c, j)]) : null;
-        return `<li><span class="jw-label">${esc((majasById(c.majasId) || {}).jenis || c.majasId)}</span> ${esc(c.kalimat)} <span class="jw-skor ${n === null ? 'belum' : ''}">${n === null ? 'belum dinilai' : Math.round(n)}</span></li>`;
-      }).join('')}</ol>`
-      : '<p class="kecil">Belum menulis kalimat majas.</p>';
-    return `<div class="peringkat-baris baris-majas" data-id="${esc(k.id)}">
-      <div class="rank">${i + 1}</div>
-      <div class="info">
-        <div class="nama">${k.absen ? `<span class="no-absen">No. ${esc(k.absen)}</span>` : ''}${esc(k.tim)}${k.dikirim ? ' <span class="tanda-kirim">✅ Terkirim</span>' : ''}</div>
-        ${kalimat}
-        <div class="detail">✍️ ${ciptaan.length} kalimat · ${dinilai}/${ciptaan.length} dinilai · <span class="waktu-update" data-ms="${k.diperbarui || 0}">${waktuRelatif(k.diperbarui)}</span></div>
-        <button type="button" class="btn-jawaban" data-rubrik="${esc(k.id)}" ${ciptaan.length ? '' : 'disabled'}>✍️ Nilai kalimat</button>
-      </div>
-      <div class="nilai"><b>${nilai === null ? '–' : nilai}</b><span>nilai majas</span></div>
-    </div>`;
-  }).join('');
-}
-
 function renderStatus() {
   const aktif = Boolean(infoTerakhir && infoTerakhir.aktif);
   const tunggu = menunggu();
@@ -209,7 +195,7 @@ function renderStatus() {
   el('akhiri-sesi').hidden = !aktif;
   el('sesi-baru').hidden = aktif;
   el('info-kelas').textContent = infoTerakhir && infoTerakhir.kelas ? `Kelas: ${infoTerakhir.kelas}` : '';
-  el('mode-sesi').textContent = `${majasSesi() ? '✍️ Cipta Majas' : '🎵 Lagu & Puzzle'} · ${individu() ? '👤 Individu' : '👥 Kelompok'}`;
+  el('mode-sesi').textContent = individu() ? '👤 Sesi Individu' : '👥 Sesi Kelompok';
   el('isian-gabung').textContent = individu() ? 'nama dan no. absen (opsional)' : 'nama kelompok dan anggota';
   renderPapan();
 }
@@ -242,7 +228,7 @@ function bukaSesi(kode) {
     SESI.pantauJawaban(kode, (jawaban) => {
       jawabanTerakhir = jawaban;
       jawabanDimuat = true;
-      if (majasSesi()) renderPapan(); // kalimat majas tampil dari jawaban rinci
+      renderPapan(); // kalimat majas (untuk tombol Nilai kalimat) ada di jawaban rinci
       simpanNilaiKeKelas();
     }),
   ];
@@ -263,38 +249,23 @@ async function simpanNilaiKeKelas() {
 }
 
 // ---------- Rekap CSV (dibuka di Excel) ----------
-function unduhRekapMajas() {
-  const indiv = individu();
-  const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
-  const baris = [['No.', ...identitas, 'Jumlah kalimat', 'Nilai majas', 'Jenis majas', 'Tema', 'Kalimat', 'Nilai kalimat', ...RUBRIK_MAJAS.map((r) => `${r.label} (${r.bobot}%)`), 'Status kirim']];
-  const urut = daftarTerakhir.slice().sort((a, b) => (a.diperbarui || 0) - (b.diperbarui || 0));
-  urut.forEach((k, i) => {
-    const ciptaan = (jawabanTerakhir[k.id] || {}).ciptaan || [];
-    const skor = skorPeserta(k.id) || {};
-    const nilai = nilaiMajasPeserta(k.id);
-    const kepala = [i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), ciptaan.length, nilai === null ? '' : nilai];
-    const status = k.dikirim ? `Terkirim ${new Date(k.dikirim).toLocaleString('id-ID')}` : 'Belum menekan Kirim';
-    if (!ciptaan.length) { baris.push([...kepala, '', '', '', '', ...RUBRIK_MAJAS.map(() => ''), status]); return; }
-    // Satu baris per kalimat; identitas diulang agar mudah difilter di Excel.
-    ciptaan.forEach((c, j) => {
-      const s = skor[kunciKalimat(c, j)] || {};
-      const n = nilaiKalimat(s);
-      baris.push([...kepala, (majasById(c.majasId) || {}).jenis || c.majasId, c.tema || '', c.kalimat, n === null ? '' : Math.round(n), ...RUBRIK_MAJAS.map((r) => s[r.id] || ''), status]);
-    });
-  });
-  unduhCsv(`majapop-cipta-majas-${kodeAktif}.csv`, baris);
-}
-
 function unduhRekap() {
-  if (majasSesi()) { unduhRekapMajas(); return; }
   const indiv = individu();
   const identitas = indiv ? ['Nama siswa', 'No. absen', 'Kelas'] : ['Kelompok', 'Kelas', 'Anggota'];
-  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', ...(indiv ? [] : ['Peran']), 'Tebakan majas', 'Makna lirik', 'Status kirim', 'Terakhir diperbarui']];
+  const baris = [['Peringkat', ...identitas, 'Langkah terakhir', 'Jumlah benar', 'Jumlah salah', 'Durasi mengerjakan', 'Poin', 'Majas benar', 'Tepat tebakan pertama', 'Skor puzzle', 'Kepingan puzzle benar', 'Nilai lagu', 'Nilai puzzle', 'Nilai majas', 'Nilai pokok', 'Jumlah majas buatan', 'Kalimat majas buatan', ...(indiv ? [] : ['Peran']), 'Tebakan majas', 'Makna lirik', 'Status kirim', 'Terakhir diperbarui']];
   daftarTerakhir.forEach((k, i) => {
+    const n = nilaiPeserta(k);
+    const skor = skorPeserta(k.id) || {};
+    const ciptaan = ciptaanPeserta(k.id);
+    const kalimat = ciptaan.map((c, j) => {
+      const nk = nilaiKalimat(skor[kunciKalimat(c, j)]);
+      return `[${(majasById(c.majasId) || {}).jenis || c.majasId}] ${c.kalimat}${nk === null ? '' : ` (nilai ${Math.round(nk)})`}`;
+    }).join(' | ');
     baris.push([
       i + 1, ...(indiv ? [k.tim, k.absen || '', k.kelas] : [k.tim, k.kelas, (k.anggota || []).join(', ')]), labelLangkah(k).replace(/^\S+\s/, ''),
       k.totalBenar, k.totalSalah, k.durasi ? SESI.formatDurasi(k.durasi) : '', k.poin,
       `${k.benar || 0}/${k.totalLagu || 0}`, k.pertama || 0, k.puzzle >= 0 ? k.puzzle : '', k.puzzleBenar >= 0 ? k.puzzleBenar : '',
+      n.lagu, n.puzzle, n.majas === null ? '' : n.majas, n.pokok, ciptaan.length, kalimat,
       ...(indiv ? [] : [JAWABAN.teksPeran(jawabanTerakhir[k.id])]), JAWABAN.teksLagu(jawabanTerakhir[k.id]), JAWABAN.teksMakna(jawabanTerakhir[k.id]),
       k.dikirim ? `Terkirim ${new Date(k.dikirim).toLocaleString('id-ID')}` : 'Belum menekan Kirim',
       k.diperbarui ? new Date(k.diperbarui).toLocaleString('id-ID') : '',
@@ -323,8 +294,7 @@ el('mulai-sesi').addEventListener('click', async () => {
       }
     }
     const mode = document.querySelector('input[name="mode"]:checked').value;
-    const aktivitas = document.querySelector('input[name="aktivitas"]:checked').value;
-    const { kode, ruangTunggu } = await SESI.buatSesi(namaKelas, mode, el('pilih-kelas').value, aktivitas);
+    const { kode, ruangTunggu } = await SESI.buatSesi(namaKelas, mode, el('pilih-kelas').value);
     bukaSesi(kode);
     if (!ruangTunggu) alert('Sesi dibuat tanpa ruang tunggu (siswa langsung mulai), karena aturan Firebase belum diperbarui. Publish ulang isi database.rules.json di Firebase Console → Realtime Database → Rules agar ruang tunggu aktif.');
   } catch (e) {
@@ -420,7 +390,7 @@ setInterval(() => {
   el('akun-guru').hidden = false;
   PORTAL.mulai();
   // Skor rubrik tersimpan di data guru: tampilkan nilai majas terbaru setelah guru menyimpan.
-  GURU_DATA.pantau(() => { if (kodeAktif && majasSesi()) renderPapan(); });
+  GURU_DATA.pantau(() => { if (kodeAktif) renderPapan(); });
   document.body.classList.remove('cek-login');
   tampilkan('layar-mulai');
   const tersimpan = sesiGuruTersimpan();

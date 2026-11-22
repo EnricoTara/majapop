@@ -1,6 +1,6 @@
 // ============================================================
 // Modal penilaian kalimat majas dengan RUBRIK_MAJAS (js/app.js): setiap kalimat diberi skor 1–4
-// untuk lima indikator berbobot. Dipakai di Dashboard sesi Cipta Majas dan Riwayat nilai menu Kelas.
+// untuk lima indikator berbobot. Dipakai di Dashboard sesi dan Riwayat nilai menu Kelas.
 // ============================================================
 
 const RUBRIK = (() => {
