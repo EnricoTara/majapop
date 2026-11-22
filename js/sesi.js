@@ -175,6 +175,34 @@ const SESI = (() => {
     return info && info.guru ? info.guru : null;
   }
 
+  // Lagu tambahan guru (lagu/<uid guru>, lihat pasangLaguGuru di js/app.js) untuk halaman siswa:
+  // milik guru pembuat sesi yang diikuti, atau guru yang sedang login. cb dipanggil setiap daftar lagu berubah.
+  // Tanpa guru / offline: tetap memakai cache (atau hanya lagu dasar).
+  async function pantauLaguGuru(cb) {
+    try {
+      const db = await siap();
+      const uidGuru = await guruMateri();
+      const kunci = kunciLaguGuru();
+      if (!uidGuru) {
+        simpanCacheLaguGuru('', null);
+        if (LAGU.length !== JUMLAH_LAGU_DASAR) { pasangLaguGuru(null); cb(); }
+        return;
+      }
+      let jejak = JSON.stringify(LAGU);
+      db.ref(`lagu/${uidGuru}`).on('value', (snap) => {
+        simpanCacheLaguGuru(kunci, snap.val());
+        pasangLaguGuru(snap.val());
+        const baru = JSON.stringify(LAGU);
+        if (baru === jejak) return;
+        jejak = baru;
+        // Jumlah lagu ikut menentukan nilai, jadi ringkasan di dashboard guru diperbarui.
+        const state = loadState();
+        if (kunci !== 'guru' && state.sesi) kirimProgress(state);
+        cb();
+      }, () => {});
+    } catch (e) { /* offline: cukup cache */ }
+  }
+
   async function masukGuru(username, password) {
     const salah = new Error('Username atau password salah.');
     const akun = akunDariNama(username);
@@ -653,7 +681,7 @@ const SESI = (() => {
     kirimProgress(state);
   }
 
-  return { aktif, siap, namaGuru, guruMasuk, guruMateri, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, pantauJawaban, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
+  return { aktif, siap, namaGuru, guruMasuk, guruMateri, pantauLaguGuru, masukGuru, keluarGuru, gantiPassword, modeSesi, sedangMenunggu, buatSesi, mulaiSesi, akhiriSesi, infoSesi, sesiMilikSaya, pantauSesi, gabung, kirimProgress, kirimSegera, pantauKelompok, pantauJawaban, hitungPoin, rincian, formatDurasi, langkahSaatIni, pasangBadge };
 })();
 
 document.addEventListener('DOMContentLoaded', () => SESI.pasangBadge());

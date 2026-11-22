@@ -30,6 +30,7 @@
         <button type="button" role="tab" id="tab-dashboard" data-menu="dashboard" aria-controls="menu-dashboard" aria-selected="true"><span aria-hidden="true">📡</span>Dashboard</button>
         <button type="button" role="tab" id="tab-kelas" data-menu="kelas" aria-controls="menu-kelas" aria-selected="false"><span aria-hidden="true">🏫</span>Kelas</button>
         <button type="button" role="tab" id="tab-materi" data-menu="materi" aria-controls="menu-materi" aria-selected="false"><span aria-hidden="true">📘</span>Materi</button>
+        <button type="button" role="tab" id="tab-lagu" data-menu="lagu" aria-controls="menu-lagu" aria-selected="false"><span aria-hidden="true">🎵</span>Lagu</button>
         <button type="button" role="tab" id="tab-akun" data-menu="akun" aria-controls="menu-akun" aria-selected="false"><span aria-hidden="true">👤</span>Akun</button>
       </nav>
     </aside>
@@ -259,6 +260,51 @@
           <div class="aksi"><button type="submit" class="btn" id="simpan-materi">Simpan Materi</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
         </form>
         <div id="daftar-materi" class="grid-kartu" aria-live="polite"></div>
+      </section>
+
+      <!-- ===== Menu Lagu (js/guru-portal.js) ===== -->
+      <section id="menu-lagu" class="portal-panel" role="tabpanel" aria-labelledby="tab-lagu" hidden>
+        <section class="halaman-judul">
+          <span class="label-atas">Lagu</span>
+          <h1 style="font-size:clamp(2rem,5vw,3rem)">Bank Lagu 🎵</h1>
+          <p>Lagu dasar MajaPOP dan lagu tambahan buatanmu. Lagu tambahan tampil setelah lagu dasar untuk siswa yang mengikuti sesimu, dan ikut dipakai untuk tebak majas, puzzle, serta nilai.</p>
+        </section>
+        <div class="materi-alat">
+          <input type="search" id="cari-lagu" placeholder="🔎 Cari judul, penyanyi, atau jenis majas…" aria-label="Cari lagu">
+          <button type="button" class="btn" id="tambah-lagu">＋ Tambah Lagu</button>
+        </div>
+        <p class="kecil" id="info-lagu"></p>
+        <form id="form-lagu" class="kartu form-portal" hidden novalidate>
+          <h3 id="judul-form-lagu">Lagu baru</h3>
+          <div class="dua-kolom">
+            <div class="field">
+              <label for="lagu-judul">Judul lagu</label>
+              <input type="text" id="lagu-judul" maxlength="90" placeholder="Contoh: Kita ke Sana">
+            </div>
+            <div class="field">
+              <label for="lagu-penyanyi">Penyanyi</label>
+              <input type="text" id="lagu-penyanyi" maxlength="90" placeholder="Contoh: Hindia">
+            </div>
+          </div>
+          <div class="field">
+            <label for="lagu-youtube">Link YouTube <span class="kecil">(opsional; kosong = tombol "Cari di YouTube")</span></label>
+            <input type="url" id="lagu-youtube" maxlength="200" placeholder="https://www.youtube.com/watch?v=…">
+          </div>
+          <div class="field">
+            <label for="lagu-kutipan">Kutipan lirik yang mengandung majas</label>
+            <textarea id="lagu-kutipan" maxlength="400" placeholder="1–2 baris lirik. Pisahkan baris dengan / , misalnya: Baris pertama / Baris kedua"></textarea>
+          </div>
+          <div class="field">
+            <label for="lagu-majas">Jenis majas pada kutipan</label>
+            <select id="lagu-majas"></select>
+          </div>
+          <div class="field">
+            <label for="lagu-makna">Makna lirik <span class="kecil">(kunci jawaban diskusi &amp; kepingan puzzle)</span></label>
+            <textarea id="lagu-makna" maxlength="600" placeholder="Jelaskan makna kutipan lirik dan mengapa termasuk majas tersebut…"></textarea>
+          </div>
+          <div class="aksi"><button type="submit" class="btn" id="simpan-lagu">Simpan Lagu</button><button type="button" class="btn btn-garis" data-batal>Batal</button></div>
+        </form>
+        <div id="daftar-lagu" class="grid-kartu" aria-live="polite"></div>
       </section>
 
       <!-- ===== Menu Akun (js/guru-portal.js) ===== -->

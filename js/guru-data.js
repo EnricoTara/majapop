@@ -3,6 +3,7 @@
 // kelompok, catatan nilainya, dan skor rubrik kalimat majas per sesi (rubrik/<kode>/<id peserta sesi>). Hanya akun guru yang bisa membaca/menulis.
 // Materi tambahan disimpan di materi/<uid guru>/<id>: setiap guru punya materinya sendiri,
 // dan siswa melihat materi guru pembuat sesi yang diikutinya (lihat SESI.guruMateri).
+// Lagu tambahan disimpan di lagu/<uid guru>/<id> dengan pola yang sama (lihat pasangLaguGuru di js/app.js).
 // Semua bisa membaca, hanya guru pemiliknya yang bisa menulis; lihat database.rules.json.
 // ============================================================
 
@@ -11,6 +12,7 @@ const GURU_DATA = (() => {
   let akar = null;
   let data = {};
   let materi = {};
+  let lagu = {};
   let dimuat = false;
   const pendengar = [];
 
@@ -32,9 +34,11 @@ const GURU_DATA = (() => {
     if (pendengar.length > 1) return;
     let guruDimuat = false;
     let materiDimuat = false;
+    let laguDimuat = false;
     const kabari = () => {
-      if (!guruDimuat || !materiDimuat) return;
+      if (!guruDimuat || !materiDimuat || !laguDimuat) return;
       data.materi = materi;
+      data.lagu = lagu;
       dimuat = true;
       pendengar.forEach((f) => f(data));
     };
@@ -50,11 +54,23 @@ const GURU_DATA = (() => {
         materiDimuat = true;
         kabari();
       });
+      refLagu().on('value', (snap) => {
+        lagu = snap.val() || {};
+        // Lagu guru ikut masuk LAGU agar dashboard & rincian jawaban memakai daftar yang sama dengan siswa.
+        pasangLaguGuru(lagu);
+        simpanCacheLaguGuru('guru', lagu);
+        laguDimuat = true;
+        kabari();
+      });
     });
   }
 
   function refMateri() {
     return akar.root.child(`materi/${firebase.auth().currentUser.uid}`);
+  }
+
+  function refLagu() {
+    return akar.root.child(`lagu/${firebase.auth().currentUser.uid}`);
   }
 
   // Materi lama di guru/<uid>/materi (hanya terlihat guru) dipindah ke materi/<uid>/ agar terlihat siswa.
@@ -117,6 +133,28 @@ const GURU_DATA = (() => {
   async function hapusMateri(id) {
     await siapAkar();
     await refMateri().child(id).remove();
+  }
+
+  // ---------- Lagu tambahan ----------
+  // l: { judul, penyanyi, kutipan, majasId, makna, youtubeId } (youtubeId '' = tanpa video).
+  function isiLagu(l) {
+    const { youtubeId, ...isi } = l;
+    return { ...isi, youtubeId: youtubeId || null };
+  }
+
+  async function tambahLagu(l) {
+    await siapAkar();
+    await refLagu().child(idBaru()).set({ ...isiLagu(l), dibuat: WAKTU() });
+  }
+
+  async function ubahLagu(id, l) {
+    await siapAkar();
+    await refLagu().child(id).update({ ...isiLagu(l), diubah: WAKTU() });
+  }
+
+  async function hapusLagu(id) {
+    await siapAkar();
+    await refLagu().child(id).remove();
   }
 
   // ---------- Kelas ----------
@@ -282,7 +320,7 @@ const GURU_DATA = (() => {
 
   return {
     pantau, daftar, kelasList, kelas, tanggal, samakan,
-    simpanProfil, tambahMateri, ubahMateri, hapusMateri,
+    simpanProfil, tambahMateri, ubahMateri, hapusMateri, tambahLagu, ubahLagu, hapusLagu,
     tambahKelas, hapusKelas, tambahSiswa, ubahKelompokSiswa, tambahKelompok, hapusPeserta, catatNilai, hapusNilai,
     nilaiSesi, simpanHasilSesi, rubrik, simpanRubrik,
   };

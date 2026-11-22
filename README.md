@@ -23,7 +23,7 @@ Semua konten ada di satu file: [`js/data.js`](js/data.js).
 |---|---|
 | Lama waktu puzzle (detik); jumlah baris otomatis mengikuti jumlah jenis majas di `LAGU` | `PENGATURAN.waktuPuzzleDetik` |
 | Materi 8 jenis majas | `MAJAS` |
-| Daftar lagu, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video) |
+| Daftar lagu dasar, kutipan lirik, makna, video YouTube | `LAGU` (isi `youtubeId` dengan teks setelah `v=` pada URL video). Lagu tambahan per guru cukup ditambahkan dari Portal Guru › 🎵 Lagu |
 | Pertanyaan pemantik | `PEMANTIK` |
 | Peta sastrawan | `SASTRAWAN` |
 | Pertanyaan Roda Refleksi (menu Refleksi) | `REFLEKSI` |
@@ -44,7 +44,7 @@ Siswa dan guru masuk lewat pintu yang sama: tombol **Masuk** di pojok kanan atas
 - **Siswa** memasukkan kode sesi dari guru, seperti biasa. Link/QR dari guru langsung membuka pilihan Siswa.
 - **Guru** login dengan username akunnya (lihat tabel di bawah) dan password akun guru, lalu diarahkan ke **Dashboard** (`guru.html`). Dashboard tidak bisa dibuka tanpa login. Selama masih login, tombol pojok kanan atas berubah menjadi **📡 Dashboard**. Tombol **🚪 Keluar** ada di bawah judul Dashboard.
 
-Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, profil, dan materi tambahan sendiri; 8 materi dasar sama untuk semua guru):
+Akun guru yang tersedia (setiap guru punya sesi, kelas, nilai, profil, materi tambahan, dan lagu tambahan sendiri; 8 materi dasar dan 8 lagu dasar sama untuk semua guru):
 
 | Username | Email internal (Firebase) |
 |---|---|
@@ -67,20 +67,21 @@ Poin (tetap ditampilkan dan ikut di rekap): 10 per majas benar, +5 jika tepat di
 
 Sesi **Cipta Majas** tidak memakai peringkat maupun podium. Dashboard menampilkan kalimat majas setiap peserta (urut bergabung) beserta tombol **✍️ Nilai kalimat** untuk menilainya dengan rubrik (lihat di bawah). Halaman Lagu dan Puzzle terkunci selama siswa berada di sesi Cipta Majas, dan sebaliknya halaman Cipta Majas terkunci di sesi Lagu & Puzzle.
 
-## Portal Guru: Dashboard, Kelas, Materi, Akun
+## Portal Guru: Dashboard, Kelas, Materi, Lagu, Akun
 
 Setelah login, halaman guru punya menu di samping (di HP: berjajar di atas):
 
 - **📡 Dashboard**: ringkasan (jumlah kelas, siswa, materi) dan Sesi Kelas seperti di atas. Saat membuat sesi, guru bisa memilih **Kelas**; nama kelas dan jenis sesinya terisi otomatis.
 - **🏫 Kelas**: tambah kelas (kelompok/individu), lalu lihat **Progres & Nilai Kelas**: rata-rata individu dan kelompok, grafik nilai per peserta, grafik perkembangan, rekap, dan riwayat. Guru bisa menambah siswa (satu nama per baris), kelompok, nilai manual (0–100), mengganti kelompok siswa, dan mengunduh CSV per kelas.
 - **📘 Materi**: 8 materi dasar (dari `MAJAS` di `js/data.js`) dan materi tambahan buatan guru. Materi tambahan hanya milik akun guru pembuatnya (disimpan di `materi/<uid guru>` di Firebase), tidak muncul di akun guru lain, dan tampil di halaman Materi untuk siswa yang mengikuti sesi guru tersebut. Siswa yang belum pernah masuk sesi hanya melihat 8 materi dasar.
+- **🎵 Lagu**: 8 lagu dasar (dari `LAGU` di `js/data.js`, hanya bisa dilihat) dan lagu tambahan buatan guru (maks. 20): judul, penyanyi, link YouTube (opsional), kutipan lirik, jenis majas, dan makna. Lagu tambahan disimpan di `lagu/<uid guru>`, tampil setelah lagu dasar di Daftar Lagu siswa yang mengikuti sesi guru tersebut, dan ikut dipakai untuk tebak majas, kepingan Papan Puzzle, serta nilai Lagu (jumlah lagu = lagu dasar + lagu tambahan). Lagu tanpa gambar sampul menampilkan judulnya di kartu. Perubahan langsung terlihat di HP siswa, termasuk saat sesi berjalan.
 - **👤 Akun**: profil guru (nama tampilan, sekolah, mapel, bio), **ganti password**, dan tombol keluar. Username untuk masuk tidak berubah.
 
 **Nilai otomatis dari sesi.** Jika sesi dibuat dari sebuah kelas, saat guru menekan **Akhiri sesi** nilai setiap siswa/kelompok langsung tersimpan ke kelas itu (aktivitas "Sesi 1234"). Peserta dicocokkan dengan daftar kelas lewat no. absen atau nama; yang belum ada otomatis ditambahkan, dan anggota kelompok ikut terdaftar sebagai siswa.
 
 **Sesi Lagu & Puzzle** dirinci per bagian, masing-masing 0–100, lalu dirata-rata menjadi **nilai pokok** (nilai yang tersimpan ke kelas dan dipakai untuk rata-rata kelas):
 
-- 🎵 **Lagu** = lagu yang majasnya benar ÷ (jumlah lagu (8) + tebakan salah) × 100
+- 🎵 **Lagu** = lagu yang majasnya benar ÷ (jumlah lagu (8 + lagu tambahan guru) + tebakan salah) × 100
 - 🧩 **Puzzle** = kepingan benar ÷ (total kepingan (8 baris × 4 = 32) + kepingan salah) × 100; belum dimainkan = 0
 - ⭐ **Nilai pokok** = (Lagu + Puzzle) ÷ 2
 

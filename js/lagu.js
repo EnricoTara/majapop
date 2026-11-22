@@ -5,6 +5,8 @@ cekTim(document.getElementById('banner-tim'));
 const gridEl = document.getElementById('lagu-grid');
 const detailEl = document.getElementById('identifikasi');
 let laguAktif = null;
+// Isi lagu yang sedang terbuka; Song Card dibuat ulang hanya jika guru mengubah lagu itu.
+let jejakAktif = '';
 
 // Warna sampul bila lagu belum punya gambar cover.
 const SAMPUL = [
@@ -34,9 +36,10 @@ function renderGrid() {
     const siap = laguSiap(l);
     const status = !siap ? '<span class="lagu-status kosong">Lirik belum diisi</span>'
       : d.benar ? '<span class="lagu-status benar">✓ Teridentifikasi</span>' : '';
+    // Tanpa gambar sampul (mis. lagu tambahan guru): judul lagu tampil di atas warna gradasi.
     const sampul = l.cover
       ? `<img src="${esc(l.cover)}" alt="" loading="lazy">`
-      : `<span class="sampul-ikon" aria-hidden="true">${l.ikon || '🎵'}</span>`;
+      : `<span class="sampul-judul" aria-hidden="true">${esc(l.judul)}</span>`;
     return `<button type="button" class="lagu-kartu ${l.id === laguAktif ? 'aktif' : ''} ${siap ? '' : 'belum-siap'}" data-id="${l.id}">
       <span class="sampul" style="background:${SAMPUL[i % SAMPUL.length]}">
         ${sampul}
@@ -91,6 +94,7 @@ function laguBerikutnya(id) {
 function pilihLagu(id, gulir) {
   laguAktif = id;
   const l = LAGU.find((x) => x.id === id);
+  jejakAktif = JSON.stringify(l);
   // Soal majas baru muncul setelah langkah 2 ditutup lewat tombol "Selesai mendengarkan".
   const dengar = sudahDengar();
   const state = updateState((s) => {
@@ -209,15 +213,33 @@ gridEl.addEventListener('click', (e) => {
 document.getElementById('btn-selesai-dengar').addEventListener('click', () => {
   tandaiSelesai('putar');
   toast('🔍 Langkah 3 terbuka: saatnya identifikasi majas!');
-  pilihLagu(laguAktif || pertamaBelum.id, true);
+  pilihLagu(laguAktif || pertamaBelum().id, true);
 });
 
-// Buka lagu siap pertama yang belum teridentifikasi.
-const awal = loadState();
-const pertamaBelum = daftarLaguSiap().find((l) => !dataLagu(awal, l.id).benar) || daftarLaguSiap()[0] || LAGU[0];
+// Lagu siap pertama yang belum teridentifikasi.
+function pertamaBelum() {
+  const s = loadState();
+  return daftarLaguSiap().find((l) => !dataLagu(s, l.id).benar) || daftarLaguSiap()[0] || LAGU[0];
+}
+
+function songCardKosong() {
+  detailEl.innerHTML = `<div class="kartu tengah"><p style="margin:0">👆 Pilih salah satu lagu di atas untuk membuka Song Card.</p></div>`;
+}
+
 renderGrid();
-detailEl.innerHTML = `<div class="kartu tengah"><p style="margin:0">👆 Pilih salah satu lagu di atas untuk membuka Song Card.</p></div>`;
-if (location.hash === '#identifikasi' && !syaratHalaman()) pilihLagu(pertamaBelum.id, true);
+songCardKosong();
+if (location.hash === '#identifikasi' && !syaratHalaman()) pilihLagu(pertamaBelum().id, true);
 window.addEventListener('hashchange', () => {
-  if (location.hash === '#identifikasi' && !laguAktif && !syaratHalaman()) pilihLagu(pertamaBelum.id, true);
+  if (location.hash === '#identifikasi' && !laguAktif && !syaratHalaman()) pilihLagu(pertamaBelum().id, true);
+});
+
+// Lagu tambahan guru berubah (ditambah/diedit/dihapus): perbarui kartu dan Song Card yang terbuka.
+SESI.pantauLaguGuru(() => {
+  if (laguAktif && !LAGU.some((x) => x.id === laguAktif)) {
+    laguAktif = null;
+    songCardKosong();
+  } else if (laguAktif && JSON.stringify(LAGU.find((x) => x.id === laguAktif)) !== jejakAktif) {
+    pilihLagu(laguAktif, false);
+  }
+  renderGrid();
 });

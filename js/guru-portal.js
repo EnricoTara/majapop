@@ -1,11 +1,11 @@
 // ============================================================
-// Portal guru: menu Dashboard / Kelas / Materi / Akun, ringkasan di Dashboard,
-// bank materi majas, dan profil akun. Dimulai oleh js/guru.js setelah login guru terverifikasi.
+// Portal guru: menu Dashboard / Kelas / Materi / Lagu / Akun, ringkasan di Dashboard,
+// bank materi majas, bank lagu, dan profil akun. Dimulai oleh js/guru.js setelah login guru terverifikasi.
 // Data diambil dari GURU_DATA (js/guru-data.js); menu Kelas ada di js/guru-kelas.js.
 // ============================================================
 
 const PORTAL = (() => {
-  const MENU = ['dashboard', 'kelas', 'materi', 'akun'];
+  const MENU = ['dashboard', 'kelas', 'materi', 'lagu', 'akun'];
   const $ = (id) => document.getElementById(id);
   let data = {};
   let profilDiubah = false;
@@ -108,6 +108,46 @@ const PORTAL = (() => {
     $('daftar-materi').innerHTML = semua.length ? semua.join('') : '<div class="kosong-kartu">Tidak ada materi yang cocok dengan pencarian.</div>';
   }
 
+  // ---------- Lagu ----------
+  // ID video dari link YouTube (youtu.be/…, watch?v=…, shorts/…, embed/…) atau ID mentah.
+  // '' = kosong, null = link tidak dikenali.
+  function idYoutube(teks) {
+    const t = String(teks || '').trim();
+    if (!t) return '';
+    const cocok = t.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/embed\/|\/live\/)([A-Za-z0-9_-]{6,20})/);
+    if (cocok) return cocok[1];
+    return /^[A-Za-z0-9_-]{6,20}$/.test(t) ? t : null;
+  }
+
+  function laguTambahan() {
+    return GURU_DATA.daftar(data.lagu).sort((a, b) => (a.dibuat || 0) - (b.dibuat || 0));
+  }
+
+  function renderLagu() {
+    const cari = GURU_DATA.samakan($('cari-lagu').value);
+    const jenis = (id) => (majasById(id) || {}).jenis || '-';
+    const cocok = (l) => !cari || GURU_DATA.samakan([l.judul, l.penyanyi, jenis(l.majasId), l.kutipan].join(' ')).includes(cari);
+    const kartu = (l, no, tambahan) => `
+      <article class="kartu-isi">
+        <span class="tag ${tambahan ? 'tag-pink' : ''}">Lagu ${no} · ${tambahan ? 'Lagu guru' : 'Lagu dasar'}</span>
+        <h3>${esc(l.judul)}</h3>
+        <p class="kecil">${esc(l.penyanyi)} · Majas <b>${esc(jenis(l.majasId))}</b>${l.youtubeId ? ' · ▶ YouTube' : ''}</p>
+        <p class="isi-panjang"><i>“${esc(l.kutipan)}”</i></p>
+        <p class="kecil isi-panjang"><b>Makna:</b> ${esc(l.makna)}</p>
+        ${tambahan ? `<div class="aksi"><button type="button" class="btn btn-kecil btn-garis" data-ubah-lagu="${esc(l.id)}">Edit</button><button type="button" class="btn btn-kecil btn-garis btn-hapus-teks" data-hapus-lagu="${esc(l.id)}">Hapus</button></div>` : ''}
+      </article>`;
+    const dasar = LAGU.slice(0, JUMLAH_LAGU_DASAR);
+    const tambahan = laguTambahan();
+    const semua = [
+      ...tambahan.map((l, i) => cocok(l) && kartu(l, JUMLAH_LAGU_DASAR + i + 1, true)),
+      ...dasar.map((l, i) => cocok(l) && kartu(l, i + 1, false)),
+    ].filter(Boolean);
+    $('daftar-lagu').innerHTML = semua.length ? semua.join('') : '<div class="kosong-kartu">Tidak ada lagu yang cocok dengan pencarian.</div>';
+    const penuh = tambahan.length >= MAKS_LAGU_GURU;
+    $('tambah-lagu').disabled = penuh;
+    $('info-lagu').textContent = `${tambahan.length}/${MAKS_LAGU_GURU} lagu tambahan${penuh ? ' · batas tercapai, hapus lagu lama untuk menambah yang baru' : ''}.`;
+  }
+
   // ---------- Akun ----------
   function isiFormProfil() {
     const p = profil();
@@ -185,6 +225,7 @@ const PORTAL = (() => {
     data = d;
     renderDashboard();
     renderMateri();
+    renderLagu();
     renderAkun();
   }
 
@@ -251,6 +292,63 @@ const PORTAL = (() => {
         await GURU_DATA.hapusMateri(b.dataset.hapusMateri);
         if (idUbah === b.dataset.hapusMateri) tutupFormMateri();
       } catch (err) { toast('Gagal menghapus materi.'); }
+    });
+
+    // Lagu: form yang sama untuk lagu baru dan edit; idUbahLagu = lagu yang sedang diedit.
+    $('lagu-majas').innerHTML = '<option value="">– Pilih jenis majas –</option>'
+      + MAJAS.map((m) => `<option value="${m.id}">${esc(m.jenis)}</option>`).join('');
+    $('cari-lagu').addEventListener('input', renderLagu);
+    const formLagu = $('form-lagu');
+    let idUbahLagu = null;
+    const bukaFormLagu = (id) => {
+      const l = id ? (data.lagu || {})[id] : null;
+      idUbahLagu = l ? id : null;
+      $('judul-form-lagu').textContent = l ? 'Edit lagu' : 'Lagu baru';
+      $('simpan-lagu').textContent = l ? 'Simpan Perubahan' : 'Simpan Lagu';
+      $('lagu-judul').value = l ? l.judul : '';
+      $('lagu-penyanyi').value = l ? l.penyanyi : '';
+      $('lagu-youtube').value = l && l.youtubeId ? `https://www.youtube.com/watch?v=${l.youtubeId}` : '';
+      $('lagu-kutipan').value = l ? l.kutipan : '';
+      $('lagu-majas').value = l ? l.majasId : '';
+      $('lagu-makna').value = l ? l.makna : '';
+      formLagu.hidden = false;
+      formLagu.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('lagu-judul').focus();
+    };
+    const tutupFormLagu = () => { formLagu.reset(); formLagu.hidden = true; idUbahLagu = null; };
+    $('tambah-lagu').addEventListener('click', () => bukaFormLagu(null));
+    formLagu.querySelector('[data-batal]').addEventListener('click', tutupFormLagu);
+    formLagu.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nilai = (id) => $(id).value.trim();
+      const wajib = [['lagu-judul', 'Judul lagu'], ['lagu-penyanyi', 'Penyanyi'], ['lagu-kutipan', 'Kutipan lirik'], ['lagu-majas', 'Jenis majas'], ['lagu-makna', 'Makna lirik']];
+      const kosong = wajib.find(([id]) => !nilai(id));
+      if (kosong) { toast(`${kosong[1]} belum diisi.`); $(kosong[0]).focus(); return; }
+      const youtubeId = idYoutube(nilai('lagu-youtube'));
+      if (youtubeId === null) { toast('Link YouTube tidak dikenali. Salin link dari tombol Bagikan di YouTube.'); $('lagu-youtube').focus(); return; }
+      if (!idUbahLagu && laguTambahan().length >= MAKS_LAGU_GURU) { toast(`Maksimal ${MAKS_LAGU_GURU} lagu tambahan.`); return; }
+      const lagu = {
+        judul: nilai('lagu-judul'), penyanyi: nilai('lagu-penyanyi'), kutipan: nilai('lagu-kutipan'),
+        majasId: nilai('lagu-majas'), makna: nilai('lagu-makna'), youtubeId,
+      };
+      try {
+        if (idUbahLagu) await GURU_DATA.ubahLagu(idUbahLagu, lagu);
+        else await GURU_DATA.tambahLagu(lagu);
+        tutupFormLagu();
+        toast('Lagu tersimpan dan tampil di Daftar Lagu siswa yang mengikuti sesimu.');
+      } catch (err) { toast('Gagal menyimpan lagu.'); }
+    });
+    $('daftar-lagu').addEventListener('click', async (e) => {
+      const ubah = e.target.closest('[data-ubah-lagu]');
+      if (ubah) { bukaFormLagu(ubah.dataset.ubahLagu); return; }
+      const b = e.target.closest('[data-hapus-lagu]');
+      if (!b) return;
+      const l = (data.lagu || {})[b.dataset.hapusLagu];
+      if (!l || !confirm(`Hapus lagu "${l.judul}"? Lagu ini juga hilang dari Daftar Lagu siswa.`)) return;
+      try {
+        await GURU_DATA.hapusLagu(b.dataset.hapusLagu);
+        if (idUbahLagu === b.dataset.hapusLagu) tutupFormLagu();
+      } catch (err) { toast('Gagal menghapus lagu.'); }
     });
 
     // Akun

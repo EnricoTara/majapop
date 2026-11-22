@@ -56,7 +56,7 @@ function mulai() {
   const laguSiapList = daftarLaguSiap();
   const tersedia = MAJAS.filter((m) => laguSiapList.some((l) => l.majasId === m.id));
   if (!tersedia.length) {
-    toast('Belum ada lagu dengan kutipan lirik. Guru perlu mengisinya di js/data.js.');
+    toast('Belum ada lagu dengan kutipan lirik. Guru bisa menambahkannya di menu Lagu Portal Guru.');
     return;
   }
   const terpilih = acak(tersedia);
@@ -403,3 +403,5 @@ document.getElementById('selesai').addEventListener('click', () => {
 modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('buka'); });
 
 renderIntro();
+// Lagu tambahan guru ikut menentukan jumlah baris; papan yang sedang dimainkan tidak diubah.
+SESI.pantauLaguGuru(renderIntro);

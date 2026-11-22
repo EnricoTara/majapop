@@ -143,6 +143,49 @@ function daftarLaguSiap() {
   return LAGU.filter(laguSiap);
 }
 
+// ---------- Lagu tambahan guru ----------
+// Guru bisa menambah lagu di Portal Guru › Lagu (lagu/<uid guru> di Firebase). Lagu itu
+// dimasukkan ke akhir LAGU (setelah lagu dasar), jadi semua kode yang membaca LAGU ikut memakainya.
+// Cache di localStorage membuat halaman langsung lengkap saat dibuka (dan tetap jalan offline);
+// SESI.pantauLaguGuru memperbaruinya dari Firebase.
+const JUMLAH_LAGU_DASAR = LAGU.length;
+const CACHE_LAGU_GURU = 'majapop-lagu-guru';
+const MAKS_LAGU_GURU = 20;
+
+// obj: { <id>: { judul, penyanyi, kutipan, majasId, makna, youtubeId?, dibuat } } dari Firebase.
+function pasangLaguGuru(obj) {
+  LAGU.length = JUMLAH_LAGU_DASAR;
+  Object.entries(obj || {})
+    .map(([id, l]) => ({ ...l, id }))
+    .sort((a, b) => (a.dibuat || 0) - (b.dibuat || 0))
+    .forEach((l) => LAGU.push({
+      id: l.id, judul: l.judul || '', penyanyi: l.penyanyi || '', ikon: '🎵', cover: '',
+      youtubeId: l.youtubeId || '', kutipan: l.kutipan || '', majasId: l.majasId || '', makna: l.makna || '',
+      dibuat: l.dibuat || 0, tambahan: true,
+    }));
+}
+
+// Kunci cache: 'guru' di perangkat guru, atau kode sesi yang diikuti siswa.
+function kunciLaguGuru() {
+  if (guruTercatat()) return 'guru';
+  const s = loadState().sesi;
+  return s && s.kode ? String(s.kode) : '';
+}
+
+function simpanCacheLaguGuru(kunci, obj) {
+  try {
+    if (kunci) localStorage.setItem(CACHE_LAGU_GURU, JSON.stringify({ kunci, lagu: obj || {} }));
+    else localStorage.removeItem(CACHE_LAGU_GURU);
+  } catch (e) { /* abaikan */ }
+}
+
+(function pakaiCacheLaguGuru() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CACHE_LAGU_GURU) || 'null');
+    if (c && c.kunci && c.kunci === kunciLaguGuru()) pasangLaguGuru(c.lagu);
+  } catch (e) { /* abaikan */ }
+})();
+
 // Satu baris puzzle = satu jenis majas dari lagu yang siap (dipakai Papan Puzzle & nilai sesi guru).
 function jumlahBarisTersedia() {
   return new Set(daftarLaguSiap().map((l) => l.majasId)).size;

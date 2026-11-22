@@ -82,6 +82,8 @@ const MAJAS = [
 ];
 
 // Daftar lagu (urutan = urutan kartu "Lagu 1, Lagu 2, …" di halaman Daftar Lagu).
+// Ini lagu dasar untuk semua guru. Lagu tambahan per guru dikelola di Portal Guru › Lagu
+// (tampil setelah lagu dasar untuk siswa di sesi guru tersebut; lihat pasangLaguGuru di js/app.js).
 // CATATAN UNTUK GURU:
 // - kutipan : potongan lirik pendek (1–2 baris) yang mengandung majas.
 // - majasId : jenis majasnya, harus salah satu id di MAJAS di atas

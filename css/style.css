@@ -366,6 +366,12 @@ textarea { min-height: 96px; resize: vertical; }
 }
 .lagu-kartu .sampul img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .lagu-kartu .sampul-ikon { font-size: 3.6rem; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .25)); }
+/* Lagu tanpa gambar sampul (mis. lagu tambahan guru): judul lagu menjadi sampulnya. */
+.lagu-kartu .sampul-judul {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+  max-width: 100%; padding: 0 16px; color: #fff; text-align: center; overflow-wrap: anywhere;
+  font: 800 1.7rem/1.1 var(--font-judul); text-shadow: 0 3px 10px rgba(0, 0, 0, .35);
+}
 .lagu-no {
   position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px;
   background: rgba(255, 255, 255, .92); color: var(--ungu-tua); border-radius: 999px; padding: 3px 10px;
@@ -974,6 +980,7 @@ body.proyektor .langkah-label { font-size: 1.15rem; }
   .lagu-kartu { flex: 0 0 auto; width: 46vw; max-width: 200px; scroll-snap-align: start; padding: 10px 10px 12px; border-radius: 18px; }
   .lagu-kartu .sampul { border-radius: 12px; margin-bottom: 8px; }
   .lagu-kartu .sampul-ikon { font-size: 2.6rem; }
+  .lagu-kartu .sampul-judul { font-size: 1.2rem; padding: 0 10px; }
   .lagu-ikon { width: 38px; height: 38px; font-size: 1.05rem; right: 8px; bottom: 8px; }
   .lagu-no { top: 8px; left: 8px; font-size: .68rem; padding: 2px 8px; }
   .lagu-status { bottom: 10px; left: 8px; font-size: .62rem; }

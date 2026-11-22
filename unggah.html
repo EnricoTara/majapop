@@ -65,36 +65,41 @@
   <script>
     cekTim(document.getElementById('banner-tim'));
     const state = loadState();
-    // Angka yang sama dengan yang dikirim ke guru (SESI.rincian), termasuk jumlah kesalahan.
-    const r = SESI.rincian(state);
-    const pz = state.puzzle;
-    const nilai = nilaiRinci({ ...r, puzzleBenar: r.puzzleBenar ?? -1 });
     const isi = (id, teks) => { document.getElementById(id).textContent = teks; };
     const majas = sesiMajas(state);
-    isi('label-langkah', `${majas ? 'Sesi Cipta Majas · ' : ''}Langkah ${daftarLangkah(state).length}`);
-    document.getElementById('ringkasan-soal').hidden = majas;
-    document.getElementById('ringkasan-majas').hidden = !majas;
-    isi('r-lagu', nilai.lagu);
-    isi('k-lagu', `${r.benar}/${r.totalLagu} lagu benar · ${r.salahLagu} tebakan salah`);
-    isi('r-puzzle', nilai.puzzle);
-    isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar · ${r.puzzleSalah} salah` : 'belum dimainkan');
-    isi('r-pokok', nilai.pokok);
-    isi('r-majas', state.ciptaan.length);
-
     const indiv = sesiIndividu(state);
 
-    document.getElementById('identitas').textContent = indiv
-      ? `${state.tim || '-'}${state.absen ? ` · No. absen ${state.absen}` : ''}${state.kelas ? ` · ${state.kelas}` : ''}`
-      : `${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''} · Anggota: ${state.anggota.join(', ') || '-'}`;
-    // Pratinjau memakai tampilan yang sama dengan yang dilihat guru (uid tidak diperlukan di sini).
-    const pratinjau = {
-      ...(majas ? { aktivitas: 'majas' } : {}),
-      lagu: Object.fromEntries(LAGU.filter((l) => state.lagu[l.id]).map((l) => [l.id, state.lagu[l.id]])),
-      ...(indiv ? {} : { peran: state.peran }),
-      puzzle: state.puzzle,
-      ciptaan: state.ciptaan,
-    };
-    document.getElementById('jawaban').innerHTML = JAWABAN.html(pratinjau);
+    // Ringkasan nilai & pratinjau jawaban; dibuat ulang jika guru mengubah daftar lagu.
+    function renderRingkasan() {
+      // Angka yang sama dengan yang dikirim ke guru (SESI.rincian), termasuk jumlah kesalahan.
+      const r = SESI.rincian(state);
+      const pz = state.puzzle;
+      const nilai = nilaiRinci({ ...r, puzzleBenar: r.puzzleBenar ?? -1 });
+      isi('label-langkah', `${majas ? 'Sesi Cipta Majas · ' : ''}Langkah ${daftarLangkah(state).length}`);
+      document.getElementById('ringkasan-soal').hidden = majas;
+      document.getElementById('ringkasan-majas').hidden = !majas;
+      isi('r-lagu', nilai.lagu);
+      isi('k-lagu', `${r.benar}/${r.totalLagu} lagu benar · ${r.salahLagu} tebakan salah`);
+      isi('r-puzzle', nilai.puzzle);
+      isi('k-puzzle', pz ? `${pz.benar}/${pz.total || jumlahBarisTersedia() * 4} kepingan benar · ${r.puzzleSalah} salah` : 'belum dimainkan');
+      isi('r-pokok', nilai.pokok);
+      isi('r-majas', state.ciptaan.length);
+
+      document.getElementById('identitas').textContent = indiv
+        ? `${state.tim || '-'}${state.absen ? ` · No. absen ${state.absen}` : ''}${state.kelas ? ` · ${state.kelas}` : ''}`
+        : `${state.tim || '-'}${state.kelas ? ` (${state.kelas})` : ''} · Anggota: ${state.anggota.join(', ') || '-'}`;
+      // Pratinjau memakai tampilan yang sama dengan yang dilihat guru (uid tidak diperlukan di sini).
+      const pratinjau = {
+        ...(majas ? { aktivitas: 'majas' } : {}),
+        lagu: Object.fromEntries(LAGU.filter((l) => state.lagu[l.id]).map((l) => [l.id, state.lagu[l.id]])),
+        ...(indiv ? {} : { peran: state.peran }),
+        puzzle: state.puzzle,
+        ciptaan: state.ciptaan,
+      };
+      document.getElementById('jawaban').innerHTML = JAWABAN.html(pratinjau);
+    }
+    renderRingkasan();
+    SESI.pantauLaguGuru(renderRingkasan);
 
     const statusEl = document.getElementById('status-kirim');
     const tombol = document.getElementById('kirim');

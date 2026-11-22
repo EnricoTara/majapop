@@ -79,6 +79,24 @@
         }
       }
     },
+    "lagu": {
+      "$guru": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $guru && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
+        "$id": {
+          ".validate": "newData.hasChildren(['judul', 'penyanyi', 'kutipan', 'majasId', 'makna'])",
+          "judul": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
+          "penyanyi": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 90" },
+          "kutipan": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 400" },
+          "majasId": { ".validate": "newData.isString() && newData.val().matches(/^(personifikasi|metafora|simile|hiperbola|repetisi|ironi|antitesis|sinekdoke)$/)" },
+          "makna": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 600" },
+          "youtubeId": { ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{6,20}$/)" },
+          "dibuat": { ".validate": "newData.isNumber()" },
+          "diubah": { ".validate": "newData.isNumber()" },
+          "$lain": { ".validate": false }
+        }
+      }
+    },
     "guru": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid && auth.token.email.matches(/^(rediva|endah|guru\\.a|guru\\.b|guru\\.c)@majapop\\.web\\.app$/)",
